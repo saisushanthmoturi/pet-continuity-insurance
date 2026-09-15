@@ -1,0 +1,19 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: ClaimsService
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/claims_db
+    username: root
+    password: ""
+    pool:
+      enabled: true
+      initial-size: 5
+      max-size: 20
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

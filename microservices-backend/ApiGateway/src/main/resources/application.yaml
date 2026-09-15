@@ -1,0 +1,70 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ApiGateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+          routes:
+            - id: auth-service
+              uri: lb://AuthService
+              predicates:
+                - Path=/api/auth/**
+            - id: customer-service
+              uri: lb://CustomerService
+              predicates:
+                - Path=/api/customers/**
+            - id: pet-service
+              uri: lb://PetService
+              predicates:
+                - Path=/api/pets/**
+            - id: underwriting-service
+              uri: lb://UnderWritingRiskService
+              predicates:
+                - Path=/api/underwriting/**
+            - id: policy-service
+              uri: lb://PolicyService
+              predicates:
+                - Path=/api/policies/**
+            - id: claims-service
+              uri: lb://ClaimsService
+              predicates:
+                - Path=/api/claims/**
+            - id: payment-service
+              uri: lb://PaymentFundService
+              predicates:
+                - Path=/api/payments/**
+            - id: care-service
+              uri: lb://CareVerificationService
+              predicates:
+                - Path=/api/care/**
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:4200"
+                  - "http://localhost:4201"
+                  - "http://localhost:4202"
+                  - "http://localhost:4203"
+                  - "http://localhost:4204"
+                  - "http://localhost:4205"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders: "*"
+                allowCredentials: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

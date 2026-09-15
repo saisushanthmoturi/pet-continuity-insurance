@@ -1,0 +1,13 @@
+target/
+**/target/
+*.class
+.DS_Store
+**/.DS_Store
+.idea/
+**/.idea/
+*.iml
+**/*.iml
+.vscode/
+**/.vscode/
+*.log
+microservices-backend.zip
