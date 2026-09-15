@@ -18,7 +18,10 @@ public class UnderwritingRouter {
         return RouterFunctions.route()
                 .path("/api/underwriting", builder -> builder
                         .POST("/quotes", accept(MediaType.APPLICATION_JSON), handler::generateQuote)
+                        .GET("/quotes", handler::getAllQuotes)
                         .GET("/quotes/{id}", handler::getQuoteById)
+                        .PUT("/quotes/{id}", accept(MediaType.APPLICATION_JSON), handler::updateQuote)
+                        .DELETE("/quotes/{id}", handler::deleteQuote)
                         .GET("/risk-monitoring/{petId}", handler::getRiskMonitoring)
                 )
                 .build();

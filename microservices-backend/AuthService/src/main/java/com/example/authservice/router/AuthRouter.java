@@ -20,6 +20,10 @@ public class AuthRouter {
                         .POST("/register", accept(MediaType.APPLICATION_JSON), handler::register)
                         .POST("/login", accept(MediaType.APPLICATION_JSON), handler::login)
                         .GET("/validate", handler::validate)
+                        .GET("/users", handler::getAllUsers)
+                        .GET("/users/{id}", handler::getUserById)
+                        .PUT("/users/{id}", accept(MediaType.APPLICATION_JSON), handler::updateUser)
+                        .DELETE("/users/{id}", handler::deleteUser)
                 )
                 .build();
     }

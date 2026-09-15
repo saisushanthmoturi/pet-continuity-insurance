@@ -17,34 +17,74 @@ spring:
               uri: lb://AuthService
               predicates:
                 - Path=/api/auth/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: authServiceCB
+                    fallbackUri: forward:/fallback/AuthService
             - id: customer-service
               uri: lb://CustomerService
               predicates:
                 - Path=/api/customers/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: customerServiceCB
+                    fallbackUri: forward:/fallback/CustomerService
             - id: pet-service
               uri: lb://PetService
               predicates:
                 - Path=/api/pets/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: petServiceCB
+                    fallbackUri: forward:/fallback/PetService
             - id: underwriting-service
               uri: lb://UnderWritingRiskService
               predicates:
                 - Path=/api/underwriting/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: underwritingServiceCB
+                    fallbackUri: forward:/fallback/UnderWritingRiskService
             - id: policy-service
               uri: lb://PolicyService
               predicates:
                 - Path=/api/policies/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: policyServiceCB
+                    fallbackUri: forward:/fallback/PolicyService
             - id: claims-service
               uri: lb://ClaimsService
               predicates:
                 - Path=/api/claims/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: claimsServiceCB
+                    fallbackUri: forward:/fallback/ClaimsService
             - id: payment-service
               uri: lb://PaymentFundService
               predicates:
-                - Path=/api/payments/**
+                - Path=/api/payments/**, /api/funds/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: paymentFundServiceCB
+                    fallbackUri: forward:/fallback/PaymentFundService
             - id: care-service
               uri: lb://CareVerificationService
               predicates:
                 - Path=/api/care/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: careVerificationServiceCB
+                    fallbackUri: forward:/fallback/CareVerificationService
           globalcors:
             cors-configurations:
               '[/**]':
@@ -68,3 +108,28 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      default:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000ms
+        permittedNumberOfCallsInHalfOpenState: 3

@@ -74,4 +74,42 @@ public class PetService {
     public Flux<PetMedicalRecord> getMedicalRecordsByPetId(Long petId) {
         return medicalRecordRepository.findByPetId(petId);
     }
+
+    public Flux<Pet> getAllPets() {
+        return petRepository.findAll();
+    }
+
+    public Mono<Pet> updatePet(Long id, PetRequest req) {
+        return petRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Pet not found with id: " + id)))
+                .flatMap(pet -> {
+                    if (req.name() != null && !req.name().isBlank()) pet.setName(req.name());
+                    if (req.species() != null && !req.species().isBlank()) pet.setSpecies(req.species());
+                    if (req.breed() != null && !req.breed().isBlank()) pet.setBreed(req.breed());
+                    if (req.age() != null) pet.setAge(req.age());
+                    if (req.weight() != null) pet.setWeight(req.weight());
+                    if (req.gender() != null) pet.setGender(req.gender());
+                    if (req.estimatedAnnualCareCost() != null) pet.setEstimatedAnnualCareCost(req.estimatedAnnualCareCost());
+                    return petRepository.save(pet)
+                            .doOnSuccess(p -> log.info("Updated pet id={}, name={}", p.getId(), p.getName()));
+                });
+    }
+
+    public Mono<Void> deletePet(Long id) {
+        return petRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Pet not found with id: " + id)))
+                .flatMap(petRepository::delete)
+                .doOnSuccess(v -> log.info("Deleted pet id={}", id));
+    }
+
+    public Flux<PetMedicalRecord> getAllMedicalRecords() {
+        return medicalRecordRepository.findAll();
+    }
+
+    public Mono<Void> deleteMedicalRecord(Long recordId) {
+        return medicalRecordRepository.findById(recordId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Medical record not found with id: " + recordId)))
+                .flatMap(medicalRecordRepository::delete)
+                .doOnSuccess(v -> log.info("Deleted medical record id={}", recordId));
+    }
 }

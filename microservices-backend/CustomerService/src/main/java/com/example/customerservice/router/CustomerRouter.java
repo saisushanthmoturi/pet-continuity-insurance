@@ -18,9 +18,11 @@ public class CustomerRouter {
         return RouterFunctions.route()
                 .path("/api/customers", builder -> builder
                         .POST("", accept(MediaType.APPLICATION_JSON), handler::createCustomer)
+                        .GET("", handler::getAllCustomers)
                         .GET("/user/{userId}", handler::getCustomerByUserId)
                         .GET("/{id}", handler::getCustomerById)
                         .PUT("/{id}", accept(MediaType.APPLICATION_JSON), handler::updateCustomer)
+                        .DELETE("/{id}", handler::deleteCustomer)
                 )
                 .build();
     }

@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -74,5 +75,33 @@ public class AuthService {
                 "email", claims.get("email"),
                 "role", claims.get("role")
         ));
+    }
+
+    public Flux<com.example.authservice.dto.UserDto> getAllUsers() {
+        return userRepository.findAll()
+                .map(u -> new com.example.authservice.dto.UserDto(u.getId(), u.getEmail(), u.getFullName(), u.getRole(), u.getCreatedAt()));
+    }
+
+    public Mono<com.example.authservice.dto.UserDto> getUserById(Long id) {
+        return userRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("User not found with id: " + id)))
+                .map(u -> new com.example.authservice.dto.UserDto(u.getId(), u.getEmail(), u.getFullName(), u.getRole(), u.getCreatedAt()));
+    }
+
+    public Mono<com.example.authservice.dto.UserDto> updateUser(Long id, com.example.authservice.dto.UserUpdateRequest req) {
+        return userRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("User not found with id: " + id)))
+                .flatMap(u -> {
+                    if (req.fullName() != null && !req.fullName().isBlank()) u.setFullName(req.fullName().trim());
+                    if (req.role() != null && !req.role().isBlank()) u.setRole(req.role().toUpperCase().trim());
+                    return userRepository.save(u);
+                })
+                .map(u -> new com.example.authservice.dto.UserDto(u.getId(), u.getEmail(), u.getFullName(), u.getRole(), u.getCreatedAt()));
+    }
+
+    public Mono<Void> deleteUser(Long id) {
+        return userRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("User not found with id: " + id)))
+                .flatMap(u -> userRepository.delete(u));
     }
 }

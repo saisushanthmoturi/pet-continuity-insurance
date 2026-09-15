@@ -59,4 +59,46 @@ public class AuthHandler {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(Map.of("error", e.getMessage())));
     }
+
+    public Mono<ServerResponse> getAllUsers(ServerRequest request) {
+        return com.example.authservice.util.SecurityUtil.checkRole(request, new String[]{"ADMIN"}, () ->
+                ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(authService.getAllUsers(), Object.class)
+        );
+    }
+
+    public Mono<ServerResponse> getUserById(ServerRequest request) {
+        return com.example.authservice.util.SecurityUtil.checkRole(request, new String[]{"ADMIN"}, () -> {
+            Long id = Long.valueOf(request.pathVariable("id"));
+            return authService.getUserById(id)
+                    .flatMap(u -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(u))
+                    .onErrorResume(e -> ServerResponse.status(HttpStatus.NOT_FOUND)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(Map.of("error", e.getMessage())));
+        });
+    }
+
+    public Mono<ServerResponse> updateUser(ServerRequest request) {
+        return com.example.authservice.util.SecurityUtil.checkRole(request, new String[]{"ADMIN"}, () -> {
+            Long id = Long.valueOf(request.pathVariable("id"));
+            return request.bodyToMono(com.example.authservice.dto.UserUpdateRequest.class)
+                    .flatMap(req -> authService.updateUser(id, req))
+                    .flatMap(u -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(u))
+                    .onErrorResume(e -> ServerResponse.status(HttpStatus.BAD_REQUEST)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(Map.of("error", e.getMessage())));
+        });
+    }
+
+    public Mono<ServerResponse> deleteUser(ServerRequest request) {
+        return com.example.authservice.util.SecurityUtil.checkRole(request, new String[]{"ADMIN"}, () -> {
+            Long id = Long.valueOf(request.pathVariable("id"));
+            return authService.deleteUser(id)
+                    .then(ServerResponse.noContent().build())
+                    .onErrorResume(e -> ServerResponse.status(HttpStatus.NOT_FOUND)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(Map.of("error", e.getMessage())));
+        });
+    }
 }

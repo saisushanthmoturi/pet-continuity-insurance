@@ -50,6 +50,34 @@ public class CareService {
                 .doOnSuccess(c -> log.info("Saved caretaker id={}, name={}, type={}, petId={}", c.getId(), c.getFullName(), c.getCaretakerType(), c.getPetId()));
     }
 
+    public Flux<Caretaker> getAllCaretakers() {
+        return caretakerRepository.findAll();
+    }
+
+    public Mono<Caretaker> getCaretakerById(Long id) {
+        return caretakerRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Caretaker not found with id: " + id)));
+    }
+
+    public Mono<Caretaker> updateCaretaker(Long id, CaretakerRequest req) {
+        return caretakerRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Caretaker not found with id: " + id)))
+                .flatMap(c -> {
+                    if (req.fullName() != null) c.setFullName(req.fullName().trim());
+                    if (req.phone() != null) c.setPhone(req.phone().trim());
+                    if (req.email() != null) c.setEmail(req.email().trim());
+                    if (req.caretakerType() != null) c.setCaretakerType(req.caretakerType().toUpperCase());
+                    if (req.address() != null) c.setAddress(req.address());
+                    return caretakerRepository.save(c);
+                });
+    }
+
+    public Mono<Void> deleteCaretaker(Long id) {
+        return caretakerRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Caretaker not found with id: " + id)))
+                .flatMap(c -> caretakerRepository.delete(c));
+    }
+
     public Flux<Caretaker> getCaretakersByPetId(Long petId) {
         return caretakerRepository.findByPetId(petId);
     }
@@ -62,6 +90,42 @@ public class CareService {
                     return caretakerRepository.save(c)
                             .doOnSuccess(saved -> log.info("Updated caretaker id={} status to {}", saved.getId(), saved.getStatus()));
                 });
+    }
+
+    public Mono<Caretaker> transferToBackup(Long petId) {
+        return carePlanRepository.findByPetId(petId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("No care plan found for pet " + petId)))
+                .flatMap(plan -> {
+                    if (plan.getBackupCaretakerId() == null) {
+                        return Mono.error(new IllegalStateException("No backup caretaker defined in care plan"));
+                    }
+                    return caretakerRepository.findById(plan.getPrimaryCaretakerId())
+                            .flatMap(primary -> {
+                                primary.setStatus("UNAVAILABLE");
+                                return caretakerRepository.save(primary);
+                            })
+                            .then(caretakerRepository.findById(plan.getBackupCaretakerId())
+                                    .flatMap(backup -> {
+                                        backup.setCaretakerType("PRIMARY");
+                                        backup.setStatus("ACTIVE");
+                                        return caretakerRepository.save(backup);
+                                    }));
+                });
+    }
+
+    public Flux<CarePlan> getAllCarePlans() {
+        return carePlanRepository.findAll();
+    }
+
+    public Mono<CarePlan> getCarePlanById(Long id) {
+        return carePlanRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Care plan not found with id: " + id)));
+    }
+
+    public Mono<Void> deleteCarePlan(Long id) {
+        return carePlanRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Care plan not found with id: " + id)))
+                .flatMap(p -> carePlanRepository.delete(p));
     }
 
     public Mono<CarePlan> saveCarePlan(CarePlanRequest req) {
@@ -93,6 +157,21 @@ public class CareService {
     public Mono<CarePlan> getCarePlanByPetId(Long petId) {
         return carePlanRepository.findByPetId(petId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Care plan not found for petId: " + petId)));
+    }
+
+    public Flux<PetVerification> getAllVerifications() {
+        return verificationRepository.findAll();
+    }
+
+    public Mono<PetVerification> getVerificationById(Long id) {
+        return verificationRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Verification record not found with id: " + id)));
+    }
+
+    public Mono<Void> deleteVerification(Long id) {
+        return verificationRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Verification record not found with id: " + id)))
+                .flatMap(v -> verificationRepository.delete(v));
     }
 
     public Mono<PetVerification> recordVerification(VerificationRequest req) {

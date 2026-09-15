@@ -17,6 +17,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
+
 @Service
 public class PaymentFundService {
 
@@ -26,15 +29,18 @@ public class PaymentFundService {
     private final FundRepository fundRepository;
     private final TransactionRepository transactionRepository;
     private final WebClient webClient;
+    private final ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory;
 
     public PaymentFundService(PaymentRepository paymentRepository,
                               FundRepository fundRepository,
                               TransactionRepository transactionRepository,
-                              WebClient.Builder webClientBuilder) {
+                              WebClient.Builder webClientBuilder,
+                              ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
         this.paymentRepository = paymentRepository;
         this.fundRepository = fundRepository;
         this.transactionRepository = transactionRepository;
         this.webClient = webClientBuilder.build();
+        this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
     public Mono<PremiumPayment> processPremiumPayment(PaymentRequest req) {
@@ -47,20 +53,24 @@ public class PaymentFundService {
         String method = req.paymentMethod() != null ? req.paymentMethod() : "SIMULATED_CARD";
 
         PremiumPayment payment = PremiumPayment.create(req.policyId(), req.amount(), method, status);
+        ReactiveCircuitBreaker cb = circuitBreakerFactory.create("paymentCB");
 
         return paymentRepository.save(payment)
                 .flatMap(saved -> {
                     if ("SUCCESS".equals(status)) {
                         log.info("Payment SUCCESS for policyId={}, calling PolicyService to activate", req.policyId());
-                        return webClient.post()
-                                .uri("http://PolicyService/api/policies/{id}/activate", req.policyId())
-                                .retrieve()
-                                .toBodilessEntity()
-                                .thenReturn(saved)
-                                .onErrorResume(e -> {
-                                    log.warn("Could not activate policy via REST: {}", e.getMessage());
+                        return cb.run(
+                                webClient.post()
+                                        .uri("http://PolicyService/api/policies/{id}/activate", req.policyId())
+                                        .header("X-User-Role", "INTERNAL_SERVICE")
+                                        .retrieve()
+                                        .toBodilessEntity()
+                                        .thenReturn(saved),
+                                e -> {
+                                    log.warn("CircuitBreaker fallback: Could not activate policy via REST: {}", e.getMessage());
                                     return Mono.just(saved);
-                                });
+                                }
+                        );
                     } else {
                         log.warn("Simulated payment FAILED for policyId={}", req.policyId());
                         return Mono.just(saved);
@@ -108,21 +118,25 @@ public class PaymentFundService {
                         return Mono.error(new IllegalStateException("Fund is not ACTIVE. Current status: " + fund.getStatus()));
                     }
 
-                    // Call CareVerificationService to check eligibility
-                    return webClient.get()
-                            .uri(uriBuilder -> uriBuilder
-                                    .scheme("http")
-                                    .host("CareVerificationService")
-                                    .path("/api/care/eligibility/check")
-                                    .queryParam("petId", petId)
-                                    .queryParam("caretakerId", caretakerId)
-                                    .build())
-                            .retrieve()
-                            .bodyToMono(EligibilityResponse.class)
-                            .onErrorResume(e -> {
-                                log.warn("CareVerificationService unavailable: {}", e.getMessage());
+                    // Call CareVerificationService to check eligibility via Circuit Breaker
+                    ReactiveCircuitBreaker cb = circuitBreakerFactory.create("paymentCB");
+                    return cb.run(
+                            webClient.get()
+                                    .uri(uriBuilder -> uriBuilder
+                                            .scheme("http")
+                                            .host("CareVerificationService")
+                                            .path("/api/care/eligibility/check")
+                                            .queryParam("petId", petId)
+                                            .queryParam("caretakerId", caretakerId)
+                                            .build())
+                                    .header("X-User-Role", "INTERNAL_SERVICE")
+                                    .retrieve()
+                                    .bodyToMono(EligibilityResponse.class),
+                            e -> {
+                                log.warn("CircuitBreaker fallback: CareVerificationService unavailable: {}", e.getMessage());
                                 return Mono.just(new EligibilityResponse(false, "Care service unavailable", null));
-                            })
+                            }
+                    )
                             .flatMap(eligibility -> {
                                 if (eligibility.eligible()) {
                                     double allowance = fund.getMonthlyAllowance();
@@ -197,6 +211,46 @@ public class PaymentFundService {
                                 return transactionRepository.save(txn);
                             });
                 });
+    }
+
+    public Flux<PetContinuityFund> getAllFunds() {
+        return fundRepository.findAll();
+    }
+
+    public Mono<PetContinuityFund> updateFund(Long id, CreateFundRequest req) {
+        return fundRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Fund not found with id: " + id)))
+                .flatMap(fund -> {
+                    if (req.monthlyAllowance() != null) fund.setMonthlyAllowance(req.monthlyAllowance());
+                    if (req.vetReserve() != null) fund.setVetReserve(req.vetReserve());
+                    if (req.emergencyReserve() != null) fund.setEmergencyReserve(req.emergencyReserve());
+                    if (req.totalCoverage() != null) fund.setTotalFund(req.totalCoverage());
+                    return fundRepository.save(fund);
+                });
+    }
+
+    public Mono<PetContinuityFund> updateFundStatus(Long id, String status) {
+        return fundRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Fund not found with id: " + id)))
+                .flatMap(fund -> {
+                    fund.setStatus(status.toUpperCase());
+                    return fundRepository.save(fund);
+                });
+    }
+
+    public Mono<Void> deleteFund(Long id) {
+        return fundRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Fund not found with id: " + id)))
+                .flatMap(fund -> fundRepository.delete(fund));
+    }
+
+    public Flux<PremiumPayment> getAllPayments() {
+        return paymentRepository.findAll();
+    }
+
+    public Mono<PremiumPayment> getPaymentById(Long id) {
+        return paymentRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Payment not found with id: " + id)));
     }
 
     public Mono<PetContinuityFund> getFundById(Long id) {

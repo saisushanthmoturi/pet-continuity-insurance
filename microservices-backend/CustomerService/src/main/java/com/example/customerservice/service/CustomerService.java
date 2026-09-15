@@ -64,4 +64,15 @@ public class CustomerService {
                     return customerRepository.save(c);
                 });
     }
+
+    public reactor.core.publisher.Flux<Customer> getAll() {
+        return customerRepository.findAll();
+    }
+
+    public Mono<Void> deleteCustomer(Long id) {
+        return customerRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Customer not found with id: " + id)))
+                .flatMap(customerRepository::delete)
+                .doOnSuccess(v -> log.info("Deleted customer profile id={}", id));
+    }
 }

@@ -13,6 +13,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
+
 @Service
 public class PolicyService {
 
@@ -21,24 +24,36 @@ public class PolicyService {
     private final PolicyRepository policyRepository;
     private final PolicyStatusHistoryRepository historyRepository;
     private final WebClient webClient;
+    private final ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory;
 
     public PolicyService(PolicyRepository policyRepository,
                          PolicyStatusHistoryRepository historyRepository,
-                         WebClient.Builder webClientBuilder) {
+                         WebClient.Builder webClientBuilder,
+                         ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
         this.policyRepository = policyRepository;
         this.historyRepository = historyRepository;
         this.webClient = webClientBuilder.build();
+        this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
     public Mono<PolicyResponse> createPolicyFromQuote(Long quoteId) {
+        ReactiveCircuitBreaker cb = circuitBreakerFactory.create("policyCB");
+
         return policyRepository.findByQuoteId(quoteId)
                 .map(this::toResponse)
                 .switchIfEmpty(Mono.defer(() ->
-                        webClient.get()
-                                .uri("http://UnderWritingRiskService/api/underwriting/quotes/{id}", quoteId)
-                                .retrieve()
-                                .bodyToMono(QuoteDto.class)
-                                .switchIfEmpty(Mono.error(new IllegalArgumentException("Quote not found with id: " + quoteId)))
+                        cb.run(
+                                webClient.get()
+                                        .uri("http://UnderWritingRiskService/api/underwriting/quotes/{id}", quoteId)
+                                        .header("X-User-Role", "INTERNAL_SERVICE")
+                                        .retrieve()
+                                        .bodyToMono(QuoteDto.class),
+                                e -> {
+                                    log.error("CircuitBreaker fallback for UnderWritingRiskService: {}", e.getMessage());
+                                    return Mono.error(new IllegalStateException("Underwriting service unavailable to fetch quote: " + quoteId));
+                                }
+                        )
+                        .switchIfEmpty(Mono.error(new IllegalArgumentException("Quote not found with id: " + quoteId)))
                                 .flatMap(quote -> {
                                     if ("REJECTED".equalsIgnoreCase(quote.decision())) {
                                         return Mono.error(new IllegalStateException("Cannot create policy for rejected quote: " + quoteId));
@@ -113,6 +128,28 @@ public class PolicyService {
 
     public Flux<PolicyResponse> getByCustomerId(Long customerId) {
         return policyRepository.findByCustomerId(customerId).map(this::toResponse);
+    }
+
+    public Flux<PolicyResponse> getAll() {
+        return policyRepository.findAll().map(this::toResponse);
+    }
+
+    public Mono<PolicyResponse> updatePolicy(Long id, Policy updated) {
+        return policyRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Policy not found with id: " + id)))
+                .flatMap(existing -> {
+                    if (updated.getCoverageAmount() != null) existing.setCoverageAmount(updated.getCoverageAmount());
+                    if (updated.getMonthlyPremium() != null) existing.setMonthlyPremium(updated.getMonthlyPremium());
+                    if (updated.getStatus() != null) existing.setStatus(updated.getStatus());
+                    return policyRepository.save(existing).map(this::toResponse);
+                });
+    }
+
+    public Mono<Void> deletePolicy(Long id) {
+        return policyRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Policy not found with id: " + id)))
+                .flatMap(policyRepository::delete)
+                .doOnSuccess(v -> log.info("Deleted policy id={}", id));
     }
 
     private PolicyResponse toResponse(Policy p) {

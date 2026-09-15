@@ -18,10 +18,14 @@ public class PetRouter {
         return RouterFunctions.route()
                 .path("/api/pets", builder -> builder
                         .POST("", accept(MediaType.APPLICATION_JSON), handler::createPet)
+                        .GET("", handler::getAllPets)
                         .GET("/customer/{customerId}", handler::getPetsByCustomerId)
                         .POST("/{id}/medical-records", accept(MediaType.APPLICATION_JSON), handler::addMedicalRecord)
                         .GET("/{id}/medical-records", handler::getMedicalRecordsByPetId)
+                        .DELETE("/medical-records/{recordId}", handler::deleteMedicalRecord)
                         .GET("/{id}", handler::getPetById)
+                        .PUT("/{id}", accept(MediaType.APPLICATION_JSON), handler::updatePet)
+                        .DELETE("/{id}", handler::deletePet)
                 )
                 .build();
     }

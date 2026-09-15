@@ -1,9 +1,6 @@
 package com.example.underwritingriskservice.service;
 
-import com.example.underwritingriskservice.dto.MedicalRecordDto;
-import com.example.underwritingriskservice.dto.PetDto;
-import com.example.underwritingriskservice.dto.QuoteRequest;
-import com.example.underwritingriskservice.dto.QuoteResponse;
+import com.example.underwritingriskservice.dto.*;
 import com.example.underwritingriskservice.model.Quote;
 import com.example.underwritingriskservice.model.RiskAssessment;
 import com.example.underwritingriskservice.repository.QuoteRepository;
@@ -16,6 +13,9 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
+
 @Service
 public class UnderwritingService {
 
@@ -24,13 +24,16 @@ public class UnderwritingService {
     private final QuoteRepository quoteRepository;
     private final RiskAssessmentRepository riskAssessmentRepository;
     private final WebClient webClient;
+    private final ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory;
 
     public UnderwritingService(QuoteRepository quoteRepository,
                                RiskAssessmentRepository riskAssessmentRepository,
-                               WebClient.Builder webClientBuilder) {
+                               WebClient.Builder webClientBuilder,
+                               ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
         this.quoteRepository = quoteRepository;
         this.riskAssessmentRepository = riskAssessmentRepository;
         this.webClient = webClientBuilder.build();
+        this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
     public Mono<QuoteResponse> generateQuote(QuoteRequest req) {
@@ -38,27 +41,69 @@ public class UnderwritingService {
             return Mono.error(new IllegalArgumentException("customerId, petId, and valid requestedCoverage are required"));
         }
 
-        // Fetch pet profile and medical records from PetService
-        Mono<PetDto> petMono = webClient.get()
-                .uri("http://PetService/api/pets/{id}", req.petId())
-                .retrieve()
-                .bodyToMono(PetDto.class)
-                .onErrorResume(e -> {
-                    log.warn("Failed to fetch pet from PetService, using fallback: {}", e.getMessage());
+        ReactiveCircuitBreaker cb = circuitBreakerFactory.create("underwritingCB");
+
+        // 1. Fetch pet profile from PetService
+        Mono<PetDto> petMono = cb.run(
+                webClient.get()
+                        .uri("http://PetService/api/pets/{id}", req.petId())
+                        .header("X-User-Role", "INTERNAL_SERVICE")
+                        .retrieve()
+                        .bodyToMono(PetDto.class),
+                e -> {
+                    log.warn("CircuitBreaker fallback for PetService: {}", e.getMessage());
                     return Mono.just(new PetDto(req.petId(), req.customerId(), "Pet", "Dog", "Mixed", 5, 20.0, "Unknown", 1200.0));
-                });
+                }
+        );
 
-        Mono<List<MedicalRecordDto>> medRecordsMono = webClient.get()
-                .uri("http://PetService/api/pets/{id}/medical-records", req.petId())
-                .retrieve()
-                .bodyToFlux(MedicalRecordDto.class)
-                .collectList()
-                .onErrorReturn(List.of());
+        // 2. Fetch medical records from PetService
+        Mono<List<MedicalRecordDto>> medRecordsMono = cb.run(
+                webClient.get()
+                        .uri("http://PetService/api/pets/{id}/medical-records", req.petId())
+                        .header("X-User-Role", "INTERNAL_SERVICE")
+                        .retrieve()
+                        .bodyToFlux(MedicalRecordDto.class)
+                        .collectList(),
+                e -> {
+                    log.warn("CircuitBreaker fallback for Pet medical records: {}", e.getMessage());
+                    return Mono.just(List.of());
+                }
+        );
 
-        return Mono.zip(petMono, medRecordsMono)
+        // 3. Fetch customer profile from CustomerService
+        Mono<CustomerDto> customerMono = cb.run(
+                webClient.get()
+                        .uri("http://CustomerService/api/customers/{id}", req.customerId())
+                        .header("X-User-Role", "INTERNAL_SERVICE")
+                        .retrieve()
+                        .bodyToMono(CustomerDto.class),
+                e -> {
+                    log.warn("CircuitBreaker fallback for CustomerService: {}", e.getMessage());
+                    return Mono.just(new CustomerDto(req.customerId(), null, "Policyholder", "", "", ""));
+                }
+        );
+
+        // 4. Fetch care plan from CareVerificationService
+        Mono<CarePlanDto> carePlanMono = cb.run(
+                webClient.get()
+                        .uri("http://CareVerificationService/api/care/care-plans/pet/{petId}", req.petId())
+                        .header("X-User-Role", "INTERNAL_SERVICE")
+                        .retrieve()
+                        .bodyToMono(CarePlanDto.class),
+                e -> {
+                    log.warn("CircuitBreaker fallback for CareVerificationService: {}", e.getMessage());
+                    return Mono.empty();
+                }
+        );
+
+        return Mono.zip(petMono, medRecordsMono, customerMono)
                 .flatMap(tuple -> {
                     PetDto pet = tuple.getT1();
                     List<MedicalRecordDto> medRecords = tuple.getT2();
+                    CustomerDto customer = tuple.getT3();
+
+                    log.info("Evaluating underwriting for customer '{}' and pet '{}' (breed: {}, age: {})",
+                            customer.fullName(), pet.name(), pet.breed(), pet.age());
 
                     // Actuarial calculation
                     double ageFactor = Math.max(0, (pet.age() - 3) * 5.0);
@@ -180,5 +225,58 @@ public class UnderwritingService {
                             ass.getProjectedCareLiability(), ass.getCoverageGap(), ass.getRiskLevel(), null
                     ));
                 });
+    }
+
+    public reactor.core.publisher.Flux<QuoteResponse> getAllQuotes() {
+        return quoteRepository.findAll()
+                .flatMap(quote -> riskAssessmentRepository.findByQuoteId(quote.getId())
+                        .map(ass -> new QuoteResponse(
+                                quote.getId(),
+                                quote.getCustomerId(),
+                                quote.getPetId(),
+                                quote.getRequestedCoverage(),
+                                quote.getMonthlyPremium(),
+                                quote.getRiskScore(),
+                                quote.getDecision(),
+                                quote.getStatus(),
+                                ass.getProjectedCareLiability(),
+                                ass.getCoverageGap(),
+                                ass.getRiskLevel(),
+                                quote.getValidUntil()
+                        ))
+                        .defaultIfEmpty(new QuoteResponse(
+                                quote.getId(),
+                                quote.getCustomerId(),
+                                quote.getPetId(),
+                                quote.getRequestedCoverage(),
+                                quote.getMonthlyPremium(),
+                                quote.getRiskScore(),
+                                quote.getDecision(),
+                                quote.getStatus(),
+                                0.0, 0.0, "MODERATE",
+                                quote.getValidUntil()
+                        )));
+    }
+
+    public Mono<QuoteResponse> updateQuote(Long id, QuoteRequest req) {
+        return quoteRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Quote not found with id: " + id)))
+                .flatMap(quote -> {
+                    if (req.requestedCoverage() != null && req.requestedCoverage() > 0) {
+                        quote.setRequestedCoverage(req.requestedCoverage());
+                        // Recalculate premium based on existing score
+                        double multiplier = quote.getRiskScore() <= 40 ? 1.0 : (quote.getRiskScore() <= 70 ? 1.35 : 1.75);
+                        quote.setMonthlyPremium(Math.round((req.requestedCoverage() * 0.003 * multiplier) * 100.0) / 100.0);
+                    }
+                    return quoteRepository.save(quote)
+                            .flatMap(saved -> getQuoteById(saved.getId()));
+                });
+    }
+
+    public Mono<Void> deleteQuote(Long id) {
+        return quoteRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Quote not found with id: " + id)))
+                .flatMap(quoteRepository::delete)
+                .doOnSuccess(v -> log.info("Deleted quote id={}", id));
     }
 }
