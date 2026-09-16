@@ -2,9 +2,9 @@ package com.example.customerservice.handler;
 
 import com.example.customerservice.dto.CustomerRequest;
 import com.example.customerservice.service.CustomerService;
-import com.example.customerservice.util.SecurityUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -22,73 +22,85 @@ public class CustomerHandler {
     }
 
     public Mono<ServerResponse> createCustomer(ServerRequest request) {
-        return SecurityUtil.checkRole(request, new String[]{"CUSTOMER", "ADMIN"}, () ->
-                request.bodyToMono(CustomerRequest.class)
-                        .flatMap(customerService::createCustomer)
-                        .flatMap(created -> ServerResponse.status(HttpStatus.CREATED)
+        return request.bodyToMono(CustomerRequest.class)
+                .flatMap(customerService::createCustomer)
+                .flatMap(created -> ServerResponse.status(HttpStatus.CREATED)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(created))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue(created))
-                        .onErrorResume(IllegalArgumentException.class, e ->
-                                ServerResponse.status(HttpStatus.BAD_REQUEST)
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .bodyValue(Map.of("error", e.getMessage())))
-        );
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.BAD_REQUEST)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
     }
 
     public Mono<ServerResponse> getCustomerById(ServerRequest request) {
-        return SecurityUtil.checkRole(request, new String[]{"CUSTOMER", "ADMIN", "UNDERWRITER", "CLAIMS_OFFICER"}, () -> {
-            Long id = Long.valueOf(request.pathVariable("id"));
-            return customerService.getById(id)
-                    .flatMap(c -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(c))
-                    .onErrorResume(IllegalArgumentException.class, e ->
-                            ServerResponse.status(HttpStatus.NOT_FOUND)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .bodyValue(Map.of("error", e.getMessage())));
-        });
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return customerService.getById(id)
+                .flatMap(c -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(c))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
     }
 
     public Mono<ServerResponse> getCustomerByUserId(ServerRequest request) {
-        return SecurityUtil.checkRole(request, new String[]{"CUSTOMER", "ADMIN"}, () -> {
-            Long userId = Long.valueOf(request.pathVariable("userId"));
-            return customerService.getByUserId(userId)
-                    .flatMap(c -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(c))
-                    .onErrorResume(IllegalArgumentException.class, e ->
-                            ServerResponse.status(HttpStatus.NOT_FOUND)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .bodyValue(Map.of("error", e.getMessage())));
-        });
+        Long userId = Long.valueOf(request.pathVariable("userId"));
+        return customerService.getByUserId(userId)
+                .flatMap(c -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(c))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
     }
 
     public Mono<ServerResponse> updateCustomer(ServerRequest request) {
-        return SecurityUtil.checkRole(request, new String[]{"CUSTOMER", "ADMIN"}, () -> {
-            Long id = Long.valueOf(request.pathVariable("id"));
-            return request.bodyToMono(CustomerRequest.class)
-                    .flatMap(req -> customerService.updateCustomer(id, req))
-                    .flatMap(updated -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(updated))
-                    .onErrorResume(IllegalArgumentException.class, e ->
-                            ServerResponse.status(HttpStatus.BAD_REQUEST)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .bodyValue(Map.of("error", e.getMessage())));
-        });
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return request.bodyToMono(CustomerRequest.class)
+                .flatMap(req -> customerService.updateCustomer(id, req))
+                .flatMap(updated -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(updated))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.BAD_REQUEST)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
     }
 
     public Mono<ServerResponse> getAllCustomers(ServerRequest request) {
-        return SecurityUtil.checkRole(request, new String[]{"ADMIN"}, () ->
-                ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(customerService.getAll(), Object.class)
-        );
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(customerService.getAll(), Object.class)
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
     }
 
     public Mono<ServerResponse> deleteCustomer(ServerRequest request) {
-        return SecurityUtil.checkRole(request, new String[]{"ADMIN"}, () -> {
-            Long id = Long.valueOf(request.pathVariable("id"));
-            return customerService.deleteCustomer(id)
-                    .then(ServerResponse.noContent().build())
-                    .onErrorResume(IllegalArgumentException.class, e ->
-                            ServerResponse.status(HttpStatus.NOT_FOUND)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .bodyValue(Map.of("error", e.getMessage())));
-        });
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return customerService.deleteCustomer(id)
+                .then(ServerResponse.noContent().build())
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
     }
 }

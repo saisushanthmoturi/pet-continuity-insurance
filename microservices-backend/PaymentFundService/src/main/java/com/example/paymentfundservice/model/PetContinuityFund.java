@@ -6,11 +6,12 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 
-@Table("pet_continuity_funds")
+@Table("pet_care_funds")
 public class PetContinuityFund {
 
     @Id
-    private Long id;
+    @Column("fund_id")
+    private Long fundId;
 
     @Column("policy_id")
     private Long policyId;
@@ -18,67 +19,85 @@ public class PetContinuityFund {
     @Column("pet_id")
     private Long petId;
 
-    @Column("total_fund")
-    private Double totalFund;
+    @Column("total_amount")
+    private Double totalAmount;
 
-    @Column("current_balance")
-    private Double currentBalance;
+    @Column("available_amount")
+    private Double availableAmount;
 
     @Column("monthly_allowance")
     private Double monthlyAllowance;
 
-    @Column("vet_reserve")
-    private Double vetReserve;
+    @Column("veterinary_reserve")
+    private Double veterinaryReserve;
 
     @Column("emergency_reserve")
     private Double emergencyReserve;
 
     @Column("status")
-    private String status; // ACTIVE, SUSPENDED, DEPLETED
+    private String status = "ACTIVE"; // ACTIVE, SUSPENDED, DEPLETED
 
     @Column("created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column("updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     public PetContinuityFund() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        this.status = "ACTIVE";
     }
 
-    public PetContinuityFund(Long id, Long policyId, Long petId, Double totalFund, Double currentBalance, Double monthlyAllowance, Double vetReserve, Double emergencyReserve, String status, LocalDateTime createdAt) {
-        this.id = id;
+    public PetContinuityFund(Long fundId, Long policyId, Long petId, Double totalAmount, Double availableAmount,
+                             Double monthlyAllowance, Double veterinaryReserve, Double emergencyReserve,
+                             String status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.fundId = fundId;
         this.policyId = policyId;
         this.petId = petId;
-        this.totalFund = totalFund;
-        this.currentBalance = currentBalance;
+        this.totalAmount = totalAmount;
+        this.availableAmount = availableAmount;
         this.monthlyAllowance = monthlyAllowance;
-        this.vetReserve = vetReserve;
+        this.veterinaryReserve = veterinaryReserve;
         this.emergencyReserve = emergencyReserve;
-        this.status = status;
-        this.createdAt = createdAt;
+        this.status = status != null ? status : "ACTIVE";
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+        this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
     }
 
     public static PetContinuityFund create(Long policyId, Long petId, Double totalFund, Double monthlyAllowance, Double vetReserve, Double emergencyReserve) {
         double monthly = monthlyAllowance != null ? monthlyAllowance : 300.0;
         double vet = vetReserve != null ? vetReserve : 4000.0;
-        double emergency = emergencyReserve != null ? emergencyReserve : 2000.0;
-        return new PetContinuityFund(
-                null,
-                policyId,
-                petId,
-                totalFund,
-                totalFund,
-                monthly,
-                vet,
-                emergency,
-                "ACTIVE",
-                LocalDateTime.now()
-        );
+        double emg = emergencyReserve != null ? emergencyReserve : 2000.0;
+        double total = totalFund != null ? totalFund : 25000.0;
+        PetContinuityFund fund = new PetContinuityFund();
+        fund.setPolicyId(policyId);
+        fund.setPetId(petId);
+        fund.setTotalAmount(total);
+        fund.setAvailableAmount(total);
+        fund.setMonthlyAllowance(monthly);
+        fund.setVeterinaryReserve(vet);
+        fund.setEmergencyReserve(emg);
+        fund.setStatus("ACTIVE");
+        fund.setCreatedAt(LocalDateTime.now());
+        fund.setUpdatedAt(LocalDateTime.now());
+        return fund;
     }
 
     public Long getId() {
-        return id;
+        return fundId;
     }
 
     public void setId(Long id) {
-        this.id = id;
+        this.fundId = id;
+    }
+
+    public Long getFundId() {
+        return fundId;
+    }
+
+    public void setFundId(Long fundId) {
+        this.fundId = fundId;
     }
 
     public Long getPolicyId() {
@@ -97,20 +116,36 @@ public class PetContinuityFund {
         this.petId = petId;
     }
 
+    public Double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
     public Double getTotalFund() {
-        return totalFund;
+        return totalAmount;
     }
 
     public void setTotalFund(Double totalFund) {
-        this.totalFund = totalFund;
+        this.totalAmount = totalFund;
+    }
+
+    public Double getAvailableAmount() {
+        return availableAmount;
+    }
+
+    public void setAvailableAmount(Double availableAmount) {
+        this.availableAmount = availableAmount;
     }
 
     public Double getCurrentBalance() {
-        return currentBalance;
+        return availableAmount;
     }
 
     public void setCurrentBalance(Double currentBalance) {
-        this.currentBalance = currentBalance;
+        this.availableAmount = currentBalance;
     }
 
     public Double getMonthlyAllowance() {
@@ -121,12 +156,20 @@ public class PetContinuityFund {
         this.monthlyAllowance = monthlyAllowance;
     }
 
+    public Double getVeterinaryReserve() {
+        return veterinaryReserve;
+    }
+
+    public void setVeterinaryReserve(Double veterinaryReserve) {
+        this.veterinaryReserve = veterinaryReserve;
+    }
+
     public Double getVetReserve() {
-        return vetReserve;
+        return veterinaryReserve;
     }
 
     public void setVetReserve(Double vetReserve) {
-        this.vetReserve = vetReserve;
+        this.veterinaryReserve = vetReserve;
     }
 
     public Double getEmergencyReserve() {
@@ -151,5 +194,13 @@ public class PetContinuityFund {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

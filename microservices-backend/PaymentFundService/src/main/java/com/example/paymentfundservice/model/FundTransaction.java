@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 public class FundTransaction {
 
     @Id
-    private Long id;
+    @Column("transaction_id")
+    private Long transactionId;
 
     @Column("fund_id")
     private Long fundId;
@@ -24,39 +25,64 @@ public class FundTransaction {
     @Column("balance_after")
     private Double balanceAfter;
 
+    @Column("reference_id")
+    private String referenceId;
+
     @Column("description")
     private String description;
 
     @Column("status")
-    private String status; // SUCCESS, SUSPENDED, FAILED
+    private String status = "SUCCESS"; // SUCCESS, SUSPENDED, FAILED
 
     @Column("created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public FundTransaction() {
+        this.createdAt = LocalDateTime.now();
+        this.status = "SUCCESS";
     }
 
-    public FundTransaction(Long id, Long fundId, String transactionType, Double amount, Double balanceAfter, String description, String status, LocalDateTime createdAt) {
-        this.id = id;
+    public FundTransaction(Long transactionId, Long fundId, String transactionType, Double amount,
+                           Double balanceAfter, String referenceId, String description,
+                           String status, LocalDateTime createdAt) {
+        this.transactionId = transactionId;
         this.fundId = fundId;
         this.transactionType = transactionType;
         this.amount = amount;
         this.balanceAfter = balanceAfter;
+        this.referenceId = referenceId;
         this.description = description;
-        this.status = status;
-        this.createdAt = createdAt;
+        this.status = status != null ? status : "SUCCESS";
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
     }
 
     public static FundTransaction create(Long fundId, String transactionType, Double amount, Double balanceAfter, String description, String status) {
-        return new FundTransaction(null, fundId, transactionType, amount, balanceAfter, description, status, LocalDateTime.now());
+        FundTransaction txn = new FundTransaction();
+        txn.setFundId(fundId);
+        txn.setTransactionType(transactionType);
+        txn.setAmount(amount);
+        txn.setBalanceAfter(balanceAfter);
+        txn.setDescription(description);
+        txn.setStatus(status);
+        txn.setReferenceId("TXN-" + System.currentTimeMillis());
+        txn.setCreatedAt(LocalDateTime.now());
+        return txn;
     }
 
     public Long getId() {
-        return id;
+        return transactionId;
     }
 
     public void setId(Long id) {
-        this.id = id;
+        this.transactionId = id;
+    }
+
+    public Long getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(Long transactionId) {
+        this.transactionId = transactionId;
     }
 
     public Long getFundId() {
@@ -89,6 +115,14 @@ public class FundTransaction {
 
     public void setBalanceAfter(Double balanceAfter) {
         this.balanceAfter = balanceAfter;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
     }
 
     public String getDescription() {

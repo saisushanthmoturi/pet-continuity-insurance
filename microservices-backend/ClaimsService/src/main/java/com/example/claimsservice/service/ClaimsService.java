@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -27,15 +28,16 @@ public class ClaimsService {
     private final ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory;
 
     public ClaimsService(ClaimRepository claimRepository,
-                         ClaimInvestigationRepository investigationRepository,
-                         WebClient.Builder webClientBuilder,
-                         ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
+                          ClaimInvestigationRepository investigationRepository,
+                          WebClient.Builder webClientBuilder,
+                          ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
         this.claimRepository = claimRepository;
         this.investigationRepository = investigationRepository;
         this.webClient = webClientBuilder.build();
         this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<ClaimResponse> fileClaim(ClaimRequest req) {
         if (req.policyId() == null || req.claimantName() == null || req.deathCertificateNo() == null) {
             return Mono.error(new IllegalArgumentException("policyId, claimantName, and deathCertificateNo are required"));
@@ -72,6 +74,7 @@ public class ClaimsService {
         });
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
     public Mono<ClaimResponse> verifyDeath(Long claimId, DeathVerificationRequest req) {
         return claimRepository.findById(claimId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Claim not found with id: " + claimId)))
@@ -89,6 +92,7 @@ public class ClaimsService {
                 });
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
     public Mono<ClaimResponse> investigateClaim(Long claimId) {
         ReactiveCircuitBreaker cb = circuitBreakerFactory.create("claimsCB");
 
@@ -178,11 +182,13 @@ public class ClaimsService {
                 });
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
     public Flux<ClaimResponse> getAll() {
         return claimRepository.findAll()
                 .flatMap(this::loadResponse);
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
     public Mono<ClaimResponse> updateClaim(Long id, ClaimRequest req) {
         return claimRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Claim not found with id: " + id)))
@@ -196,16 +202,19 @@ public class ClaimsService {
                 });
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Void> deleteClaim(Long id) {
         return claimRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Claim not found with id: " + id)))
                 .flatMap(claim -> claimRepository.delete(claim));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
     public Mono<ClaimResponse> approveClaim(Long id) {
         return investigateClaim(id);
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
     public Mono<ClaimResponse> rejectClaim(Long id, String reason) {
         return claimRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Claim not found with id: " + id)))
@@ -216,12 +225,14 @@ public class ClaimsService {
                 });
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
     public Mono<ClaimResponse> getById(Long id) {
         return claimRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Claim not found with id: " + id)))
                 .flatMap(this::loadResponse);
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
     public Flux<ClaimResponse> getByPolicyId(Long policyId) {
         return claimRepository.findByPolicyId(policyId)
                 .flatMap(this::loadResponse);

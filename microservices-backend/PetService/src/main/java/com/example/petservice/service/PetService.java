@@ -8,6 +8,7 @@ import com.example.petservice.repository.MedicalRecordRepository;
 import com.example.petservice.repository.PetRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -25,6 +26,7 @@ public class PetService {
         this.medicalRecordRepository = medicalRecordRepository;
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<Pet> createPet(PetRequest req) {
         if (req.customerId() == null || req.name() == null || req.species() == null || req.breed() == null || req.age() == null) {
             return Mono.error(new IllegalArgumentException("customerId, name, species, breed, and age are required"));
@@ -43,15 +45,18 @@ public class PetService {
                 .doOnSuccess(p -> log.info("Registered pet id={}, name={}, breed={}, customerId={}", p.getId(), p.getName(), p.getBreed(), p.getCustomerId()));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_CLAIMS_OFFICER', 'ROLE_CARETAKER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<Pet> getPetById(Long id) {
         return petRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Pet not found with id: " + id)));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_CLAIMS_OFFICER', 'ROLE_CARETAKER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Flux<Pet> getPetsByCustomerId(Long customerId) {
         return petRepository.findByCustomerId(customerId);
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<PetMedicalRecord> addMedicalRecord(Long petId, MedicalRecordRequest req) {
         if (req.conditionName() == null || req.conditionName().isBlank()) {
             return Mono.error(new IllegalArgumentException("conditionName is required"));
@@ -71,14 +76,17 @@ public class PetService {
                 });
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_CLAIMS_OFFICER', 'ROLE_CARETAKER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Flux<PetMedicalRecord> getMedicalRecordsByPetId(Long petId) {
         return medicalRecordRepository.findByPetId(petId);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Flux<Pet> getAllPets() {
         return petRepository.findAll();
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<Pet> updatePet(Long id, PetRequest req) {
         return petRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Pet not found with id: " + id)))
@@ -95,6 +103,7 @@ public class PetService {
                 });
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Void> deletePet(Long id) {
         return petRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Pet not found with id: " + id)))
@@ -102,10 +111,12 @@ public class PetService {
                 .doOnSuccess(v -> log.info("Deleted pet id={}", id));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Flux<PetMedicalRecord> getAllMedicalRecords() {
         return medicalRecordRepository.findAll();
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Void> deleteMedicalRecord(Long recordId) {
         return medicalRecordRepository.findById(recordId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Medical record not found with id: " + recordId)))

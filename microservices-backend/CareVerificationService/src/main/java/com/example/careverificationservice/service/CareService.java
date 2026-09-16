@@ -12,6 +12,7 @@ import com.example.careverificationservice.repository.CaretakerRepository;
 import com.example.careverificationservice.repository.VerificationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -33,6 +34,7 @@ public class CareService {
         this.verificationRepository = verificationRepository;
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<Caretaker> addCaretaker(CaretakerRequest req) {
         if (req.customerId() == null || req.petId() == null || req.fullName() == null || req.phone() == null) {
             return Mono.error(new IllegalArgumentException("customerId, petId, fullName, and phone are required"));
@@ -50,15 +52,18 @@ public class CareService {
                 .doOnSuccess(c -> log.info("Saved caretaker id={}, name={}, type={}, petId={}", c.getId(), c.getFullName(), c.getCaretakerType(), c.getPetId()));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Flux<Caretaker> getAllCaretakers() {
         return caretakerRepository.findAll();
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_CARETAKER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<Caretaker> getCaretakerById(Long id) {
         return caretakerRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Caretaker not found with id: " + id)));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<Caretaker> updateCaretaker(Long id, CaretakerRequest req) {
         return caretakerRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Caretaker not found with id: " + id)))
@@ -72,16 +77,19 @@ public class CareService {
                 });
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Void> deleteCaretaker(Long id) {
         return caretakerRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Caretaker not found with id: " + id)))
                 .flatMap(c -> caretakerRepository.delete(c));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_CARETAKER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Flux<Caretaker> getCaretakersByPetId(Long petId) {
         return caretakerRepository.findByPetId(petId);
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_CARETAKER', 'ROLE_ADMIN')")
     public Mono<Caretaker> updateCaretakerStatus(Long id, String status) {
         return caretakerRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Caretaker not found with id: " + id)))
@@ -92,6 +100,7 @@ public class CareService {
                 });
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Caretaker> transferToBackup(Long petId) {
         return carePlanRepository.findByPetId(petId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("No care plan found for pet " + petId)))
@@ -113,21 +122,25 @@ public class CareService {
                 });
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Flux<CarePlan> getAllCarePlans() {
         return carePlanRepository.findAll();
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_CARETAKER', 'ROLE_ADMIN')")
     public Mono<CarePlan> getCarePlanById(Long id) {
         return carePlanRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Care plan not found with id: " + id)));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Void> deleteCarePlan(Long id) {
         return carePlanRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Care plan not found with id: " + id)))
                 .flatMap(p -> carePlanRepository.delete(p));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<CarePlan> saveCarePlan(CarePlanRequest req) {
         if (req.petId() == null || req.primaryCaretakerId() == null) {
             return Mono.error(new IllegalArgumentException("petId and primaryCaretakerId are required"));
@@ -154,26 +167,31 @@ public class CareService {
                 }));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_CARETAKER', 'ROLE_UNDERWRITER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<CarePlan> getCarePlanByPetId(Long petId) {
         return carePlanRepository.findByPetId(petId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Care plan not found for petId: " + petId)));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Flux<PetVerification> getAllVerifications() {
         return verificationRepository.findAll();
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
     public Mono<PetVerification> getVerificationById(Long id) {
         return verificationRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Verification record not found with id: " + id)));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Void> deleteVerification(Long id) {
         return verificationRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Verification record not found with id: " + id)))
                 .flatMap(v -> verificationRepository.delete(v));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_ADMIN')")
     public Mono<PetVerification> recordVerification(VerificationRequest req) {
         if (req.petId() == null || req.caretakerId() == null) {
             return Mono.error(new IllegalArgumentException("petId and caretakerId are required"));
@@ -183,10 +201,12 @@ public class CareService {
                 .doOnSuccess(saved -> log.info("Recorded pet verification id={}, petId={}, status={}", saved.getId(), saved.getPetId(), saved.getStatus()));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
     public Flux<PetVerification> getVerificationsByPetId(Long petId) {
         return verificationRepository.findByPetIdOrderByCreatedAtDesc(petId);
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<EligibilityResponse> checkMonthlyEligibility(Long petId, Long caretakerId) {
         return caretakerRepository.findById(caretakerId)
                 .switchIfEmpty(Mono.defer(() ->

@@ -1,6 +1,7 @@
 package com.example.claimsservice.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -10,74 +11,127 @@ import java.time.LocalDateTime;
 public class Claim {
 
     @Id
-    private Long id;
-
-    @Column("claim_number")
-    private String claimNumber;
+    @Column("claim_id")
+    private Long claimId;
 
     @Column("policy_id")
     private Long policyId;
 
-    @Column("claimant_name")
-    private String claimantName;
+    @Column("customer_id")
+    private Long customerId;
 
-    @Column("relationship")
-    private String relationship;
+    @Column("pet_id")
+    private Long petId;
 
-    @Column("death_certificate_no")
-    private String deathCertificateNo;
+    @Column("claim_reason")
+    private String claimReason;
 
-    @Column("date_of_death")
-    private String dateOfDeath;
+    @Column("triggering_event")
+    private String triggeringEvent = "OWNER_DEATH";
+
+    @Column("claim_amount")
+    private Double claimAmount = 25000.0;
 
     @Column("status")
-    private String status; // PENDING, VERIFIED, INVESTIGATING, APPROVED, REJECTED, MANUAL_REVIEW
+    private String status = "PENDING"; // PENDING, VERIFIED, INVESTIGATING, APPROVED, REJECTED, MANUAL_REVIEW
 
-    @Column("rejection_reason")
+    @Column("priority")
+    private String priority = "NORMAL";
+
+    @Column("claims_officer_id")
+    private Long claimsOfficerId;
+
+    @Column("fraud_status")
+    private String fraudStatus = "CLEARED";
+
+    @Column("submitted_at")
+    private LocalDateTime submittedAt = LocalDateTime.now();
+
+    @Column("updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    // Transient fields for compatibility with existing service DTOs
+    @Transient
+    private String claimNumber;
+
+    @Transient
+    private String claimantName;
+
+    @Transient
+    private String relationship;
+
+    @Transient
+    private String deathCertificateNo;
+
+    @Transient
+    private String dateOfDeath;
+
+    @Transient
     private String rejectionReason;
 
-    @Column("notes")
+    @Transient
     private String notes;
 
-    @Column("created_at")
-    private LocalDateTime createdAt;
-
     public Claim() {
+        this.submittedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        this.triggeringEvent = "OWNER_DEATH";
+        this.claimAmount = 25000.0;
+        this.status = "PENDING";
+        this.priority = "NORMAL";
+        this.fraudStatus = "CLEARED";
     }
 
-    public Claim(Long id, String claimNumber, Long policyId, String claimantName, String relationship, String deathCertificateNo, String dateOfDeath, String status, String rejectionReason, String notes, LocalDateTime createdAt) {
-        this.id = id;
-        this.claimNumber = claimNumber;
+    public Claim(Long claimId, Long policyId, Long customerId, Long petId, String claimReason,
+                 String triggeringEvent, Double claimAmount, String status, String priority,
+                 Long claimsOfficerId, String fraudStatus, LocalDateTime submittedAt, LocalDateTime updatedAt) {
+        this.claimId = claimId;
         this.policyId = policyId;
-        this.claimantName = claimantName;
-        this.relationship = relationship;
-        this.deathCertificateNo = deathCertificateNo;
-        this.dateOfDeath = dateOfDeath;
-        this.status = status;
-        this.rejectionReason = rejectionReason;
-        this.notes = notes;
-        this.createdAt = createdAt;
+        this.customerId = customerId;
+        this.petId = petId;
+        this.claimReason = claimReason;
+        this.triggeringEvent = triggeringEvent != null ? triggeringEvent : "OWNER_DEATH";
+        this.claimAmount = claimAmount != null ? claimAmount : 25000.0;
+        this.status = status != null ? status : "PENDING";
+        this.priority = priority != null ? priority : "NORMAL";
+        this.claimsOfficerId = claimsOfficerId;
+        this.fraudStatus = fraudStatus != null ? fraudStatus : "CLEARED";
+        this.submittedAt = submittedAt != null ? submittedAt : LocalDateTime.now();
+        this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
     }
 
     public static Claim create(Long policyId, String claimantName, String relationship, String deathCertificateNo, String dateOfDeath, String notes) {
-        String num = "CLM-" + System.currentTimeMillis();
-        return new Claim(null, num, policyId, claimantName, relationship, deathCertificateNo, dateOfDeath, "PENDING", null, notes, LocalDateTime.now());
+        Claim claim = new Claim();
+        claim.setPolicyId(policyId);
+        claim.setClaimReason("Continuity care claim filed by " + (claimantName != null ? claimantName : "claimant") + " (" + relationship + ")");
+        claim.setClaimantName(claimantName);
+        claim.setRelationship(relationship);
+        claim.setDeathCertificateNo(deathCertificateNo);
+        claim.setDateOfDeath(dateOfDeath);
+        claim.setNotes(notes);
+        claim.setClaimNumber("CLM-" + System.currentTimeMillis());
+        claim.setStatus("PENDING");
+        claim.setPriority("NORMAL");
+        claim.setTriggeringEvent("OWNER_DEATH");
+        claim.setSubmittedAt(LocalDateTime.now());
+        claim.setUpdatedAt(LocalDateTime.now());
+        return claim;
     }
 
     public Long getId() {
-        return id;
+        return claimId;
     }
 
     public void setId(Long id) {
-        this.id = id;
+        this.claimId = id;
     }
 
-    public String getClaimNumber() {
-        return claimNumber;
+    public Long getClaimId() {
+        return claimId;
     }
 
-    public void setClaimNumber(String claimNumber) {
-        this.claimNumber = claimNumber;
+    public void setClaimId(Long claimId) {
+        this.claimId = claimId;
     }
 
     public Long getPolicyId() {
@@ -86,6 +140,111 @@ public class Claim {
 
     public void setPolicyId(Long policyId) {
         this.policyId = policyId;
+    }
+
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
+
+    public Long getPetId() {
+        return petId;
+    }
+
+    public void setPetId(Long petId) {
+        this.petId = petId;
+    }
+
+    public String getClaimReason() {
+        return claimReason;
+    }
+
+    public void setClaimReason(String claimReason) {
+        this.claimReason = claimReason;
+    }
+
+    public String getTriggeringEvent() {
+        return triggeringEvent;
+    }
+
+    public void setTriggeringEvent(String triggeringEvent) {
+        this.triggeringEvent = triggeringEvent;
+    }
+
+    public Double getClaimAmount() {
+        return claimAmount;
+    }
+
+    public void setClaimAmount(Double claimAmount) {
+        this.claimAmount = claimAmount;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
+    public Long getClaimsOfficerId() {
+        return claimsOfficerId;
+    }
+
+    public void setClaimsOfficerId(Long claimsOfficerId) {
+        this.claimsOfficerId = claimsOfficerId;
+    }
+
+    public String getFraudStatus() {
+        return fraudStatus;
+    }
+
+    public void setFraudStatus(String fraudStatus) {
+        this.fraudStatus = fraudStatus;
+    }
+
+    public LocalDateTime getSubmittedAt() {
+        return submittedAt;
+    }
+
+    public void setSubmittedAt(LocalDateTime submittedAt) {
+        this.submittedAt = submittedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return submittedAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.submittedAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    // Compatibility getters and setters
+    public String getClaimNumber() {
+        return claimNumber != null ? claimNumber : ("CLM-" + (claimId != null ? claimId : ""));
+    }
+
+    public void setClaimNumber(String claimNumber) {
+        this.claimNumber = claimNumber;
     }
 
     public String getClaimantName() {
@@ -120,14 +279,6 @@ public class Claim {
         this.dateOfDeath = dateOfDeath;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public String getRejectionReason() {
         return rejectionReason;
     }
@@ -142,13 +293,5 @@ public class Claim {
 
     public void setNotes(String notes) {
         this.notes = notes;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

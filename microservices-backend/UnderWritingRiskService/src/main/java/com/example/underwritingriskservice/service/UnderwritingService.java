@@ -7,14 +7,15 @@ import com.example.underwritingriskservice.repository.QuoteRepository;
 import com.example.underwritingriskservice.repository.RiskAssessmentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-
-import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
-import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
 
 @Service
 public class UnderwritingService {
@@ -36,6 +37,7 @@ public class UnderwritingService {
         this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_ADMIN')")
     public Mono<QuoteResponse> generateQuote(QuoteRequest req) {
         if (req.customerId() == null || req.petId() == null || req.requestedCoverage() == null || req.requestedCoverage() <= 0) {
             return Mono.error(new IllegalArgumentException("customerId, petId, and valid requestedCoverage are required"));
@@ -179,6 +181,7 @@ public class UnderwritingService {
                 });
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<QuoteResponse> getQuoteById(Long id) {
         return quoteRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Quote not found with id: " + id)))
@@ -199,6 +202,7 @@ public class UnderwritingService {
                         )));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<QuoteResponse> getRiskMonitoring(Long petId) {
         return riskAssessmentRepository.findFirstByPetIdOrderByAssessmentDateDesc(petId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("No risk assessment found for pet: " + petId)))
@@ -227,7 +231,8 @@ public class UnderwritingService {
                 });
     }
 
-    public reactor.core.publisher.Flux<QuoteResponse> getAllQuotes() {
+    @PreAuthorize("hasAnyAuthority('ROLE_UNDERWRITER', 'ROLE_ADMIN')")
+    public Flux<QuoteResponse> getAllQuotes() {
         return quoteRepository.findAll()
                 .flatMap(quote -> riskAssessmentRepository.findByQuoteId(quote.getId())
                         .map(ass -> new QuoteResponse(
@@ -258,6 +263,7 @@ public class UnderwritingService {
                         )));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_UNDERWRITER', 'ROLE_ADMIN')")
     public Mono<QuoteResponse> updateQuote(Long id, QuoteRequest req) {
         return quoteRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Quote not found with id: " + id)))
@@ -273,6 +279,7 @@ public class UnderwritingService {
                 });
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Void> deleteQuote(Long id) {
         return quoteRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Quote not found with id: " + id)))

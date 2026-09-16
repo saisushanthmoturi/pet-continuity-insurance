@@ -8,6 +8,7 @@ import com.example.authservice.repository.UserRepository;
 import com.example.authservice.util.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -77,17 +78,20 @@ public class AuthService {
         ));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Flux<com.example.authservice.dto.UserDto> getAllUsers() {
         return userRepository.findAll()
                 .map(u -> new com.example.authservice.dto.UserDto(u.getId(), u.getEmail(), u.getFullName(), u.getRole(), u.getCreatedAt()));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<com.example.authservice.dto.UserDto> getUserById(Long id) {
         return userRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("User not found with id: " + id)))
                 .map(u -> new com.example.authservice.dto.UserDto(u.getId(), u.getEmail(), u.getFullName(), u.getRole(), u.getCreatedAt()));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<com.example.authservice.dto.UserDto> updateUser(Long id, com.example.authservice.dto.UserUpdateRequest req) {
         return userRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("User not found with id: " + id)))
@@ -99,6 +103,7 @@ public class AuthService {
                 .map(u -> new com.example.authservice.dto.UserDto(u.getId(), u.getEmail(), u.getFullName(), u.getRole(), u.getCreatedAt()));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Void> deleteUser(Long id) {
         return userRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("User not found with id: " + id)))

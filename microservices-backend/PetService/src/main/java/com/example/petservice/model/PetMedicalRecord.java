@@ -4,47 +4,67 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Table("pet_medical_records")
 public class PetMedicalRecord {
 
     @Id
+    @Column("medical_record_id")
     private Long id;
 
     @Column("pet_id")
     private Long petId;
 
-    @Column("condition_name")
-    private String conditionName;
+    @Column("record_type")
+    private String recordType = "GENERAL";
 
-    @Column("diagnosis_date")
-    private String diagnosisDate;
+    @Column("diagnosis")
+    private String diagnosis;
 
-    @Column("treatment_plan")
-    private String treatmentPlan;
+    @Column("treatment")
+    private String treatment;
 
-    @Column("estimated_annual_med_cost")
-    private Double estimatedAnnualMedCost;
+    @Column("vet_name")
+    private String vetName;
 
-    @Column("created_at")
-    private LocalDateTime createdAt;
+    @Column("record_date")
+    private LocalDate recordDate = LocalDate.now();
+
+    @Column("risk_level")
+    private String riskLevel = "LOW";
+
+    @Column("notes")
+    private String notes;
+
+    @Column("status")
+    private String status = "ACTIVE";
 
     public PetMedicalRecord() {
     }
 
-    public PetMedicalRecord(Long id, Long petId, String conditionName, String diagnosisDate, String treatmentPlan, Double estimatedAnnualMedCost, LocalDateTime createdAt) {
+    public PetMedicalRecord(Long id, Long petId, String recordType, String diagnosis, String treatment, String vetName, LocalDate recordDate, String riskLevel, String notes, String status) {
         this.id = id;
         this.petId = petId;
-        this.conditionName = conditionName;
-        this.diagnosisDate = diagnosisDate;
-        this.treatmentPlan = treatmentPlan;
-        this.estimatedAnnualMedCost = estimatedAnnualMedCost;
-        this.createdAt = createdAt;
+        this.recordType = recordType != null ? recordType : "GENERAL";
+        this.diagnosis = diagnosis;
+        this.treatment = treatment;
+        this.vetName = vetName;
+        this.recordDate = recordDate != null ? recordDate : LocalDate.now();
+        this.riskLevel = riskLevel != null ? riskLevel : "LOW";
+        this.notes = notes;
+        this.status = status != null ? status : "ACTIVE";
     }
 
     public static PetMedicalRecord createNew(Long petId, String conditionName, String diagnosisDate, String treatmentPlan, Double estimatedAnnualMedCost) {
-        return new PetMedicalRecord(null, petId, conditionName, diagnosisDate, treatmentPlan, estimatedAnnualMedCost != null ? estimatedAnnualMedCost : 0.0, LocalDateTime.now());
+        LocalDate rDate = LocalDate.now();
+        try {
+            if (diagnosisDate != null && !diagnosisDate.isBlank()) {
+                rDate = LocalDate.parse(diagnosisDate);
+            }
+        } catch (Exception ignored) {
+        }
+        return new PetMedicalRecord(null, petId, "CONDITION", conditionName, treatmentPlan, "Primary Vet", rDate, "LOW", treatmentPlan, "ACTIVE");
     }
 
     public Long getId() {
@@ -55,6 +75,14 @@ public class PetMedicalRecord {
         this.id = id;
     }
 
+    public Long getMedicalRecordId() {
+        return id;
+    }
+
+    public void setMedicalRecordId(Long medicalRecordId) {
+        this.id = medicalRecordId;
+    }
+
     public Long getPetId() {
         return petId;
     }
@@ -63,43 +91,94 @@ public class PetMedicalRecord {
         this.petId = petId;
     }
 
+    public String getRecordType() {
+        return recordType;
+    }
+
+    public void setRecordType(String recordType) {
+        this.recordType = recordType;
+    }
+
+    public String getDiagnosis() {
+        return diagnosis;
+    }
+
+    public void setDiagnosis(String diagnosis) {
+        this.diagnosis = diagnosis;
+    }
+
     public String getConditionName() {
-        return conditionName;
+        return diagnosis;
     }
 
     public void setConditionName(String conditionName) {
-        this.conditionName = conditionName;
+        this.diagnosis = conditionName;
     }
 
-    public String getDiagnosisDate() {
-        return diagnosisDate;
+    public String getTreatment() {
+        return treatment;
     }
 
-    public void setDiagnosisDate(String diagnosisDate) {
-        this.diagnosisDate = diagnosisDate;
+    public void setTreatment(String treatment) {
+        this.treatment = treatment;
     }
 
     public String getTreatmentPlan() {
-        return treatmentPlan;
+        return treatment;
     }
 
     public void setTreatmentPlan(String treatmentPlan) {
-        this.treatmentPlan = treatmentPlan;
+        this.treatment = treatmentPlan;
     }
 
-    public Double getEstimatedAnnualMedCost() {
-        return estimatedAnnualMedCost;
+    public String getVetName() {
+        return vetName;
     }
 
-    public void setEstimatedAnnualMedCost(Double estimatedAnnualMedCost) {
-        this.estimatedAnnualMedCost = estimatedAnnualMedCost;
+    public void setVetName(String vetName) {
+        this.vetName = vetName;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDate getRecordDate() {
+        return recordDate;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setRecordDate(LocalDate recordDate) {
+        this.recordDate = recordDate;
+    }
+
+    public String getDiagnosisDate() {
+        return recordDate != null ? recordDate.toString() : "";
+    }
+
+    public void setDiagnosisDate(String diagnosisDate) {
+        try {
+            this.recordDate = LocalDate.parse(diagnosisDate);
+        } catch (Exception ignored) {
+        }
+    }
+
+    public String getRiskLevel() {
+        return riskLevel;
+    }
+
+    public void setRiskLevel(String riskLevel) {
+        this.riskLevel = riskLevel;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

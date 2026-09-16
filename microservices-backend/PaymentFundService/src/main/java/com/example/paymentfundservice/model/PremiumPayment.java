@@ -10,13 +10,20 @@ import java.time.LocalDateTime;
 public class PremiumPayment {
 
     @Id
-    private Long id;
+    @Column("payment_id")
+    private Long paymentId;
 
     @Column("policy_id")
     private Long policyId;
 
+    @Column("customer_id")
+    private Long customerId;
+
     @Column("amount")
     private Double amount;
+
+    @Column("payment_reference")
+    private String paymentReference;
 
     @Column("payment_method")
     private String paymentMethod;
@@ -24,36 +31,56 @@ public class PremiumPayment {
     @Column("status")
     private String status; // SUCCESS, FAILED
 
-    @Column("transaction_reference")
-    private String transactionReference;
+    @Column("payment_date")
+    private LocalDateTime paymentDate = LocalDateTime.now();
 
-    @Column("created_at")
-    private LocalDateTime createdAt;
+    @Column("failure_reason")
+    private String failureReason;
 
     public PremiumPayment() {
+        this.paymentDate = LocalDateTime.now();
     }
 
-    public PremiumPayment(Long id, Long policyId, Double amount, String paymentMethod, String status, String transactionReference, LocalDateTime createdAt) {
-        this.id = id;
+    public PremiumPayment(Long paymentId, Long policyId, Long customerId, Double amount,
+                          String paymentReference, String paymentMethod, String status,
+                          LocalDateTime paymentDate, String failureReason) {
+        this.paymentId = paymentId;
         this.policyId = policyId;
+        this.customerId = customerId;
         this.amount = amount;
+        this.paymentReference = paymentReference;
         this.paymentMethod = paymentMethod;
         this.status = status;
-        this.transactionReference = transactionReference;
-        this.createdAt = createdAt;
+        this.paymentDate = paymentDate != null ? paymentDate : LocalDateTime.now();
+        this.failureReason = failureReason;
     }
 
     public static PremiumPayment create(Long policyId, Double amount, String paymentMethod, String status) {
-        String ref = "TXN-" + System.currentTimeMillis();
-        return new PremiumPayment(null, policyId, amount, paymentMethod, status, ref, LocalDateTime.now());
+        String ref = "PAY-" + System.currentTimeMillis();
+        PremiumPayment p = new PremiumPayment();
+        p.setPolicyId(policyId);
+        p.setAmount(amount);
+        p.setPaymentMethod(paymentMethod);
+        p.setStatus(status);
+        p.setPaymentReference(ref);
+        p.setPaymentDate(LocalDateTime.now());
+        return p;
     }
 
     public Long getId() {
-        return id;
+        return paymentId;
     }
 
     public void setId(Long id) {
-        this.id = id;
+        this.paymentId = id;
+    }
+
+    public Long getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(Long paymentId) {
+        this.paymentId = paymentId;
     }
 
     public Long getPolicyId() {
@@ -64,12 +91,36 @@ public class PremiumPayment {
         this.policyId = policyId;
     }
 
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
+
     public Double getAmount() {
         return amount;
     }
 
     public void setAmount(Double amount) {
         this.amount = amount;
+    }
+
+    public String getPaymentReference() {
+        return paymentReference;
+    }
+
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
+    }
+
+    public String getTransactionReference() {
+        return paymentReference;
+    }
+
+    public void setTransactionReference(String transactionReference) {
+        this.paymentReference = transactionReference;
     }
 
     public String getPaymentMethod() {
@@ -88,19 +139,27 @@ public class PremiumPayment {
         this.status = status;
     }
 
-    public String getTransactionReference() {
-        return transactionReference;
+    public LocalDateTime getPaymentDate() {
+        return paymentDate;
     }
 
-    public void setTransactionReference(String transactionReference) {
-        this.transactionReference = transactionReference;
+    public void setPaymentDate(LocalDateTime paymentDate) {
+        this.paymentDate = paymentDate;
     }
 
     public LocalDateTime getCreatedAt() {
-        return createdAt;
+        return paymentDate;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+        this.paymentDate = createdAt;
+    }
+
+    public String getFailureReason() {
+        return failureReason;
+    }
+
+    public void setFailureReason(String failureReason) {
+        this.failureReason = failureReason;
     }
 }

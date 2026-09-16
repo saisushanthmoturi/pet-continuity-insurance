@@ -12,13 +12,13 @@ import com.example.paymentfundservice.repository.PaymentRepository;
 import com.example.paymentfundservice.repository.TransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
-import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
 
 @Service
 public class PaymentFundService {
@@ -43,6 +43,7 @@ public class PaymentFundService {
         this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<PremiumPayment> processPremiumPayment(PaymentRequest req) {
         if (req.policyId() == null || req.amount() == null || req.amount() <= 0) {
             return Mono.error(new IllegalArgumentException("policyId and positive amount are required"));
@@ -78,6 +79,7 @@ public class PaymentFundService {
                 });
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE', 'ROLE_CLAIMS_OFFICER')")
     public Mono<PetContinuityFund> createFund(CreateFundRequest req) {
         if (req.policyId() == null || req.petId() == null || req.totalCoverage() == null || req.totalCoverage() <= 0) {
             return Mono.error(new IllegalArgumentException("policyId, petId, and valid totalCoverage are required"));
@@ -110,6 +112,7 @@ public class PaymentFundService {
                 }));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_ADMIN')")
     public Mono<FundTransaction> disburseMonthly(Long fundId, Long petId, Long caretakerId) {
         return fundRepository.findById(fundId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Fund not found with id: " + fundId)))
@@ -180,6 +183,7 @@ public class PaymentFundService {
                 });
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_ADMIN')")
     public Mono<FundTransaction> recordExpense(Long fundId, ExpenseRequest req) {
         if (req.amount() == null || req.amount() <= 0) {
             return Mono.error(new IllegalArgumentException("Positive expense amount is required"));
@@ -207,16 +211,18 @@ public class PaymentFundService {
                                         updatedFund.getCurrentBalance(),
                                         req.description() != null ? req.description() : (type + " payout"),
                                         "SUCCESS"
-                                );
+                                    );
                                 return transactionRepository.save(txn);
                             });
                 });
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Flux<PetContinuityFund> getAllFunds() {
         return fundRepository.findAll();
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<PetContinuityFund> updateFund(Long id, CreateFundRequest req) {
         return fundRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Fund not found with id: " + id)))
@@ -229,6 +235,7 @@ public class PaymentFundService {
                 });
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<PetContinuityFund> updateFundStatus(Long id, String status) {
         return fundRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Fund not found with id: " + id)))
@@ -238,31 +245,37 @@ public class PaymentFundService {
                 });
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Void> deleteFund(Long id) {
         return fundRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Fund not found with id: " + id)))
                 .flatMap(fund -> fundRepository.delete(fund));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Flux<PremiumPayment> getAllPayments() {
         return paymentRepository.findAll();
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<PremiumPayment> getPaymentById(Long id) {
         return paymentRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Payment not found with id: " + id)));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<PetContinuityFund> getFundById(Long id) {
         return fundRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Fund not found with id: " + id)));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<PetContinuityFund> getFundByPolicyId(Long policyId) {
         return fundRepository.findByPolicyId(policyId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Fund not found for policyId: " + policyId)));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Flux<FundTransaction> getTransactions(Long fundId) {
         return transactionRepository.findByFundIdOrderByCreatedAtDesc(fundId);
     }

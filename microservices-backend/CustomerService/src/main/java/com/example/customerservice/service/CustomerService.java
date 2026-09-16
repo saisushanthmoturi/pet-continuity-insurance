@@ -5,7 +5,9 @@ import com.example.customerservice.model.Customer;
 import com.example.customerservice.repository.CustomerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -21,6 +23,7 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<Customer> createCustomer(CustomerRequest req) {
         if (req.userId() == null || req.fullName() == null || req.email() == null) {
             return Mono.error(new IllegalArgumentException("userId, fullName, and email are required"));
@@ -41,16 +44,19 @@ public class CustomerService {
                 }));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<Customer> getById(Long id) {
         return customerRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Customer not found with id: " + id)));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<Customer> getByUserId(Long userId) {
         return customerRepository.findByUserId(userId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Customer not found for userId: " + userId)));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<Customer> updateCustomer(Long id, CustomerRequest req) {
         return customerRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Customer not found with id: " + id)))
@@ -65,10 +71,12 @@ public class CustomerService {
                 });
     }
 
-    public reactor.core.publisher.Flux<Customer> getAll() {
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public Flux<Customer> getAll() {
         return customerRepository.findAll();
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Void> deleteCustomer(Long id) {
         return customerRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Customer not found with id: " + id)))

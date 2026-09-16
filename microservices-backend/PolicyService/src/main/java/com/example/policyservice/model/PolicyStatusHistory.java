@@ -10,45 +10,61 @@ import java.time.LocalDateTime;
 public class PolicyStatusHistory {
 
     @Id
-    private Long id;
+    @Column("history_id")
+    private Long historyId;
 
     @Column("policy_id")
     private Long policyId;
 
-    @Column("previous_status")
-    private String previousStatus;
+    @Column("old_status")
+    private String oldStatus;
 
     @Column("new_status")
     private String newStatus;
+
+    @Column("changed_by")
+    private String changedBy = "SYSTEM";
 
     @Column("reason")
     private String reason;
 
     @Column("changed_at")
-    private LocalDateTime changedAt;
+    private LocalDateTime changedAt = LocalDateTime.now();
 
     public PolicyStatusHistory() {
+        this.changedAt = LocalDateTime.now();
+        this.changedBy = "SYSTEM";
     }
 
-    public PolicyStatusHistory(Long id, Long policyId, String previousStatus, String newStatus, String reason, LocalDateTime changedAt) {
-        this.id = id;
+    public PolicyStatusHistory(Long historyId, Long policyId, String oldStatus, String newStatus,
+                               String changedBy, String reason, LocalDateTime changedAt) {
+        this.historyId = historyId;
         this.policyId = policyId;
-        this.previousStatus = previousStatus;
+        this.oldStatus = oldStatus;
         this.newStatus = newStatus;
+        this.changedBy = changedBy != null ? changedBy : "SYSTEM";
         this.reason = reason;
-        this.changedAt = changedAt;
+        this.changedAt = changedAt != null ? changedAt : LocalDateTime.now();
     }
 
     public static PolicyStatusHistory create(Long policyId, String previousStatus, String newStatus, String reason) {
-        return new PolicyStatusHistory(null, policyId, previousStatus, newStatus, reason, LocalDateTime.now());
+        return new PolicyStatusHistory(null, policyId, previousStatus, newStatus, "SYSTEM", reason, LocalDateTime.now());
     }
 
     public Long getId() {
-        return id;
+        return historyId;
     }
 
     public void setId(Long id) {
-        this.id = id;
+        this.historyId = id;
+    }
+
+    public Long getHistoryId() {
+        return historyId;
+    }
+
+    public void setHistoryId(Long historyId) {
+        this.historyId = historyId;
     }
 
     public Long getPolicyId() {
@@ -59,12 +75,20 @@ public class PolicyStatusHistory {
         this.policyId = policyId;
     }
 
+    public String getOldStatus() {
+        return oldStatus;
+    }
+
+    public void setOldStatus(String oldStatus) {
+        this.oldStatus = oldStatus;
+    }
+
     public String getPreviousStatus() {
-        return previousStatus;
+        return oldStatus;
     }
 
     public void setPreviousStatus(String previousStatus) {
-        this.previousStatus = previousStatus;
+        this.oldStatus = previousStatus;
     }
 
     public String getNewStatus() {
@@ -73,6 +97,14 @@ public class PolicyStatusHistory {
 
     public void setNewStatus(String newStatus) {
         this.newStatus = newStatus;
+    }
+
+    public String getChangedBy() {
+        return changedBy;
+    }
+
+    public void setChangedBy(String changedBy) {
+        this.changedBy = changedBy;
     }
 
     public String getReason() {

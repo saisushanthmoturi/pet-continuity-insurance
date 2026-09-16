@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 public class Policy {
 
     @Id
-    private Long id;
+    @Column("policy_id")
+    private Long policyId;
 
     @Column("policy_number")
     private String policyNumber;
@@ -28,11 +29,11 @@ public class Policy {
     @Column("coverage_amount")
     private Double coverageAmount;
 
-    @Column("monthly_premium")
-    private Double monthlyPremium;
+    @Column("premium_amount")
+    private Double premiumAmount;
 
-    @Column("status")
-    private String status; // PENDING_PAYMENT, ACTIVE, CLAIM_FILED, TERMINATED
+    @Column("deductible")
+    private Double deductible = 250.0;
 
     @Column("start_date")
     private String startDate;
@@ -40,50 +41,81 @@ public class Policy {
     @Column("end_date")
     private String endDate;
 
+    @Column("status")
+    private String status = "PENDING_PAYMENT"; // PENDING_PAYMENT, ACTIVE, CLAIM_FILED, TERMINATED
+
+    @Column("issued_by")
+    private String issuedBy = "SYSTEM";
+
     @Column("created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column("updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     public Policy() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        this.deductible = 250.0;
+        this.issuedBy = "SYSTEM";
+        this.status = "PENDING_PAYMENT";
     }
 
-    public Policy(Long id, String policyNumber, Long quoteId, Long customerId, Long petId, Double coverageAmount, Double monthlyPremium, String status, String startDate, String endDate, LocalDateTime createdAt) {
-        this.id = id;
+    public Policy(Long policyId, String policyNumber, Long quoteId, Long customerId, Long petId,
+                  Double coverageAmount, Double premiumAmount, Double deductible,
+                  String startDate, String endDate, String status, String issuedBy,
+                  LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.policyId = policyId;
         this.policyNumber = policyNumber;
         this.quoteId = quoteId;
         this.customerId = customerId;
         this.petId = petId;
         this.coverageAmount = coverageAmount;
-        this.monthlyPremium = monthlyPremium;
-        this.status = status;
+        this.premiumAmount = premiumAmount;
+        this.deductible = deductible != null ? deductible : 250.0;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.createdAt = createdAt;
+        this.status = status != null ? status : "PENDING_PAYMENT";
+        this.issuedBy = issuedBy != null ? issuedBy : "SYSTEM";
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+        this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
     }
 
     public static Policy createFromQuote(Long quoteId, Long customerId, Long petId, Double coverageAmount, Double monthlyPremium) {
         String polNum = "POL-" + System.currentTimeMillis() + "-" + petId;
         LocalDate now = LocalDate.now();
-        return new Policy(
-                null,
-                polNum,
-                quoteId,
-                customerId,
-                petId,
-                coverageAmount,
-                monthlyPremium,
-                "PENDING_PAYMENT",
-                now.toString(),
-                now.plusYears(1).toString(),
-                LocalDateTime.now()
-        );
+        Policy policy = new Policy();
+        policy.setPolicyNumber(polNum);
+        policy.setQuoteId(quoteId);
+        policy.setCustomerId(customerId);
+        policy.setPetId(petId);
+        policy.setCoverageAmount(coverageAmount);
+        policy.setPremiumAmount(monthlyPremium);
+        policy.setDeductible(250.0);
+        policy.setStartDate(now.toString());
+        policy.setEndDate(now.plusYears(1).toString());
+        policy.setStatus("PENDING_PAYMENT");
+        policy.setIssuedBy("SYSTEM");
+        policy.setCreatedAt(LocalDateTime.now());
+        policy.setUpdatedAt(LocalDateTime.now());
+        return policy;
     }
 
+    // Backward-compatible ID getter/setter
     public Long getId() {
-        return id;
+        return policyId;
     }
 
     public void setId(Long id) {
-        this.id = id;
+        this.policyId = id;
+    }
+
+    public Long getPolicyId() {
+        return policyId;
+    }
+
+    public void setPolicyId(Long policyId) {
+        this.policyId = policyId;
     }
 
     public String getPolicyNumber() {
@@ -126,20 +158,28 @@ public class Policy {
         this.coverageAmount = coverageAmount;
     }
 
+    public Double getPremiumAmount() {
+        return premiumAmount;
+    }
+
+    public void setPremiumAmount(Double premiumAmount) {
+        this.premiumAmount = premiumAmount;
+    }
+
     public Double getMonthlyPremium() {
-        return monthlyPremium;
+        return premiumAmount;
     }
 
     public void setMonthlyPremium(Double monthlyPremium) {
-        this.monthlyPremium = monthlyPremium;
+        this.premiumAmount = monthlyPremium;
     }
 
-    public String getStatus() {
-        return status;
+    public Double getDeductible() {
+        return deductible;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setDeductible(Double deductible) {
+        this.deductible = deductible;
     }
 
     public String getStartDate() {
@@ -158,11 +198,35 @@ public class Policy {
         this.endDate = endDate;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getIssuedBy() {
+        return issuedBy;
+    }
+
+    public void setIssuedBy(String issuedBy) {
+        this.issuedBy = issuedBy;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

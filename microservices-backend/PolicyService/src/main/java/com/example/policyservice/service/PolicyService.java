@@ -8,13 +8,13 @@ import com.example.policyservice.repository.PolicyRepository;
 import com.example.policyservice.repository.PolicyStatusHistoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
-import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
 
 @Service
 public class PolicyService {
@@ -36,6 +36,7 @@ public class PolicyService {
         this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Mono<PolicyResponse> createPolicyFromQuote(Long quoteId) {
         ReactiveCircuitBreaker cb = circuitBreakerFactory.create("policyCB");
 
@@ -59,7 +60,7 @@ public class PolicyService {
                                         return Mono.error(new IllegalStateException("Cannot create policy for rejected quote: " + quoteId));
                                     }
                                     Policy policy = Policy.createFromQuote(
-                                            quote.id(),
+                                             quote.id(),
                                             quote.customerId(),
                                             quote.petId(),
                                             quote.requestedCoverage(),
@@ -80,6 +81,7 @@ public class PolicyService {
                 ));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<PolicyResponse> activatePolicy(Long id) {
         return policyRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Policy not found with id: " + id)))
@@ -100,6 +102,7 @@ public class PolicyService {
                 });
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE', 'ROLE_CLAIMS_OFFICER')")
     public Mono<PolicyResponse> updateStatus(Long id, String newStatus, String reason) {
         return policyRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Policy not found with id: " + id)))
@@ -114,26 +117,31 @@ public class PolicyService {
                 });
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<PolicyResponse> getById(Long id) {
         return policyRepository.findById(id)
                 .map(this::toResponse)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Policy not found with id: " + id)));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<PolicyResponse> getByPolicyNumber(String policyNumber) {
         return policyRepository.findByPolicyNumber(policyNumber)
                 .map(this::toResponse)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Policy not found with number: " + policyNumber)));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Flux<PolicyResponse> getByCustomerId(Long customerId) {
         return policyRepository.findByCustomerId(customerId).map(this::toResponse);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Flux<PolicyResponse> getAll() {
         return policyRepository.findAll().map(this::toResponse);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<PolicyResponse> updatePolicy(Long id, Policy updated) {
         return policyRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Policy not found with id: " + id)))
@@ -145,6 +153,7 @@ public class PolicyService {
                 });
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Mono<Void> deletePolicy(Long id) {
         return policyRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Policy not found with id: " + id)))
