@@ -57,9 +57,9 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeExchange(exchanges -> exchanges
-                        // Public endpoints: Registration, Login, Token Validation, Actuator, Fallback, Pre-flight OPTIONS
+                        // Public endpoints: Registration, Login, Logout, Token Validation, Actuator, Fallback, Pre-flight OPTIONS
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .pathMatchers("/api/auth/register", "/api/auth/login", "/api/auth/validate", "/actuator/**", "/fallback/**").permitAll()
+                        .pathMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout", "/api/auth/validate", "/actuator/**", "/fallback/**").permitAll()
 
                         // ADMIN ONLY: User management
                         .pathMatchers("/api/auth/users/**").hasAuthority("ROLE_ADMIN")
@@ -147,6 +147,11 @@ public class SecurityConfig {
 
     private ServerAuthenticationConverter serverAuthenticationConverter() {
         return exchange -> {
+            var cookie = exchange.getRequest().getCookies().getFirst("jwt_token");
+            if (cookie != null && !cookie.getValue().isBlank()) {
+                String token = cookie.getValue().trim();
+                return Mono.just(new UsernamePasswordAuthenticationToken(token, token));
+            }
             String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7).trim();

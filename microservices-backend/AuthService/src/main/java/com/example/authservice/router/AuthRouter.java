@@ -19,6 +19,7 @@ public class AuthRouter {
                 .path("/api/auth", builder -> builder
                         .POST("/register", accept(MediaType.APPLICATION_JSON), handler::register)
                         .POST("/login", accept(MediaType.APPLICATION_JSON), handler::login)
+                        .POST("/logout", handler::logout)
                         .GET("/validate", handler::validate)
                         .GET("/users", handler::getAllUsers)
                         .GET("/users/{id}", handler::getUserById)

@@ -8,6 +8,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -32,7 +33,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
             "/api/auth/register",
             "/api/auth/login",
+            "/api/auth/logout",
             "/api/auth/validate",
+            "/fallback",
             "/actuator"
     );
 
@@ -57,14 +60,24 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             }
         }
 
-        // Check Authorization header
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("Unauthorized access attempt to {}: Missing or invalid Authorization header", path);
-            return onError(exchange, "Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
+        // 1. Check HttpOnly Cookie "jwt_token" first
+        String token = null;
+        HttpCookie cookie = request.getCookies().getFirst("jwt_token");
+        if (cookie != null && !cookie.getValue().isBlank()) {
+            token = cookie.getValue().trim();
+        } else {
+            // 2. Fallback to Authorization: Bearer <token>
+            String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7).trim();
+            }
         }
 
-        String token = authHeader.substring(7).trim();
+        if (token == null) {
+            log.warn("Unauthorized access attempt to {}: Missing token in Cookie or Authorization header", path);
+            return onError(exchange, "Missing or invalid token in Cookie or Authorization header", HttpStatus.UNAUTHORIZED);
+        }
+
         if (!jwtUtil.isTokenValid(token)) {
             log.warn("Unauthorized access attempt to {}: Invalid or expired JWT token", path);
             return onError(exchange, "Invalid or expired JWT token", HttpStatus.UNAUTHORIZED);
