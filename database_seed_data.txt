@@ -1,0 +1,344 @@
+================================================================================
+           PET CONTINUITY ASSURANCE PLATFORM - COMPLETE SEED DATA
+================================================================================
+Description: Comprehensive initial seed data for all 8 microservices databases,
+             including SQL INSERT scripts, default test user credentials for
+             all 5 roles, and sample REST API JSON request payloads.
+Default Password for all test users: password123
+================================================================================
+
+================================================================================
+PART 1: TEST CREDENTIALS SUMMARY (ALL 5 ROLES)
+================================================================================
+
+1. ADMIN:
+   - Email:    admin@petassurance.com
+   - Password: password123
+   - Role:     ADMIN
+   - Scope:    Full system administration, user management, global delete/audit.
+
+2. CUSTOMER / POLICYHOLDER:
+   - Email:    susan.miller@example.com
+   - Password: password123
+   - Role:     CUSTOMER
+   - Scope:    Manage pet profile, request quote, purchase policy, pay premium, file claim.
+
+3. UNDERWRITER:
+   - Email:    underwriter.davis@petassurance.com
+   - Password: password123
+   - Role:     UNDERWRITER
+   - Scope:    Review actuarial quotes, assess risk scores, adjust premium ratings.
+
+4. CLAIMS OFFICER:
+   - Email:    claims.roberts@petassurance.com
+   - Password: password123
+   - Role:     CLAIMS_OFFICER
+   - Scope:    Verify death certificates, investigate claims, approve/reject claims.
+
+5. PRIMARY CARETAKER:
+   - Email:    caretaker.emily@example.com
+   - Password: password123
+   - Role:     CARETAKER
+   - Scope:    Submit pet health verifications, receive monthly fund allowance, submit vet bills.
+
+================================================================================
+PART 2: SQL INSERT STATEMENTS FOR ALL SERVICES
+================================================================================
+
+--------------------------------------------------------------------------------
+-- 1. AUTH SERVICE (Database: auth_db)
+--------------------------------------------------------------------------------
+USE auth_db;
+
+-- Passwords below are BCrypt hashes of 'password123'
+INSERT INTO users (id, email, password_hash, full_name, role, created_at) VALUES
+(1, 'admin@petassurance.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'System Administrator', 'ADMIN', NOW()),
+(2, 'susan.miller@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Susan Miller', 'CUSTOMER', NOW()),
+(3, 'underwriter.davis@petassurance.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Robert Davis', 'UNDERWRITER', NOW()),
+(4, 'claims.roberts@petassurance.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Sarah Roberts', 'CLAIMS_OFFICER', NOW()),
+(5, 'caretaker.emily@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Emily Watson', 'CARETAKER', NOW()),
+(6, 'michael.brown@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Michael Brown', 'CUSTOMER', NOW());
+
+
+--------------------------------------------------------------------------------
+-- 2. CUSTOMER SERVICE (Database: customer_db)
+--------------------------------------------------------------------------------
+USE customer_db;
+
+INSERT INTO customers (id, user_id, full_name, email, phone, address, emergency_contact, created_at) VALUES
+(1, 2, 'Susan Miller', 'susan.miller@example.com', '+1-555-0192', '742 Evergreen Terrace, Springfield, OR', 'Sister: Sarah Miller (+1-555-0199)', NOW()),
+(2, 6, 'Michael Brown', 'michael.brown@example.com', '+1-555-0244', '10880 Wilshire Blvd, Los Angeles, CA', 'Brother: David Brown (+1-555-0245)', NOW());
+
+
+--------------------------------------------------------------------------------
+-- 3. PET SERVICE (Database: pet_db)
+--------------------------------------------------------------------------------
+USE pet_db;
+
+-- Registered Pets
+INSERT INTO pets (id, customer_id, name, species, breed, age, weight, gender, estimated_annual_care_cost, created_at) VALUES
+(1, 1, 'Barnaby', 'Dog', 'Golden Retriever', 4, 30.5, 'MALE', 1400.00, NOW()),
+(2, 1, 'Luna', 'Cat', 'Siamese', 3, 4.2, 'FEMALE', 950.00, NOW()),
+(3, 2, 'Max', 'Dog', 'German Shepherd', 6, 34.0, 'MALE', 1800.00, NOW());
+
+-- Pet Medical History
+INSERT INTO pet_medical_records (id, pet_id, condition_name, diagnosis_date, treatment_plan, estimated_annual_med_cost, created_at) VALUES
+(1, 1, 'Mild Hip Dysplasia Screen', '2024-03-15', 'Glucosamine & Chondroitin supplements, controlled exercise', 350.00, NOW()),
+(2, 1, 'Seasonal Skin Allergies', '2023-08-10', 'Apoquel antihistamine during autumn months', 220.00, NOW()),
+(3, 2, 'Routine Vaccination & Dental', '2024-01-20', 'Annual rabies, FVRCP and dental scaling clean', 180.00, NOW()),
+(4, 3, 'Gastric Sensitivity', '2023-11-05', 'Hypoallergenic hydrolysed protein diet', 450.00, NOW());
+
+
+--------------------------------------------------------------------------------
+-- 4. UNDERWRITING & RISK SERVICE (Database: underwriting_db)
+--------------------------------------------------------------------------------
+USE underwriting_db;
+
+-- Actuarial Quotes
+INSERT INTO quotes (id, customer_id, pet_id, requested_coverage, monthly_premium, risk_score, decision, status, valid_until, created_at) VALUES
+(1, 1, 1, 25000.00, 48.50, 24, 'APPROVED', 'ACCEPTED', DATE_ADD(NOW(), INTERVAL 30 DAY), NOW()),
+(2, 1, 2, 15000.00, 28.00, 15, 'APPROVED', 'OFFERED', DATE_ADD(NOW(), INTERVAL 30 DAY), NOW()),
+(3, 2, 3, 30000.00, 72.00, 42, 'APPROVED', 'ACCEPTED', DATE_ADD(NOW(), INTERVAL 30 DAY), NOW());
+
+-- Risk Assessment Calculations
+INSERT INTO risk_assessments (id, quote_id, pet_id, age_factor, health_factor, projected_care_liability, coverage_gap, risk_level, assessment_date) VALUES
+(1, 1, 1, 1.15, 1.10, 22400.00, 0.00, 'LOW', NOW()),
+(2, 2, 2, 1.05, 1.00, 11400.00, 0.00, 'VERY_LOW', NOW()),
+(3, 3, 3, 1.35, 1.25, 29200.00, 800.00, 'MODERATE', NOW());
+
+
+--------------------------------------------------------------------------------
+-- 5. POLICY SERVICE (Database: policy_db)
+--------------------------------------------------------------------------------
+USE policy_db;
+
+-- Issued Policies
+INSERT INTO policies (id, policy_number, quote_id, customer_id, pet_id, coverage_amount, monthly_premium, status, start_date, end_date, created_at) VALUES
+(1, 'POL-RET-2026-00891', 1, 1, 1, 25000.00, 48.50, 'ACTIVE', '2026-01-01', '2027-01-01', NOW()),
+(2, 'POL-SIA-2026-00892', 2, 1, 2, 15000.00, 28.00, 'PENDING_PAYMENT', '2026-02-01', '2027-02-01', NOW()),
+(3, 'POL-GSD-2026-00893', 3, 2, 3, 30000.00, 72.00, 'CLAIM_FILED', '2025-06-01', '2026-06-01', NOW());
+
+-- Policy Status History Audit Trail
+INSERT INTO policy_status_history (id, policy_id, previous_status, new_status, reason, changed_at) VALUES
+(1, 1, 'DRAFT', 'PENDING_PAYMENT', 'Policy created from accepted actuarial quote', DATE_SUB(NOW(), INTERVAL 30 DAY)),
+(2, 1, 'PENDING_PAYMENT', 'ACTIVE', 'First monthly premium payment confirmed', DATE_SUB(NOW(), INTERVAL 29 DAY)),
+(3, 3, 'ACTIVE', 'CLAIM_FILED', 'Owner death claim submitted by family claimant', DATE_SUB(NOW(), INTERVAL 2 DAY));
+
+
+--------------------------------------------------------------------------------
+-- 6. CLAIMS SERVICE (Database: claims_db)
+--------------------------------------------------------------------------------
+USE claims_db;
+
+-- Filed Claims
+INSERT INTO claims (id, claim_number, policy_id, claimant_name, relationship, death_certificate_no, date_of_death, status, rejection_reason, notes, created_at) VALUES
+(1, 'CLM-2026-00412', 3, 'David Brown', 'BROTHER', 'DC-CA-2026-98124', '2026-09-10', 'APPROVED', NULL, 'Certified death certificate provided from Los Angeles County Registrar. Waiting period satisfied.', NOW()),
+(2, 'CLM-2026-00413', 1, 'Sarah Miller', 'SISTER', 'DC-OR-TEST-001', '2026-09-12', 'PENDING', NULL, 'Initial claim notification filed by policyholder sister.', NOW());
+
+-- Claim Investigations
+INSERT INTO claim_investigations (id, claim_id, policy_active, waiting_period_passed, fraud_score, decision, notes, investigated_at) VALUES
+(1, 1, TRUE, TRUE, 8, 'APPROVED', 'Death certificate authenticity verified via state vital records. Policy in full force. Immediate continuity fund creation authorised.', NOW());
+
+
+--------------------------------------------------------------------------------
+-- 7. PAYMENT & FUND SERVICE (Database: payment_fund_db)
+--------------------------------------------------------------------------------
+USE payment_fund_db;
+
+-- Premium Payments
+INSERT INTO premium_payments (id, policy_id, amount, payment_method, status, transaction_reference, created_at) VALUES
+(1, 1, 48.50, 'CREDIT_CARD', 'SUCCESS', 'TXN-SIM-20260101-001', DATE_SUB(NOW(), INTERVAL 30 DAY)),
+(2, 1, 48.50, 'CREDIT_CARD', 'SUCCESS', 'TXN-SIM-20260201-002', NOW()),
+(3, 3, 72.00, 'AUTO_DEBIT', 'SUCCESS', 'TXN-SIM-20250601-098', DATE_SUB(NOW(), INTERVAL 60 DAY));
+
+-- Pet Continuity Funds (Activated upon approved owner death claim)
+INSERT INTO pet_continuity_funds (id, policy_id, pet_id, total_fund, current_balance, monthly_allowance, vet_reserve, emergency_reserve, status, created_at) VALUES
+(1, 3, 3, 30000.00, 29650.00, 350.00, 4500.00, 2500.00, 'ACTIVE', NOW());
+
+-- Fund Transactions (Monthly disbursements & emergency vet reimbursements)
+INSERT INTO fund_transactions (id, fund_id, transaction_type, amount, balance_after, description, status, created_at) VALUES
+(1, 1, 'INITIAL_DEPOSIT', 30000.00, 30000.00, 'Pet Continuity Assurance Fund creation upon claim CLM-2026-00412 approval', 'SUCCESS', NOW()),
+(2, 1, 'DISBURSEMENT', 350.00, 29650.00, 'First scheduled monthly pet maintenance and feeding allowance disbursed to caretaker', 'SUCCESS', NOW());
+
+
+--------------------------------------------------------------------------------
+-- 8. CARE VERIFICATION SERVICE (Database: care_verification_db)
+--------------------------------------------------------------------------------
+USE care_verification_db;
+
+-- Nominated Caretakers
+INSERT INTO caretakers (id, customer_id, pet_id, full_name, phone, email, caretaker_type, status, address, created_at) VALUES
+(1, 1, 1, 'Emily Watson', '+1-555-0371', 'caretaker.emily@example.com', 'PRIMARY', 'ACTIVE', '312 Elm Street, Springfield, OR', NOW()),
+(2, 1, 1, 'Uncle James Miller', '+1-555-0372', 'james.miller@example.com', 'BACKUP', 'ACTIVE', '88 Maple Ave, Eugene, OR', NOW()),
+(3, 2, 3, 'Grace Hopper Pet Sanctuary', '+1-555-0911', 'care@gracepetsanctuary.org', 'PRIMARY', 'ACTIVE', '404 Shelter Way, Pasadena, CA', NOW());
+
+-- Pet Continuity Care Plans
+INSERT INTO care_plans (id, pet_id, primary_caretaker_id, backup_caretaker_id, vet_contact, feeding_instructions, special_needs, created_at) VALUES
+(1, 1, 1, 2, 'Springfield Vet Hospital: Dr. Alan Grant (+1-555-0100)', '2 cups Purina Pro Plan twice daily (8 AM / 6 PM). Fresh water always available.', 'Needs daily joint supplement chew. Thunderstorm anxiety vest in bedroom closet.', NOW()),
+(2, 3, 3, NULL, 'Pasadena Animal Medical Center: Dr. Judy Hopps (+1-555-0200)', '3 cups hydrolysed protein kibble split into three meals.', 'Sensitive stomach; no raw hides or table food. Daily hip exercise walk 30 mins.', NOW());
+
+-- Pet Periodic Verifications & Proof-of-Care Check-ins
+INSERT INTO pet_verifications (id, pet_id, caretaker_id, verification_date, status, notes, created_at) VALUES
+(1, 3, 3, '2026-09-14', 'VERIFIED', 'Physical check-in completed. Pet Max is in good health, alert, eating well, weight 34.2kg. GPS and timestamp logged.', NOW());
+
+================================================================================
+PART 3: SAMPLE REST API JSON PAYLOADS (FOR TESTING VIA POSTMAN / CURL)
+================================================================================
+
+1. AUTHENTICATION (POST /api/auth/login)
+--------------------------------------------------------------------------------
+Endpoint: http://localhost:8080/api/auth/login
+Method:   POST
+Headers:  Content-Type: application/json
+
+Payload:
+{
+  "email": "susan.miller@example.com",
+  "password": "password123"
+}
+
+Expected Response:
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "email": "susan.miller@example.com",
+  "role": "CUSTOMER",
+  "userId": 2
+}
+(Also sets HttpOnly cookie: jwt_token=<token>; Path=/; SameSite=Lax)
+
+
+2. REGISTER PET (POST /api/pets)
+--------------------------------------------------------------------------------
+Endpoint: http://localhost:8080/api/pets
+Method:   POST
+Headers:  Content-Type: application/json
+          Authorization: Bearer <CUSTOMER_OR_ADMIN_JWT_TOKEN>
+
+Payload:
+{
+  "customerId": 1,
+  "name": "Cooper",
+  "species": "Dog",
+  "breed": "Labrador Retriever",
+  "age": 3,
+  "weight": 28.5,
+  "gender": "MALE",
+  "estimatedAnnualCareCost": 1300.0
+}
+
+
+3. ADD MEDICAL RECORD (POST /api/pets/{petId}/medical-records)
+--------------------------------------------------------------------------------
+Endpoint: http://localhost:8080/api/pets/1/medical-records
+Method:   POST
+Headers:  Content-Type: application/json
+          Authorization: Bearer <CUSTOMER_OR_ADMIN_JWT_TOKEN>
+
+Payload:
+{
+  "petId": 1,
+  "conditionName": "Bilateral Ear Infection Cleared",
+  "diagnosisDate": "2024-05-12",
+  "treatmentPlan": "Otic drops 7 days. Resolved.",
+  "estimatedAnnualMedCost": 95.0
+}
+
+
+4. REQUEST ACTUARIAL QUOTE (POST /api/underwriting/quotes)
+--------------------------------------------------------------------------------
+Endpoint: http://localhost:8080/api/underwriting/quotes
+Method:   POST
+Headers:  Content-Type: application/json
+          Authorization: Bearer <CUSTOMER_OR_ADMIN_JWT_TOKEN>
+
+Payload:
+{
+  "customerId": 1,
+  "petId": 1,
+  "requestedCoverage": 25000.0
+}
+
+
+5. PURCHASE / CREATE POLICY (POST /api/policies)
+--------------------------------------------------------------------------------
+Endpoint: http://localhost:8080/api/policies
+Method:   POST
+Headers:  Content-Type: application/json
+          Authorization: Bearer <CUSTOMER_OR_ADMIN_JWT_TOKEN>
+
+Payload:
+{
+  "quoteId": 1
+}
+
+
+6. SIMULATE PREMIUM PAYMENT (POST /api/payments/premium)
+--------------------------------------------------------------------------------
+Endpoint: http://localhost:8080/api/payments/premium
+Method:   POST
+Headers:  Content-Type: application/json
+          Authorization: Bearer <CUSTOMER_OR_ADMIN_JWT_TOKEN>
+
+Payload:
+{
+  "policyId": 1,
+  "amount": 48.50,
+  "paymentMethod": "SIMULATED_CARD",
+  "simulateFailure": false
+}
+
+
+7. FILE OWNER DEATH CLAIM (POST /api/claims)
+--------------------------------------------------------------------------------
+Endpoint: http://localhost:8080/api/claims
+Method:   POST
+Headers:  Content-Type: application/json
+          Authorization: Bearer <CUSTOMER_OR_ADMIN_JWT_TOKEN>
+
+Payload:
+{
+  "policyId": 1,
+  "claimantName": "Sarah Miller",
+  "relationship": "SISTER",
+  "deathCertificateNo": "DC-OR-2026-88712",
+  "dateOfDeath": "2026-09-14",
+  "notes": "Policyholder Susan Miller passed away in hospital. Requesting activation of continuity fund for Barnaby."
+}
+
+
+8. APPROVE CLAIM (POST /api/claims/{claimId}/approve)
+--------------------------------------------------------------------------------
+Endpoint: http://localhost:8080/api/claims/1/approve
+Method:   POST
+Headers:  Authorization: Bearer <CLAIMS_OFFICER_OR_ADMIN_JWT_TOKEN>
+
+(Triggers fraud check, verifies policy is active, approves claim, creates $25,000 Pet Continuity Fund in PaymentFundService, and updates policy status to CLAIM_FILED)
+
+
+9. SUBMIT PET CARETAKER VERIFICATION (POST /api/care/verifications)
+--------------------------------------------------------------------------------
+Endpoint: http://localhost:8080/api/care/verifications
+Method:   POST
+Headers:  Content-Type: application/json
+          Authorization: Bearer <CARETAKER_OR_ADMIN_JWT_TOKEN>
+
+Payload:
+{
+  "petId": 1,
+  "caretakerId": 1,
+  "verificationDate": "2026-09-16",
+  "notes": "Monthly check-in: Golden Retriever Barnaby is healthy, happy, active. Food supplies stocked."
+}
+
+
+10. DISBURSE MONTHLY PET ALLOWANCE (POST /api/funds/{fundId}/disburse)
+--------------------------------------------------------------------------------
+Endpoint: http://localhost:8080/api/funds/1/disburse?petId=1&caretakerId=1
+Method:   POST
+Headers:  Authorization: Bearer <CARETAKER_OR_ADMIN_JWT_TOKEN>
+
+(Checks caretaker verification eligibility via CareVerificationService, deducts $300-$350 monthly maintenance allowance from Pet Continuity Fund, and logs transaction)
+
+================================================================================
+END OF SEED DATA DOCUMENTATION
+================================================================================
