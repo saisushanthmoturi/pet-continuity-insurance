@@ -14,6 +14,7 @@ import java.util.Map;
 @RequestMapping("/fallback")
 public class FallbackHandler {
 
+    
     @GetMapping("/{serviceName}")
     public Mono<Map<String, Object>> serviceFallback(@PathVariable String serviceName) {
         return Mono.just(Map.of(

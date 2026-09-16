@@ -36,8 +36,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/api/auth/logout",
             "/api/auth/validate",
             "/fallback",
-            "/actuator"
-    );
+            "/actuator");
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
@@ -75,7 +74,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
         if (token == null) {
             log.warn("Unauthorized access attempt to {}: Missing token in Cookie or Authorization header", path);
-            return onError(exchange, "Missing or invalid token in Cookie or Authorization header", HttpStatus.UNAUTHORIZED);
+            return onError(exchange, "Missing or invalid token in Cookie or Authorization header",
+                    HttpStatus.UNAUTHORIZED);
         }
 
         if (!jwtUtil.isTokenValid(token)) {

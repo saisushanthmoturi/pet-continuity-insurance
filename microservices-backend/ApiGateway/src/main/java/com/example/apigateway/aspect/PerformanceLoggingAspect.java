@@ -25,10 +25,8 @@ public class PerformanceLoggingAspect {
         long start = System.currentTimeMillis();
         String className = joinPoint.getSignature().getDeclaringType().getSimpleName();
         String methodName = joinPoint.getSignature().getName();
-
         try {
             Object result = joinPoint.proceed();
-
             if (result instanceof Mono<?> mono) {
                 return mono
                         .doOnSuccess(val -> {
