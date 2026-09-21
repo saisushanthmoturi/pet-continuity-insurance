@@ -1,6 +1,7 @@
 package com.example.customerservice.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -23,7 +24,7 @@ public class Customer {
     @Column("last_name")
     private String lastName;
 
-    @Column("email")
+    @Column("contact_email")
     private String email;
 
     @Column("phone")
@@ -31,9 +32,6 @@ public class Customer {
 
     @Column("date_of_birth")
     private LocalDate dateOfBirth;
-
-    @Column("address_id")
-    private Long addressId;
 
     @Column("status")
     private String status = "ACTIVE";
@@ -45,13 +43,16 @@ public class Customer {
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     // In-memory support for legacy fields
-    private transient String address;
-    private transient String emergencyContact;
+    @Transient
+    private String address;
+
+    @Transient
+    private String emergencyContact;
 
     public Customer() {
     }
 
-    public Customer(Long id, Long userId, String firstName, String lastName, String email, String phone, LocalDate dateOfBirth, Long addressId, String status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Customer(Long id, Long userId, String firstName, String lastName, String email, String phone, LocalDate dateOfBirth, String status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.userId = userId;
         this.firstName = firstName;
@@ -59,27 +60,47 @@ public class Customer {
         this.email = email;
         this.phone = phone;
         this.dateOfBirth = dateOfBirth;
-        this.addressId = addressId;
         this.status = status != null ? status : "ACTIVE";
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
         this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
     }
 
-    public static Customer createNew(Long userId, String fullName, String email, String phone, String address, String emergencyContact) {
-        String fName = fullName;
-        String lName = "";
-        if (fullName != null && fullName.trim().contains(" ")) {
-            int idx = fullName.trim().lastIndexOf(" ");
-            fName = fullName.trim().substring(0, idx);
-            lName = fullName.trim().substring(idx + 1);
-        } else if (fullName != null) {
-            fName = fullName.trim();
+    public Customer(Long id, Long userId, String firstName, String lastName, String email, String phone, LocalDate dateOfBirth, Long addressId, String status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this(id, userId, firstName, lastName, email, phone, dateOfBirth, status, createdAt, updatedAt);
+    }
+
+    public static Customer createNew(Long userId, String firstName, String lastName, String fullName, String email, String phone, String address, String emergencyContact, LocalDate dob) {
+        String fName = (firstName != null && !firstName.isBlank()) ? firstName.trim() : null;
+        String lName = (lastName != null && !lastName.isBlank()) ? lastName.trim() : null;
+
+        if (fName == null && fullName != null && !fullName.isBlank()) {
+            String trimmed = fullName.trim();
+            if (trimmed.contains(" ")) {
+                int idx = trimmed.lastIndexOf(" ");
+                fName = trimmed.substring(0, idx);
+                lName = trimmed.substring(idx + 1);
+            } else {
+                fName = trimmed;
+                lName = trimmed;
+            }
         }
+        if (fName == null || fName.isBlank()) {
+            fName = "Customer";
+        }
+        if (lName == null || lName.isBlank()) {
+            lName = fName;
+        }
+
+        LocalDate birthDate = (dob != null) ? dob : LocalDate.of(1990, 1, 1);
         LocalDateTime now = LocalDateTime.now();
-        Customer c = new Customer(null, userId, fName, lName, email, phone, LocalDate.of(1990, 1, 1), 1L, "ACTIVE", now, now);
+        Customer c = new Customer(null, userId, fName, lName, email, phone, birthDate, "ACTIVE", now, now);
         c.setAddress(address);
         c.setEmergencyContact(emergencyContact);
         return c;
+    }
+
+    public static Customer createNew(Long userId, String fullName, String email, String phone, String address, String emergencyContact) {
+        return createNew(userId, null, null, fullName, email, phone, address, emergencyContact, null);
     }
 
     public Long getId() {
@@ -139,6 +160,14 @@ public class Customer {
         }
     }
 
+    public String getContactEmail() {
+        return email;
+    }
+
+    public void setContactEmail(String contactEmail) {
+        this.email = contactEmail;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -161,14 +190,6 @@ public class Customer {
 
     public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
-    }
-
-    public Long getAddressId() {
-        return addressId;
-    }
-
-    public void setAddressId(Long addressId) {
-        this.addressId = addressId;
     }
 
     public String getStatus() {

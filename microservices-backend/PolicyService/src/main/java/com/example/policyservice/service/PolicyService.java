@@ -16,6 +16,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import com.example.policyservice.model.Coverage;
+import com.example.policyservice.repository.CoverageRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Service
 public class PolicyService {
 
@@ -23,17 +27,28 @@ public class PolicyService {
 
     private final PolicyRepository policyRepository;
     private final PolicyStatusHistoryRepository historyRepository;
+    private final CoverageRepository coverageRepository;
     private final WebClient webClient;
     private final ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory;
+
+    @Autowired
+    public PolicyService(PolicyRepository policyRepository,
+                         PolicyStatusHistoryRepository historyRepository,
+                         CoverageRepository coverageRepository,
+                         WebClient.Builder webClientBuilder,
+                         ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
+        this.policyRepository = policyRepository;
+        this.historyRepository = historyRepository;
+        this.coverageRepository = coverageRepository;
+        this.webClient = webClientBuilder.build();
+        this.circuitBreakerFactory = circuitBreakerFactory;
+    }
 
     public PolicyService(PolicyRepository policyRepository,
                          PolicyStatusHistoryRepository historyRepository,
                          WebClient.Builder webClientBuilder,
                          ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
-        this.policyRepository = policyRepository;
-        this.historyRepository = historyRepository;
-        this.webClient = webClientBuilder.build();
-        this.circuitBreakerFactory = circuitBreakerFactory;
+        this(policyRepository, historyRepository, null, webClientBuilder, circuitBreakerFactory);
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
@@ -75,7 +90,12 @@ public class PolicyService {
                                                         "PENDING_PAYMENT",
                                                         "Quote accepted by customer"
                                                 );
-                                                return historyRepository.save(history).thenReturn(toResponse(saved));
+                                                Mono<Coverage> covMono = coverageRepository != null
+                                                        ? coverageRepository.save(new Coverage(null, saved.getId(), "PET_CONTINUITY_LIFE", saved.getCoverageAmount(), saved.getCoverageAmount(), 0.0, "ACTIVE"))
+                                                        : Mono.empty();
+                                                return historyRepository.save(history)
+                                                        .then(covMono.defaultIfEmpty(new Coverage()))
+                                                        .thenReturn(toResponse(saved));
                                             });
                                 })
                 ));
@@ -159,6 +179,24 @@ public class PolicyService {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Policy not found with id: " + id)))
                 .flatMap(policyRepository::delete)
                 .doOnSuccess(v -> log.info("Deleted policy id={}", id));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
+    public Flux<Coverage> getCoveragesByPolicyId(Long policyId) {
+        return coverageRepository != null ? coverageRepository.findByPolicyId(policyId) : Flux.empty();
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_UNDERWRITER')")
+    public Mono<Coverage> addCoverage(Long policyId, Coverage coverage) {
+        if (coverageRepository == null) return Mono.empty();
+        coverage.setPolicyId(policyId);
+        return coverageRepository.save(coverage)
+                .doOnSuccess(c -> log.info("Added coverage id={} to policyId={}", c.getId(), policyId));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
+    public Flux<PolicyStatusHistory> getPolicyStatusHistory(Long policyId) {
+        return historyRepository.findByPolicyIdOrderByChangedAtDesc(policyId);
     }
 
     private PolicyResponse toResponse(Policy p) {

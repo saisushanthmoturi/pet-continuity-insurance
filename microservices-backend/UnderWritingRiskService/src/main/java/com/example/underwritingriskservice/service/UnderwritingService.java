@@ -17,6 +17,10 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+import com.example.underwritingriskservice.model.RatingRule;
+import com.example.underwritingriskservice.repository.RatingRuleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Service
 public class UnderwritingService {
 
@@ -24,17 +28,28 @@ public class UnderwritingService {
 
     private final QuoteRepository quoteRepository;
     private final RiskAssessmentRepository riskAssessmentRepository;
+    private final RatingRuleRepository ratingRuleRepository;
     private final WebClient webClient;
     private final ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory;
+
+    @Autowired
+    public UnderwritingService(QuoteRepository quoteRepository,
+                               RiskAssessmentRepository riskAssessmentRepository,
+                               RatingRuleRepository ratingRuleRepository,
+                               WebClient.Builder webClientBuilder,
+                               ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
+        this.quoteRepository = quoteRepository;
+        this.riskAssessmentRepository = riskAssessmentRepository;
+        this.ratingRuleRepository = ratingRuleRepository;
+        this.webClient = webClientBuilder.build();
+        this.circuitBreakerFactory = circuitBreakerFactory;
+    }
 
     public UnderwritingService(QuoteRepository quoteRepository,
                                RiskAssessmentRepository riskAssessmentRepository,
                                WebClient.Builder webClientBuilder,
                                ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
-        this.quoteRepository = quoteRepository;
-        this.riskAssessmentRepository = riskAssessmentRepository;
-        this.webClient = webClientBuilder.build();
-        this.circuitBreakerFactory = circuitBreakerFactory;
+        this(quoteRepository, riskAssessmentRepository, null, webClientBuilder, circuitBreakerFactory);
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_ADMIN')")
@@ -285,5 +300,56 @@ public class UnderwritingService {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Quote not found with id: " + id)))
                 .flatMap(quoteRepository::delete)
                 .doOnSuccess(v -> log.info("Deleted quote id={}", id));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_UNDERWRITER', 'ROLE_ADMIN')")
+    public Flux<RatingRule> getAllRules() {
+        return ratingRuleRepository != null ? ratingRuleRepository.findAll() : Flux.empty();
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_UNDERWRITER', 'ROLE_ADMIN')")
+    public Mono<RatingRule> getRuleById(Long id) {
+        if (ratingRuleRepository == null) return Mono.empty();
+        return ratingRuleRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Rating rule not found with id: " + id)));
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public Mono<RatingRule> createRule(RatingRule rule) {
+        if (ratingRuleRepository == null) return Mono.empty();
+        return ratingRuleRepository.save(rule)
+                .doOnSuccess(r -> log.info("Created rating rule id={}, name={}", r.getId(), r.getRuleName()));
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public Mono<RatingRule> updateRule(Long id, RatingRule rule) {
+        if (ratingRuleRepository == null) return Mono.empty();
+        return ratingRuleRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Rating rule not found with id: " + id)))
+                .flatMap(existing -> {
+                    if (rule.getRuleName() != null) existing.setRuleName(rule.getRuleName());
+                    if (rule.getFactor() != null) existing.setFactor(rule.getFactor());
+                    if (rule.getMinValue() != null) existing.setMinValue(rule.getMinValue());
+                    if (rule.getMaxValue() != null) existing.setMaxValue(rule.getMaxValue());
+                    if (rule.getScore() != null) existing.setScore(rule.getScore());
+                    if (rule.getPremiumFactor() != null) existing.setPremiumFactor(rule.getPremiumFactor());
+                    if (rule.getStatus() != null) existing.setStatus(rule.getStatus());
+                    return ratingRuleRepository.save(existing);
+                });
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public Mono<Void> deleteRule(Long id) {
+        if (ratingRuleRepository == null) return Mono.empty();
+        return ratingRuleRepository.findById(id)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Rating rule not found with id: " + id)))
+                .flatMap(ratingRuleRepository::delete)
+                .doOnSuccess(v -> log.info("Deleted rating rule id={}", id));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_UNDERWRITER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
+    public Mono<RiskAssessment> getRiskAssessmentByQuoteId(Long quoteId) {
+        return riskAssessmentRepository.findByQuoteId(quoteId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Risk assessment not found for quoteId: " + quoteId)));
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Table("pet_medical_records")
 public class PetMedicalRecord {
@@ -37,8 +38,17 @@ public class PetMedicalRecord {
     @Column("notes")
     private String notes;
 
+    @Column("annual_med_cost")
+    private Double estimatedAnnualMedCost = 0.0;
+
     @Column("status")
     private String status = "ACTIVE";
+
+    @Column("created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column("updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     public PetMedicalRecord() {
     }
@@ -64,7 +74,9 @@ public class PetMedicalRecord {
             }
         } catch (Exception ignored) {
         }
-        return new PetMedicalRecord(null, petId, "CONDITION", conditionName, treatmentPlan, "Primary Vet", rDate, "LOW", treatmentPlan, "ACTIVE");
+        PetMedicalRecord record = new PetMedicalRecord(null, petId, "CONDITION", conditionName, treatmentPlan, "Primary Vet", rDate, "LOW", treatmentPlan, "ACTIVE");
+        record.setEstimatedAnnualMedCost(estimatedAnnualMedCost != null ? estimatedAnnualMedCost : 0.0);
+        return record;
     }
 
     public Long getId() {
@@ -180,5 +192,29 @@ public class PetMedicalRecord {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Double getEstimatedAnnualMedCost() {
+        return estimatedAnnualMedCost;
+    }
+
+    public void setEstimatedAnnualMedCost(Double estimatedAnnualMedCost) {
+        this.estimatedAnnualMedCost = estimatedAnnualMedCost;
     }
 }

@@ -17,6 +17,12 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import com.example.careverificationservice.model.CareTransfer;
+import com.example.careverificationservice.model.CaretakerVerification;
+import com.example.careverificationservice.repository.CareTransferRepository;
+import com.example.careverificationservice.repository.CaretakerVerificationRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Service
 public class CareService {
 
@@ -25,13 +31,26 @@ public class CareService {
     private final CaretakerRepository caretakerRepository;
     private final CarePlanRepository carePlanRepository;
     private final VerificationRepository verificationRepository;
+    private final CareTransferRepository careTransferRepository;
+    private final CaretakerVerificationRepository caretakerVerificationRepository;
+
+    @Autowired
+    public CareService(CaretakerRepository caretakerRepository,
+                       CarePlanRepository carePlanRepository,
+                       VerificationRepository verificationRepository,
+                       CareTransferRepository careTransferRepository,
+                       CaretakerVerificationRepository caretakerVerificationRepository) {
+        this.caretakerRepository = caretakerRepository;
+        this.carePlanRepository = carePlanRepository;
+        this.verificationRepository = verificationRepository;
+        this.careTransferRepository = careTransferRepository;
+        this.caretakerVerificationRepository = caretakerVerificationRepository;
+    }
 
     public CareService(CaretakerRepository caretakerRepository,
                        CarePlanRepository carePlanRepository,
                        VerificationRepository verificationRepository) {
-        this.caretakerRepository = caretakerRepository;
-        this.carePlanRepository = carePlanRepository;
-        this.verificationRepository = verificationRepository;
+        this(caretakerRepository, carePlanRepository, verificationRepository, null, null);
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
@@ -117,7 +136,18 @@ public class CareService {
                                     .flatMap(backup -> {
                                         backup.setCaretakerType("PRIMARY");
                                         backup.setStatus("ACTIVE");
-                                        return caretakerRepository.save(backup);
+                                        return caretakerRepository.save(backup)
+                                                .flatMap(savedBackup -> {
+                                                    if (careTransferRepository != null) {
+                                                        CareTransfer transfer = new CareTransfer(
+                                                                null, petId, plan.getPrimaryCaretakerId(), savedBackup.getId(),
+                                                                "Primary caretaker became unavailable", java.time.LocalDateTime.now(),
+                                                                "SYSTEM", "COMPLETED", java.time.LocalDateTime.now()
+                                                        );
+                                                        return careTransferRepository.save(transfer).thenReturn(savedBackup);
+                                                    }
+                                                    return Mono.just(savedBackup);
+                                                });
                                     }));
                 });
     }
@@ -244,5 +274,23 @@ public class CareService {
                     return new EligibilityResponse(true, note, activeCaretakerId);
                 })
                 .defaultIfEmpty(new EligibilityResponse(true, transferNote != null ? transferNote : "Pet check approved (initial cycle)", activeCaretakerId));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_CARETAKER', 'ROLE_ADMIN')")
+    public Flux<CareTransfer> getTransfersByPetId(Long petId) {
+        return careTransferRepository != null ? careTransferRepository.findByPetIdOrderByCreatedAtDesc(petId) : Flux.empty();
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_ADMIN')")
+    public Mono<CaretakerVerification> recordCaretakerVerification(Long caretakerId, CaretakerVerification v) {
+        if (caretakerVerificationRepository == null) return Mono.empty();
+        v.setCaretakerId(caretakerId);
+        return caretakerVerificationRepository.save(v)
+                .doOnSuccess(saved -> log.info("Recorded verification for caretakerId={}, status={}", caretakerId, saved.getVerificationStatus()));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_ADMIN')")
+    public Flux<CaretakerVerification> getCaretakerVerifications(Long caretakerId) {
+        return caretakerVerificationRepository != null ? caretakerVerificationRepository.findByCaretakerIdOrderByVerifiedAtDesc(caretakerId) : Flux.empty();
     }
 }

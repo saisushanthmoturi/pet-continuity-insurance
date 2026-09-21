@@ -22,6 +22,8 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+
+
 @Component
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 

@@ -25,7 +25,10 @@ public class CareRouter {
                         .DELETE("/caretakers/{id}", handler::deleteCaretaker)
                         .GET("/caretakers/pet/{petId}", handler::getCaretakersByPetId)
                         .POST("/caretakers/{id}/status", accept(MediaType.APPLICATION_JSON), handler::updateCaretakerStatus)
+                        .POST("/caretakers/{id}/verifications", accept(MediaType.APPLICATION_JSON), handler::recordCaretakerVerification)
+                        .GET("/caretakers/{id}/verifications", handler::getCaretakerVerifications)
                         .POST("/backup-transfer/{petId}", handler::transferBackup)
+                        .GET("/transfers/pet/{petId}", handler::getTransfers)
 
                         // Care Plans
                         .POST("/care-plans", accept(MediaType.APPLICATION_JSON), handler::saveCarePlan)

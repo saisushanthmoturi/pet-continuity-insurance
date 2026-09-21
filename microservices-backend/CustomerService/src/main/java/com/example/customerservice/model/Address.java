@@ -11,6 +11,9 @@ public class Address {
     @Column("address_id")
     private Long addressId;
 
+    @Column("address_type")
+    private String addressType = "PRIMARY";
+
     @Column("customer_id")
     private Long customerId;
 
@@ -44,6 +47,14 @@ public class Address {
         this.state = state;
         this.postalCode = postalCode;
         this.country = country != null ? country : "USA";
+    }
+
+    public String getAddressType() {
+        return addressType;
+    }
+
+    public void setAddressType(String addressType) {
+        this.addressType = addressType;
     }
 
     public Long getAddressId() {

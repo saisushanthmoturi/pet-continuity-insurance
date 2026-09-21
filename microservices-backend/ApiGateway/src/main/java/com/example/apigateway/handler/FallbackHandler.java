@@ -15,7 +15,7 @@ import java.util.Map;
 public class FallbackHandler {
 
     
-    @GetMapping("/{serviceName}")
+    @RequestMapping("/{serviceName}")
     public Mono<Map<String, Object>> serviceFallback(@PathVariable String serviceName) {
         return Mono.just(Map.of(
                 "status", HttpStatus.SERVICE_UNAVAILABLE.value(),

@@ -17,6 +17,12 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
+import com.example.claimsservice.model.ClaimDocument;
+import com.example.claimsservice.model.ClaimStatusHistory;
+import com.example.claimsservice.repository.ClaimDocumentRepository;
+import com.example.claimsservice.repository.ClaimStatusHistoryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Service
 public class ClaimsService {
 
@@ -24,17 +30,31 @@ public class ClaimsService {
 
     private final ClaimRepository claimRepository;
     private final ClaimInvestigationRepository investigationRepository;
+    private final ClaimDocumentRepository documentRepository;
+    private final ClaimStatusHistoryRepository historyRepository;
     private final WebClient webClient;
     private final ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory;
 
+    @Autowired
     public ClaimsService(ClaimRepository claimRepository,
-                          ClaimInvestigationRepository investigationRepository,
-                          WebClient.Builder webClientBuilder,
-                          ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
+                         ClaimInvestigationRepository investigationRepository,
+                         ClaimDocumentRepository documentRepository,
+                         ClaimStatusHistoryRepository historyRepository,
+                         WebClient.Builder webClientBuilder,
+                         ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
         this.claimRepository = claimRepository;
         this.investigationRepository = investigationRepository;
+        this.documentRepository = documentRepository;
+        this.historyRepository = historyRepository;
         this.webClient = webClientBuilder.build();
         this.circuitBreakerFactory = circuitBreakerFactory;
+    }
+
+    public ClaimsService(ClaimRepository claimRepository,
+                         ClaimInvestigationRepository investigationRepository,
+                         WebClient.Builder webClientBuilder,
+                         ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
+        this(claimRepository, investigationRepository, null, null, webClientBuilder, circuitBreakerFactory);
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
@@ -260,5 +280,35 @@ public class ClaimsService {
                 inv != null ? inv.getDecision() : null,
                 inv != null ? inv.getFraudScore() : null
         );
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
+    public Mono<ClaimDocument> addDocument(Long claimId, DocumentRequest req) {
+        if (documentRepository == null) return Mono.empty();
+        return claimRepository.findById(claimId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Claim not found with id: " + claimId)))
+                .flatMap(claim -> {
+                    ClaimDocument doc = new ClaimDocument(
+                            null,
+                            claimId,
+                            req.documentType() != null ? req.documentType() : "DEATH_CERTIFICATE",
+                            req.fileName() != null ? req.fileName() : "document.pdf",
+                            req.fileReference() != null ? req.fileReference() : "/docs/" + claimId,
+                            req.verificationStatus() != null ? req.verificationStatus() : "VERIFIED",
+                            java.time.LocalDateTime.now()
+                    );
+                    return documentRepository.save(doc)
+                            .doOnSuccess(d -> log.info("Saved claim document id={} for claimId={}", d.getId(), claimId));
+                });
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
+    public Flux<ClaimDocument> getDocumentsByClaimId(Long claimId) {
+        return documentRepository != null ? documentRepository.findByClaimId(claimId) : Flux.empty();
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_CLAIMS_OFFICER', 'ROLE_ADMIN')")
+    public Flux<ClaimStatusHistory> getClaimStatusHistory(Long claimId) {
+        return historyRepository != null ? historyRepository.findByClaimIdOrderByChangedAtDesc(claimId) : Flux.empty();
     }
 }

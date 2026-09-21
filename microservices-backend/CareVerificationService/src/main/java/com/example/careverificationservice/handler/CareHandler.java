@@ -3,6 +3,7 @@ package com.example.careverificationservice.handler;
 import com.example.careverificationservice.dto.CarePlanRequest;
 import com.example.careverificationservice.dto.CaretakerRequest;
 import com.example.careverificationservice.dto.VerificationRequest;
+import com.example.careverificationservice.model.CaretakerVerification;
 import com.example.careverificationservice.service.CareService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -262,5 +263,41 @@ public class CareHandler {
                 .onErrorResume(e -> ServerResponse.status(HttpStatus.BAD_REQUEST)
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(Map.of("error", e.getMessage())));
+    }
+
+    public Mono<ServerResponse> getTransfers(ServerRequest request) {
+        Long petId = Long.valueOf(request.pathVariable("petId"));
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(careService.getTransfersByPetId(petId), Object.class)
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
+
+    public Mono<ServerResponse> recordCaretakerVerification(ServerRequest request) {
+        Long caretakerId = Long.valueOf(request.pathVariable("id"));
+        return request.bodyToMono(CaretakerVerification.class)
+                .flatMap(v -> careService.recordCaretakerVerification(caretakerId, v))
+                .flatMap(saved -> ServerResponse.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).bodyValue(saved))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(e -> ServerResponse.status(HttpStatus.BAD_REQUEST)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(Map.of("error", e.getMessage())));
+    }
+
+    public Mono<ServerResponse> getCaretakerVerifications(ServerRequest request) {
+        Long caretakerId = Long.valueOf(request.pathVariable("id"));
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(careService.getCaretakerVerifications(caretakerId), Object.class)
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
     }
 }

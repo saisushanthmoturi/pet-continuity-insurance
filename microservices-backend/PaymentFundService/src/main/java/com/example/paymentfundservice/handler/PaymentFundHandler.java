@@ -196,4 +196,37 @@ public class PaymentFundHandler {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
     }
+
+    public Mono<ServerResponse> getDisbursements(ServerRequest request) {
+        Long fundId = Long.valueOf(request.pathVariable("id"));
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(paymentFundService.getDisbursementsByFundId(fundId), Object.class)
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
+
+    public Mono<ServerResponse> getExpenses(ServerRequest request) {
+        Long fundId = Long.valueOf(request.pathVariable("id"));
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(paymentFundService.getExpensesByFundId(fundId), Object.class)
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
+
+    public Mono<ServerResponse> getFundHistory(ServerRequest request) {
+        Long fundId = Long.valueOf(request.pathVariable("id"));
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(paymentFundService.getFundStatusHistory(fundId), Object.class)
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
 }

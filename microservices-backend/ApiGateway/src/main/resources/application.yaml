@@ -105,6 +105,8 @@ spring:
                 allowCredentials: true
 
 eureka:
+  instance:
+    prefer-ip-address: true
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
@@ -133,3 +135,7 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 10000ms
         permittedNumberOfCallsInHalfOpenState: 3
+  timelimiter:
+    instances:
+      default:
+        timeoutDuration: 10s

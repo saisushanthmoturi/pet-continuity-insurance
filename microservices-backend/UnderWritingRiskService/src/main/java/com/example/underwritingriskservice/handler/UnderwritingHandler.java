@@ -1,6 +1,7 @@
 package com.example.underwritingriskservice.handler;
 
 import com.example.underwritingriskservice.dto.QuoteRequest;
+import com.example.underwritingriskservice.model.RatingRule;
 import com.example.underwritingriskservice.service.UnderwritingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -94,6 +95,87 @@ public class UnderwritingHandler {
         Long id = Long.valueOf(request.pathVariable("id"));
         return underwritingService.deleteQuote(id)
                 .then(ServerResponse.noContent().build())
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
+    }
+
+    public Mono<ServerResponse> getAllRules(ServerRequest request) {
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(underwritingService.getAllRules(), Object.class)
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
+
+    public Mono<ServerResponse> getRuleById(ServerRequest request) {
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return underwritingService.getRuleById(id)
+                .flatMap(r -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(r))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
+    }
+
+    public Mono<ServerResponse> createRule(ServerRequest request) {
+        return request.bodyToMono(RatingRule.class)
+                .flatMap(underwritingService::createRule)
+                .flatMap(r -> ServerResponse.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).bodyValue(r))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.BAD_REQUEST)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
+    }
+
+    public Mono<ServerResponse> updateRule(ServerRequest request) {
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return request.bodyToMono(RatingRule.class)
+                .flatMap(r -> underwritingService.updateRule(id, r))
+                .flatMap(r -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(r))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.BAD_REQUEST)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
+    }
+
+    public Mono<ServerResponse> deleteRule(ServerRequest request) {
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return underwritingService.deleteRule(id)
+                .then(ServerResponse.noContent().build())
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
+    }
+
+    public Mono<ServerResponse> getAssessmentByQuoteId(ServerRequest request) {
+        Long quoteId = Long.valueOf(request.pathVariable("quoteId"));
+        return underwritingService.getRiskAssessmentByQuoteId(quoteId)
+                .flatMap(a -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(a))
                 .onErrorResume(AccessDeniedException.class, e ->
                         ServerResponse.status(HttpStatus.FORBIDDEN)
                                 .contentType(MediaType.APPLICATION_JSON)

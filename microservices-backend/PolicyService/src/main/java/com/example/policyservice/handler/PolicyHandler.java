@@ -138,4 +138,40 @@ public class PolicyHandler {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(Map.of("error", e.getMessage())));
     }
+
+    public Mono<ServerResponse> getCoverages(ServerRequest request) {
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(policyService.getCoveragesByPolicyId(id), Object.class)
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
+
+    public Mono<ServerResponse> addCoverage(ServerRequest request) {
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return request.bodyToMono(com.example.policyservice.model.Coverage.class)
+                .flatMap(c -> policyService.addCoverage(id, c))
+                .flatMap(cov -> ServerResponse.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).bodyValue(cov))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(e -> ServerResponse.status(HttpStatus.BAD_REQUEST)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(Map.of("error", e.getMessage())));
+    }
+
+    public Mono<ServerResponse> getStatusHistory(ServerRequest request) {
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(policyService.getPolicyStatusHistory(id), Object.class)
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
 }

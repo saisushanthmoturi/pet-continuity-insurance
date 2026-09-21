@@ -22,6 +22,8 @@ public class PetRouter {
                         .GET("/customer/{customerId}", handler::getPetsByCustomerId)
                         .POST("/{id}/medical-records", accept(MediaType.APPLICATION_JSON), handler::addMedicalRecord)
                         .GET("/{id}/medical-records", handler::getMedicalRecordsByPetId)
+                        .GET("/medical-records/{recordId}", handler::getMedicalRecordById)
+                        .PUT("/medical-records/{recordId}", accept(MediaType.APPLICATION_JSON), handler::updateMedicalRecord)
                         .DELETE("/medical-records/{recordId}", handler::deleteMedicalRecord)
                         .GET("/{id}", handler::getPetById)
                         .PUT("/{id}", accept(MediaType.APPLICATION_JSON), handler::updatePet)

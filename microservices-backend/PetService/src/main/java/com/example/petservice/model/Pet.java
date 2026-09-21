@@ -1,6 +1,7 @@
 package com.example.petservice.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -17,28 +18,40 @@ public class Pet {
     @Column("customer_id")
     private Long customerId;
 
+    @Column("date_of_birth_estimated")
+    private Boolean dateOfBirthEstimated = false;
+
     @Column("name")
     private String name;
 
-    @Column("species")
+    @Column("currency")
+    private String currency = "USD";
+
+    @Column("species_code")
     private String species;
 
-    @Column("breed")
+    @Column("breed_code")
     private String breed;
 
     @Column("gender")
     private String gender;
 
+    @Column("status")
+    private String status = "ACTIVE"; // ACTIVE | INACTIVE | DECEASED | ARCHIVED
+
     @Column("date_of_birth")
     private LocalDate dateOfBirth;
 
-    @Column("weight")
+    @Column("weight_value")
     private Double weight;
 
     @Column("microchip_id")
     private String microchipId;
 
-    @Column("medical_risk")
+    @Column("weight_unit")
+    private String weightUnit = "KG";
+
+    @Transient
     private String medicalRisk = "LOW";
 
     @Column("annual_care_cost")
@@ -47,8 +60,8 @@ public class Pet {
     @Column("expected_remaining_years")
     private Integer expectedRemainingYears = 10;
 
-    @Column("status")
-    private String status = "ACTIVE";
+    @Column("neutered_status")
+    private Boolean neuteredStatus = false;
 
     @Column("created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -56,7 +69,8 @@ public class Pet {
     @Column("updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    private transient Integer age;
+    @Transient
+    private Integer age;
 
     public Pet() {
     }
@@ -221,6 +235,62 @@ public class Pet {
             this.dateOfBirth = LocalDate.now().minusYears(age);
             this.expectedRemainingYears = Math.max(1, 15 - age);
         }
+    }
+
+    public Boolean getDateOfBirthEstimated() {
+        return dateOfBirthEstimated;
+    }
+
+    public void setDateOfBirthEstimated(Boolean dateOfBirthEstimated) {
+        this.dateOfBirthEstimated = dateOfBirthEstimated;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public String getSpeciesCode() {
+        return species;
+    }
+
+    public void setSpeciesCode(String speciesCode) {
+        this.species = speciesCode;
+    }
+
+    public String getBreedCode() {
+        return breed;
+    }
+
+    public void setBreedCode(String breedCode) {
+        this.breed = breedCode;
+    }
+
+    public Double getWeightValue() {
+        return weight;
+    }
+
+    public void setWeightValue(Double weightValue) {
+        this.weight = weightValue;
+    }
+
+    public String getWeightUnit() {
+        return weightUnit;
+    }
+
+    public void setWeightUnit(String weightUnit) {
+        this.weightUnit = weightUnit;
+    }
+
+    public Boolean getNeuteredStatus() {
+        return neuteredStatus;
+    }
+
+    public void setNeuteredStatus(Boolean neuteredStatus) {
+        this.neuteredStatus = neuteredStatus;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -26,7 +26,7 @@ public class PetService {
         this.medicalRecordRepository = medicalRecordRepository;
     }
 
-    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<Pet> createPet(PetRequest req) {
         if (req.customerId() == null || req.name() == null || req.species() == null || req.breed() == null || req.age() == null) {
             return Mono.error(new IllegalArgumentException("customerId, name, species, breed, and age are required"));
@@ -56,7 +56,7 @@ public class PetService {
         return petRepository.findByCustomerId(customerId);
     }
 
-    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<PetMedicalRecord> addMedicalRecord(Long petId, MedicalRecordRequest req) {
         if (req.conditionName() == null || req.conditionName().isBlank()) {
             return Mono.error(new IllegalArgumentException("conditionName is required"));
@@ -86,7 +86,7 @@ public class PetService {
         return petRepository.findAll();
     }
 
-    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
     public Mono<Pet> updatePet(Long id, PetRequest req) {
         return petRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Pet not found with id: " + id)))
@@ -114,6 +114,26 @@ public class PetService {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Flux<PetMedicalRecord> getAllMedicalRecords() {
         return medicalRecordRepository.findAll();
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_CLAIMS_OFFICER', 'ROLE_CARETAKER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
+    public Mono<PetMedicalRecord> getMedicalRecordById(Long recordId) {
+        return medicalRecordRepository.findById(recordId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Medical record not found with id: " + recordId)));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
+    public Mono<PetMedicalRecord> updateMedicalRecord(Long recordId, MedicalRecordRequest req) {
+        return medicalRecordRepository.findById(recordId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Medical record not found with id: " + recordId)))
+                .flatMap(rec -> {
+                    if (req.conditionName() != null && !req.conditionName().isBlank()) rec.setConditionName(req.conditionName().trim());
+                    if (req.diagnosisDate() != null) rec.setDiagnosisDate(req.diagnosisDate());
+                    if (req.treatmentPlan() != null) rec.setTreatmentPlan(req.treatmentPlan());
+                    if (req.estimatedAnnualMedCost() != null) rec.setEstimatedAnnualMedCost(req.estimatedAnnualMedCost());
+                    return medicalRecordRepository.save(rec)
+                            .doOnSuccess(r -> log.info("Updated medical record id={}", r.getId()));
+                });
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")

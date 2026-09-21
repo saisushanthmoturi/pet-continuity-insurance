@@ -143,4 +143,33 @@ public class PetHandler {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .bodyValue(Map.of("error", e.getMessage())));
     }
+
+    public Mono<ServerResponse> getMedicalRecordById(ServerRequest request) {
+        Long recordId = Long.valueOf(request.pathVariable("recordId"));
+        return petService.getMedicalRecordById(recordId)
+                .flatMap(rec -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(rec))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
+    }
+
+    public Mono<ServerResponse> updateMedicalRecord(ServerRequest request) {
+        Long recordId = Long.valueOf(request.pathVariable("recordId"));
+        return request.bodyToMono(MedicalRecordRequest.class)
+                .flatMap(req -> petService.updateMedicalRecord(recordId, req))
+                .flatMap(updated -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(updated))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.BAD_REQUEST)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
+    }
 }

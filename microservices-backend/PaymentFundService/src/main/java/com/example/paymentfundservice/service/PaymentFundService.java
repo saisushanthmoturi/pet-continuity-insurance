@@ -20,6 +20,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import com.example.paymentfundservice.model.Disbursement;
+import com.example.paymentfundservice.model.Expense;
+import com.example.paymentfundservice.model.FundStatusHistory;
+import com.example.paymentfundservice.repository.DisbursementRepository;
+import com.example.paymentfundservice.repository.ExpenseRepository;
+import com.example.paymentfundservice.repository.FundStatusHistoryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Service
 public class PaymentFundService {
 
@@ -28,19 +36,37 @@ public class PaymentFundService {
     private final PaymentRepository paymentRepository;
     private final FundRepository fundRepository;
     private final TransactionRepository transactionRepository;
+    private final DisbursementRepository disbursementRepository;
+    private final ExpenseRepository expenseRepository;
+    private final FundStatusHistoryRepository fundStatusHistoryRepository;
     private final WebClient webClient;
     private final ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory;
+
+    @Autowired
+    public PaymentFundService(PaymentRepository paymentRepository,
+                              FundRepository fundRepository,
+                              TransactionRepository transactionRepository,
+                              DisbursementRepository disbursementRepository,
+                              ExpenseRepository expenseRepository,
+                              FundStatusHistoryRepository fundStatusHistoryRepository,
+                              WebClient.Builder webClientBuilder,
+                              ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
+        this.paymentRepository = paymentRepository;
+        this.fundRepository = fundRepository;
+        this.transactionRepository = transactionRepository;
+        this.disbursementRepository = disbursementRepository;
+        this.expenseRepository = expenseRepository;
+        this.fundStatusHistoryRepository = fundStatusHistoryRepository;
+        this.webClient = webClientBuilder.build();
+        this.circuitBreakerFactory = circuitBreakerFactory;
+    }
 
     public PaymentFundService(PaymentRepository paymentRepository,
                               FundRepository fundRepository,
                               TransactionRepository transactionRepository,
                               WebClient.Builder webClientBuilder,
                               ReactiveCircuitBreakerFactory<?, ?> circuitBreakerFactory) {
-        this.paymentRepository = paymentRepository;
-        this.fundRepository = fundRepository;
-        this.transactionRepository = transactionRepository;
-        this.webClient = webClientBuilder.build();
-        this.circuitBreakerFactory = circuitBreakerFactory;
+        this(paymentRepository, fundRepository, transactionRepository, null, null, null, webClientBuilder, circuitBreakerFactory);
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
@@ -240,8 +266,16 @@ public class PaymentFundService {
         return fundRepository.findById(id)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Fund not found with id: " + id)))
                 .flatMap(fund -> {
+                    String prev = fund.getStatus();
                     fund.setStatus(status.toUpperCase());
-                    return fundRepository.save(fund);
+                    return fundRepository.save(fund)
+                            .flatMap(saved -> {
+                                if (fundStatusHistoryRepository != null) {
+                                    FundStatusHistory hist = new FundStatusHistory(null, saved.getId(), prev, status.toUpperCase(), "ADMIN", "Status update", java.time.LocalDateTime.now());
+                                    return fundStatusHistoryRepository.save(hist).thenReturn(saved);
+                                }
+                                return Mono.just(saved);
+                            });
                 });
     }
 
@@ -278,5 +312,20 @@ public class PaymentFundService {
     @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_CUSTOMER', 'ROLE_ADMIN')")
     public Flux<FundTransaction> getTransactions(Long fundId) {
         return transactionRepository.findByFundIdOrderByCreatedAtDesc(fundId);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_CUSTOMER', 'ROLE_ADMIN')")
+    public Flux<Disbursement> getDisbursementsByFundId(Long fundId) {
+        return disbursementRepository != null ? disbursementRepository.findByFundId(fundId) : Flux.empty();
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_CUSTOMER', 'ROLE_ADMIN')")
+    public Flux<Expense> getExpensesByFundId(Long fundId) {
+        return expenseRepository != null ? expenseRepository.findByFundId(fundId) : Flux.empty();
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CARETAKER', 'ROLE_CUSTOMER', 'ROLE_ADMIN')")
+    public Flux<FundStatusHistory> getFundStatusHistory(Long fundId) {
+        return fundStatusHistoryRepository != null ? fundStatusHistoryRepository.findByFundIdOrderByChangedAtDesc(fundId) : Flux.empty();
     }
 }

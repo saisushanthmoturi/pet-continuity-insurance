@@ -152,12 +152,12 @@ pet_insurance/
 
 ---
 
-## 3. Databases Used, Table Definitions & Attributes
+## 3. Databases Used, Table Definitions & Attributes (34 Tables)
 
 ### 1. `auth_db` (Auth Service)
 * **`users`**:
   * `user_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `username` (VARCHAR(100), NOT NULL, UNIQUE)
+  * `username` (VARCHAR(100))
   * `email` (VARCHAR(150), NOT NULL, UNIQUE)
   * `password_hash` (VARCHAR(255), NOT NULL)
   * `role` (VARCHAR(50), NOT NULL)
@@ -165,13 +165,9 @@ pet_insurance/
   * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
   * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
   * `last_login_at` (TIMESTAMP)
-* **`refresh_tokens`**:
-  * `token_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `user_id` (BIGINT, NOT NULL, FK -> users.user_id)
-  * `token` (VARCHAR(500), NOT NULL, UNIQUE)
-  * `expires_at` (TIMESTAMP, NOT NULL)
-  * `status` (VARCHAR(50), DEFAULT 'ACTIVE')
-  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+
+> **Authentication Architecture Note**:
+> Session and token management is purely stateless. Upon login/registration, the JWT token is stored securely in an `HttpOnly`, `SameSite=Lax` cookie named `jwt_token` (with `Authorization: Bearer <token>` header support for external clients). Database-persisted refresh tokens were intentionally removed to eliminate stateful session bottlenecks and simplify authentication lifecycle across services.
 
 ---
 
@@ -181,23 +177,22 @@ pet_insurance/
   * `user_id` (BIGINT, NOT NULL, UNIQUE)
   * `first_name` (VARCHAR(100), NOT NULL)
   * `last_name` (VARCHAR(100), NOT NULL)
-  * `email` (VARCHAR(150), NOT NULL)
+  * `contact_email` (VARCHAR(150), NOT NULL)
   * `phone` (VARCHAR(50))
   * `date_of_birth` (DATE)
-  * `address_id` (BIGINT)
   * `status` (VARCHAR(50), DEFAULT 'ACTIVE')
   * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
   * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
 * **`addresses`**:
   * `address_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `address_type` (VARCHAR(50), DEFAULT 'HOME')
   * `customer_id` (BIGINT, NOT NULL, FK -> customers.customer_id)
   * `line1` (VARCHAR(255), NOT NULL)
   * `line2` (VARCHAR(255))
   * `city` (VARCHAR(100), NOT NULL)
   * `state` (VARCHAR(100), NOT NULL)
   * `postal_code` (VARCHAR(20), NOT NULL)
-  * `country` (VARCHAR(100), DEFAULT 'USA')
-  * `is_primary` (BOOLEAN, DEFAULT TRUE)
+  * `country` (VARCHAR(100), DEFAULT 'US')
 
 ---
 
@@ -205,115 +200,138 @@ pet_insurance/
 * **`pets`**:
   * `pet_id` (BIGINT, PK, AUTO_INCREMENT)
   * `customer_id` (BIGINT, NOT NULL)
+  * `date_of_birth_estimated` (BOOLEAN, DEFAULT FALSE)
   * `name` (VARCHAR(100), NOT NULL)
-  * `species` (VARCHAR(50), NOT NULL)
-  * `breed` (VARCHAR(100))
-  * `age` (INT NOT NULL)
-  * `gender` (VARCHAR(20))
-  * `weight` (DOUBLE)
-  * `microchip_number` (VARCHAR(100), UNIQUE)
-  * `medical_risk` (VARCHAR(50), DEFAULT 'LOW')
-  * `annual_care_cost` (DOUBLE, DEFAULT 1200.0)
-  * `expected_remaining_years` (INT DEFAULT 10)
+  * `currency` (VARCHAR(10), DEFAULT 'USD')
+  * `species_code` (VARCHAR(50), NOT NULL)
+  * `breed_code` (VARCHAR(100), NOT NULL)
+  * `gender` (VARCHAR(20), NOT NULL)
   * `status` (VARCHAR(50), DEFAULT 'ACTIVE')
+  * `date_of_birth` (DATE)
+  * `weight_value` (DOUBLE)
+  * `microchip_id` (VARCHAR(100), UNIQUE)
+  * `weight_unit` (VARCHAR(10), DEFAULT 'KG')
+  * `annual_care_cost` (DOUBLE, DEFAULT 1200.0)
+  * `expected_remaining_years` (INT, DEFAULT 10)
+  * `neutered_status` (BOOLEAN, DEFAULT TRUE)
   * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
   * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
 * **`pet_medical_records`**:
-  * `record_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `medical_record_id` (BIGINT, PK, AUTO_INCREMENT)
   * `pet_id` (BIGINT, NOT NULL, FK -> pets.pet_id)
-  * `record_date` (DATE NOT NULL)
-  * `condition_name` (VARCHAR(150) NOT NULL)
-  * `treatment` (TEXT)
-  * `medications` (TEXT)
-  * `veterinarian_name` (VARCHAR(150))
-  * `clinic_name` (VARCHAR(150))
-  * `document_reference` (VARCHAR(500))
+  * `record_type` (VARCHAR(50), NOT NULL)
+  * `file_url` (VARCHAR(500), NOT NULL)
+  * `file_hash` (VARCHAR(128))
+  * `file_name` (VARCHAR(255), NOT NULL)
+  * `file_size_bytes` (BIGINT, NOT NULL)
+  * `mime_type` (VARCHAR(100), NOT NULL)
+  * `description` (TEXT)
+  * `recorded_date` (DATE)
   * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
 
 ---
 
 ### 4. `underwriting_db` (Underwriting & Risk Service)
 * **`quotes`**:
   * `quote_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `customer_id` (BIGINT, NOT NULL)
   * `pet_id` (BIGINT, NOT NULL)
-  * `requested_coverage` (DOUBLE NOT NULL)
-  * `coverage_period` (VARCHAR(50) DEFAULT 'ANNUAL')
-  * `premium_amount` (DOUBLE NOT NULL)
-  * `risk_score` (INT NOT NULL)
-  * `risk_class` (VARCHAR(50) NOT NULL)
-  * `decision` (VARCHAR(50) NOT NULL)
-  * `status` (VARCHAR(50), DEFAULT 'PENDING')
-  * `underwriter_id` (BIGINT)
+  * `customer_id` (BIGINT, NOT NULL)
+  * `quote_number` (VARCHAR(100), UNIQUE)
+  * `status` (VARCHAR(50), DEFAULT 'ACTIVE')
+  * `quote_type` (VARCHAR(50), DEFAULT 'CONTINUITY')
+  * `requested_coverage_amount` (DOUBLE, NOT NULL)
+  * `estimated_annual_cost` (DOUBLE, NOT NULL)
+  * `deductible_amount` (DOUBLE, NOT NULL)
+  * `total_cost` (DOUBLE, NOT NULL)
+  * `currency` (VARCHAR(10), DEFAULT 'USD')
+  * `expires_at` (TIMESTAMP)
   * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
   * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
-  * `valid_until` (TIMESTAMP)
 * **`risk_assessments`**:
-  * `risk_assessment_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `assessment_id` (BIGINT, PK, AUTO_INCREMENT)
   * `quote_id` (BIGINT, NOT NULL, FK -> quotes.quote_id)
-  * `age_factor` (DOUBLE NOT NULL)
-  * `breed_factor` (DOUBLE DEFAULT 0.0)
-  * `medical_factor` (DOUBLE NOT NULL)
-  * `care_cost_factor` (DOUBLE DEFAULT 0.0)
-  * `continuity_factor` (DOUBLE DEFAULT 0.0)
-  * `total_score` (DOUBLE NOT NULL)
-  * `risk_class` (VARCHAR(50) NOT NULL)
-  * `explanation` (TEXT)
-  * `assessed_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
-  * `status` (VARCHAR(50) DEFAULT 'COMPLETED')
+  * `risk_tier` (VARCHAR(50), NOT NULL)
+  * `base_premium` (DOUBLE, NOT NULL)
+  * `breed_risk_factor` (DOUBLE, NOT NULL)
+  * `age_risk_factor` (DOUBLE, NOT NULL)
+  * `final_premium` (DOUBLE, NOT NULL)
+  * `notes` (TEXT)
+  * `approved_coverage_amount` (DOUBLE, NOT NULL)
+  * `risk_score` (DOUBLE, NOT NULL)
+  * `health_risk_factor` (DOUBLE, NOT NULL)
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
 * **`coverage_assessments`**:
-  * `coverage_assessment_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `quote_id` (BIGINT, NOT NULL, FK -> quotes.quote_id)
-  * `annual_care_cost` (DOUBLE NOT NULL)
-  * `remaining_years` (INT NOT NULL)
-  * `medical_reserve` (DOUBLE NOT NULL)
-  * `inflation_adjustment` (DOUBLE DEFAULT 1.05)
-  * `projected_liability` (DOUBLE NOT NULL)
-  * `requested_coverage` (DOUBLE NOT NULL)
-  * `coverage_gap` (DOUBLE NOT NULL)
-  * `recommendation` (TEXT)
-  * `status` (VARCHAR(50) DEFAULT 'CALCULATED')
+  * `coverage_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `assessment_id` (BIGINT, NOT NULL, FK -> risk_assessments.assessment_id)
+  * `coverage_type` (VARCHAR(100), NOT NULL)
+  * `requested_limit` (DOUBLE, NOT NULL)
+  * `approved_limit` (DOUBLE, NOT NULL)
+  * `deductible` (DOUBLE, NOT NULL)
+  * `status` (VARCHAR(50), DEFAULT 'APPROVED')
+  * `rejection_reason` (VARCHAR(255))
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
 * **`rating_rules`**:
   * `rule_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `rule_name` (VARCHAR(150) NOT NULL)
-  * `factor` (VARCHAR(50) NOT NULL)
-  * `min_value` (DOUBLE), `max_value` (DOUBLE)
-  * `score` (INT NOT NULL)
-  * `premium_factor` (DOUBLE NOT NULL)
-  * `status` (VARCHAR(50) DEFAULT 'ACTIVE')
-  * `effective_from` (DATE), `effective_to` (DATE)
+  * `rule_name` (VARCHAR(100), NOT NULL)
+  * `species_code` (VARCHAR(50), NOT NULL)
+  * `breed_code` (VARCHAR(100))
+  * `min_age_years` (INT, DEFAULT 0)
+  * `max_age_years` (INT, DEFAULT 30)
+  * `factor` (DOUBLE, NOT NULL)
+  * `active` (BOOLEAN, DEFAULT TRUE)
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
+* **`premium_calculations`**:
+  * `calculation_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `quote_id` (BIGINT, NOT NULL, FK -> quotes.quote_id)
+  * `base_rate` (DOUBLE, NOT NULL)
+  * `breed_multiplier` (DOUBLE, NOT NULL)
+  * `age_multiplier` (DOUBLE, NOT NULL)
+  * `health_multiplier` (DOUBLE, NOT NULL)
+  * `calculated_annual_premium` (DOUBLE, NOT NULL)
+  * `calculated_monthly_premium` (DOUBLE, NOT NULL)
+  * `calculated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `currency` (VARCHAR(10), DEFAULT 'USD')
+  * `rule_set_version` (VARCHAR(50), DEFAULT 'v1.0')
 
 ---
 
 ### 5. `policy_db` (Policy Service)
 * **`policies`**:
   * `policy_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `policy_number` (VARCHAR(50) NOT NULL UNIQUE)
-  * `quote_id` (BIGINT NOT NULL)
-  * `customer_id` (BIGINT NOT NULL)
-  * `pet_id` (BIGINT NOT NULL)
-  * `coverage_amount` (DOUBLE NOT NULL)
-  * `premium_amount` (DOUBLE NOT NULL)
-  * `deductible` (DOUBLE DEFAULT 250.0)
-  * `start_date` (DATE), `end_date` (DATE)
-  * `status` (VARCHAR(50) DEFAULT 'ACTIVE')
-  * `issued_by` (VARCHAR(100) DEFAULT 'SYSTEM')
+  * `policy_number` (VARCHAR(100), NOT NULL, UNIQUE)
+  * `customer_id` (BIGINT, NOT NULL)
+  * `pet_id` (BIGINT, NOT NULL)
+  * `quote_id` (BIGINT, NOT NULL)
+  * `status` (VARCHAR(50), DEFAULT 'ACTIVE')
+  * `coverage_amount` (DOUBLE, NOT NULL)
+  * `annual_premium` (DOUBLE, NOT NULL)
+  * `monthly_premium` (DOUBLE, NOT NULL)
+  * `deductible_amount` (DOUBLE, NOT NULL)
+  * `currency` (VARCHAR(10), DEFAULT 'USD')
+  * `effective_date` (DATE)
+  * `expiry_date` (DATE)
+  * `cancelled_at` (TIMESTAMP)
   * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
   * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
 * **`coverages`**:
   * `coverage_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `policy_id` (BIGINT NOT NULL, FK -> policies.policy_id)
-  * `coverage_type` (VARCHAR(100) NOT NULL)
-  * `coverage_amount` (DOUBLE NOT NULL)
-  * `limit_amount` (DOUBLE NOT NULL)
-  * `deductible` (DOUBLE DEFAULT 0.0)
-  * `status` (VARCHAR(50) DEFAULT 'ACTIVE')
+  * `policy_id` (BIGINT, NOT NULL, FK -> policies.policy_id)
+  * `coverage_type` (VARCHAR(100), NOT NULL)
+  * `limit_amount` (DOUBLE, NOT NULL)
+  * `deductible_amount` (DOUBLE, NOT NULL)
+  * `status` (VARCHAR(50), DEFAULT 'ACTIVE')
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
 * **`policy_status_history`**:
   * `history_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `policy_id` (BIGINT NOT NULL, FK -> policies.policy_id)
-  * `old_status` (VARCHAR(50)), `new_status` (VARCHAR(50) NOT NULL)
-  * `changed_by` (VARCHAR(100) DEFAULT 'SYSTEM')
-  * `reason` (TEXT)
+  * `policy_id` (BIGINT, NOT NULL, FK -> policies.policy_id)
+  * `old_status` (VARCHAR(50))
+  * `new_status` (VARCHAR(50), NOT NULL)
+  * `reason` (VARCHAR(255))
+  * `changed_by` (VARCHAR(100))
   * `changed_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
 
 ---
@@ -321,112 +339,410 @@ pet_insurance/
 ### 6. `claims_db` (Claims Service)
 * **`claims`**:
   * `claim_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `policy_id` (BIGINT NOT NULL)
-  * `customer_id` (BIGINT), `pet_id` (BIGINT)
-  * `claim_reason` (VARCHAR(255) NOT NULL)
-  * `triggering_event` (VARCHAR(100) DEFAULT 'OWNER_DEATH')
-  * `claim_amount` (DOUBLE DEFAULT 25000.0)
-  * `status` (VARCHAR(50) DEFAULT 'PENDING')
-  * `priority` (VARCHAR(20) DEFAULT 'NORMAL')
-  * `claims_officer_id` (BIGINT)
-  * `fraud_status` (VARCHAR(50) DEFAULT 'CLEARED')
-  * `submitted_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `claim_number` (VARCHAR(100), NOT NULL, UNIQUE)
+  * `policy_id` (BIGINT, NOT NULL)
+  * `pet_id` (BIGINT, NOT NULL)
+  * `customer_id` (BIGINT, NOT NULL)
+  * `claim_type` (VARCHAR(50), NOT NULL)
+  * `trigger_event` (VARCHAR(100), NOT NULL)
+  * `status` (VARCHAR(50), DEFAULT 'SUBMITTED')
+  * `approved_amount` (DOUBLE)
+  * `payout_frequency` (VARCHAR(50))
+  * `payout_start_date` (DATE)
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
   * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
 * **`claim_documents`**:
   * `document_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `claim_id` (BIGINT NOT NULL, FK -> claims.claim_id)
-  * `document_type` (VARCHAR(100) NOT NULL)
-  * `file_name` (VARCHAR(255) NOT NULL), `file_reference` (VARCHAR(500) NOT NULL)
-  * `verification_status` (VARCHAR(50) DEFAULT 'VERIFIED')
+  * `claim_id` (BIGINT, NOT NULL, FK -> claims.claim_id)
+  * `document_type` (VARCHAR(50), NOT NULL)
+  * `file_url` (VARCHAR(500), NOT NULL)
+  * `file_name` (VARCHAR(255), NOT NULL)
+  * `file_size_bytes` (BIGINT, NOT NULL)
+  * `mime_type` (VARCHAR(100), NOT NULL)
+  * `verification_status` (VARCHAR(50), DEFAULT 'PENDING')
   * `uploaded_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `verified_at` (TIMESTAMP)
+  * `rejection_reason` (VARCHAR(255))
 * **`event_verifications`**:
-  * `verification_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `claim_id` (BIGINT NOT NULL, FK -> claims.claim_id)
-  * `event_type` (VARCHAR(100) NOT NULL), `verification_method` (VARCHAR(100) NOT NULL)
-  * `verification_status` (VARCHAR(50) NOT NULL), `verified_by` (VARCHAR(100))
-  * `verification_date` (DATE), `remarks` (TEXT)
+  * `event_verification_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `claim_id` (BIGINT, NOT NULL, FK -> claims.claim_id)
+  * `verification_type` (VARCHAR(50), NOT NULL)
+  * `verification_source` (VARCHAR(100), NOT NULL)
+  * `status` (VARCHAR(50), DEFAULT 'PENDING')
+  * `verified_by` (VARCHAR(100))
+  * `verified_at` (TIMESTAMP)
+  * `notes` (TEXT)
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
 * **`investigations`**:
   * `investigation_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `claim_id` (BIGINT NOT NULL, FK -> claims.claim_id)
-  * `investigator_id` (BIGINT), `findings` (TEXT)
-  * `eligibility_status` (VARCHAR(50) NOT NULL)
-  * `fraud_indicator_count` (INT DEFAULT 0)
-  * `recommendation` (VARCHAR(50) NOT NULL), `status` (VARCHAR(50) DEFAULT 'COMPLETED')
-  * `completed_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `claim_id` (BIGINT, NOT NULL, FK -> claims.claim_id)
+  * `investigator_name` (VARCHAR(150), NOT NULL)
+  * `reason` (VARCHAR(255), NOT NULL)
+  * `findings` (TEXT)
+  * `status` (VARCHAR(50), DEFAULT 'OPEN')
+  * `outcome` (VARCHAR(50))
+  * `initiated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `completed_at` (TIMESTAMP)
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
 * **`fraud_assessments`**:
-  * `fraud_assessment_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `claim_id` (BIGINT NOT NULL, FK -> claims.claim_id)
-  * `score` (INT NOT NULL), `indicators` (TEXT)
-  * `decision` (VARCHAR(50) NOT NULL), `assessed_by` (VARCHAR(100))
-  * `assessed_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP), `status` (VARCHAR(50) DEFAULT 'COMPLETED')
+  * `fraud_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `claim_id` (BIGINT, NOT NULL, FK -> claims.claim_id)
+  * `risk_score` (DOUBLE, NOT NULL)
+  * `fraud_tier` (VARCHAR(50), NOT NULL)
+  * `flag_reasons` (TEXT)
+  * `model_version` (VARCHAR(50), DEFAULT 'v1.0')
+  * `assessed_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `requires_investigation` (BOOLEAN, DEFAULT FALSE)
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
+* **`claim_status_history`**:
+  * `history_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `claim_id` (BIGINT, NOT NULL, FK -> claims.claim_id)
+  * `old_status` (VARCHAR(50))
+  * `new_status` (VARCHAR(50), NOT NULL)
+  * `changed_by` (VARCHAR(100))
+  * `reason` (VARCHAR(255))
+  * `changed_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+* **`claim_information_requests`**:
+  * `request_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `claim_id` (BIGINT, NOT NULL, FK -> claims.claim_id)
+  * `requested_by` (VARCHAR(100))
+  * `request_reason` (VARCHAR(255))
+  * `document_type_requested` (VARCHAR(100))
+  * `status` (VARCHAR(50), DEFAULT 'PENDING')
+  * `due_date` (DATE)
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `responded_at` (TIMESTAMP)
 
 ---
 
 ### 7. `payment_fund_db` (Payment & Fund Service)
 * **`premium_payments`**:
   * `payment_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `policy_id` (BIGINT NOT NULL), `customer_id` (BIGINT)
-  * `amount` (DOUBLE NOT NULL), `payment_reference` (VARCHAR(100) NOT NULL)
-  * `payment_method` (VARCHAR(50) NOT NULL), `status` (VARCHAR(50) NOT NULL)
-  * `payment_date` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP), `failure_reason` (TEXT)
+  * `policy_id` (BIGINT, NOT NULL)
+  * `customer_id` (BIGINT)
+  * `currency` (VARCHAR(10), DEFAULT 'USD')
+  * `idempotency_key` (VARCHAR(100))
+  * `amount` (DOUBLE, NOT NULL)
+  * `payment_reference` (VARCHAR(100))
+  * `payment_method` (VARCHAR(50))
+  * `status` (VARCHAR(50), NOT NULL)
+  * `failure_reason` (VARCHAR(255))
+  * `initiated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `completed_at` (TIMESTAMP)
+  * `failed_at` (TIMESTAMP)
 * **`pet_care_funds`**:
   * `fund_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `policy_id` (BIGINT NOT NULL UNIQUE), `pet_id` (BIGINT NOT NULL)
-  * `total_amount` (DOUBLE NOT NULL), `available_amount` (DOUBLE NOT NULL)
-  * `monthly_allowance` (DOUBLE NOT NULL), `veterinary_reserve` (DOUBLE NOT NULL), `emergency_reserve` (DOUBLE NOT NULL)
-  * `status` (VARCHAR(50) DEFAULT 'ACTIVE')
-  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP), `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
+  * `policy_id` (BIGINT, NOT NULL, UNIQUE)
+  * `pet_id` (BIGINT, NOT NULL)
+  * `approved_claim_id` (BIGINT)
+  * `currency` (VARCHAR(10), DEFAULT 'USD')
+  * `total_amount` (DOUBLE, NOT NULL)
+  * `available_amount` (DOUBLE, NOT NULL)
+  * `monthly_allowance` (DOUBLE, NOT NULL)
+  * `veterinary_reserve` (DOUBLE, NOT NULL)
+  * `emergency_reserve` (DOUBLE, NOT NULL)
+  * `status` (VARCHAR(50), DEFAULT 'ACTIVE')
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
+  * `version` (INT, DEFAULT 1)
 * **`fund_transactions`**:
   * `transaction_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `fund_id` (BIGINT NOT NULL, FK -> pet_care_funds.fund_id)
-  * `transaction_type` (VARCHAR(50) NOT NULL), `amount` (DOUBLE NOT NULL), `balance_after` (DOUBLE NOT NULL)
-  * `reference_id` (VARCHAR(100)), `description` (TEXT), `status` (VARCHAR(50) DEFAULT 'SUCCESS')
+  * `fund_id` (BIGINT, NOT NULL, FK -> pet_care_funds.fund_id)
+  * `transaction_type` (VARCHAR(50), NOT NULL)
+  * `currency` (VARCHAR(10), DEFAULT 'USD')
+  * `amount` (DOUBLE, NOT NULL)
+  * `balance_after` (DOUBLE, NOT NULL)
+  * `external_reference` (VARCHAR(100))
+  * `idempotency_key` (VARCHAR(100))
+  * `reference_id` (VARCHAR(100))
+  * `reversal_of_transaction_id` (BIGINT)
+  * `description` (VARCHAR(255))
+  * `status` (VARCHAR(50), DEFAULT 'SUCCESS')
+  * `created_by` (VARCHAR(100))
   * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
 * **`disbursements`**:
   * `disbursement_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `fund_id` (BIGINT NOT NULL, FK -> pet_care_funds.fund_id)
-  * `caretaker_id` (BIGINT NOT NULL), `amount` (DOUBLE NOT NULL)
-  * `disbursement_type` (VARCHAR(50) DEFAULT 'MONTHLY_ALLOWANCE')
-  * `eligibility_status` (VARCHAR(50) DEFAULT 'ELIGIBLE'), `status` (VARCHAR(50) DEFAULT 'PROCESSED')
-  * `scheduled_date` (DATE), `processed_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `fund_id` (BIGINT, NOT NULL, FK -> pet_care_funds.fund_id)
+  * `currency` (VARCHAR(10), DEFAULT 'USD')
+  * `amount` (DOUBLE, NOT NULL)
+  * `assignment_id` (BIGINT)
+  * `eligibility_check_id` (BIGINT)
+  * `idempotency_key` (VARCHAR(100))
+  * `disbursement_type` (VARCHAR(50), DEFAULT 'MONTHLY_ALLOWANCE')
+  * `eligibility_status` (VARCHAR(50), DEFAULT 'ELIGIBLE')
+  * `benefit_month` (VARCHAR(20))
+  * `status` (VARCHAR(50), DEFAULT 'PROCESSED')
+  * `scheduled_date` (DATE)
+  * `processed_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
 * **`expenses`**:
   * `expense_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `fund_id` (BIGINT NOT NULL, FK -> pet_care_funds.fund_id)
-  * `caretaker_id` (BIGINT NOT NULL), `expense_type` (VARCHAR(50) NOT NULL), `amount` (DOUBLE NOT NULL)
-  * `vendor_name` (VARCHAR(150)), `document_reference` (VARCHAR(500)), `approval_status` (VARCHAR(50) DEFAULT 'APPROVED')
-  * `submitted_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP), `approved_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `fund_id` (BIGINT, NOT NULL, FK -> pet_care_funds.fund_id)
+  * `assignment_id` (BIGINT)
+  * `expense_type` (VARCHAR(50), NOT NULL)
+  * `currency` (VARCHAR(10), DEFAULT 'USD')
+  * `amount` (DOUBLE, NOT NULL)
+  * `vendor_name` (VARCHAR(150))
+  * `document_reference` (VARCHAR(255))
+  * `approval_status` (VARCHAR(50), DEFAULT 'APPROVED')
+  * `idempotency_key` (VARCHAR(100))
+  * `decided_by` (VARCHAR(100))
+  * `decided_at` (TIMESTAMP)
+  * `decision_reason` (VARCHAR(255))
+  * `submitted_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `approved_at` (TIMESTAMP)
+  * `expense_date` (DATE)
+* **`fund_status_history`**:
+  * `history_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `fund_id` (BIGINT, NOT NULL, FK -> pet_care_funds.fund_id)
+  * `old_status` (VARCHAR(50))
+  * `new_status` (VARCHAR(50), NOT NULL)
+  * `changed_by` (VARCHAR(100))
+  * `reason` (VARCHAR(255))
+  * `changed_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
 
 ---
 
 ### 8. `care_verification_db` (Care & Verification Service)
 * **`caretakers`**:
   * `caretaker_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `pet_id` (BIGINT NOT NULL), `name` (VARCHAR(150) NOT NULL), `phone` (VARCHAR(50) NOT NULL), `email` (VARCHAR(150))
-  * `relationship` (VARCHAR(100)), `address` (TEXT), `priority` (INT DEFAULT 1)
-  * `verification_status` (VARCHAR(50) DEFAULT 'VERIFIED'), `availability_status` (VARCHAR(50) DEFAULT 'ACTIVE')
-  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP), `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
+  * `user_id` (BIGINT)
+  * `name` (VARCHAR(150))
+  * `phone` (VARCHAR(50))
+  * `email` (VARCHAR(150))
+  * `identity_status` (VARCHAR(50), DEFAULT 'VERIFIED')
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
+  * `version` (INT, DEFAULT 1)
+* **`pet_caretaker_assignments`**:
+  * `assignment_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `pet_id` (BIGINT, NOT NULL)
+  * `caretaker_id` (BIGINT, NOT NULL, FK -> caretakers.caretaker_id)
+  * `priority` (INT, DEFAULT 1)
+  * `caretaker_type` (VARCHAR(50), DEFAULT 'PRIMARY')
+  * `relationship` (VARCHAR(50))
+  * `availability_status` (VARCHAR(50), DEFAULT 'AVAILABLE')
+  * `assignment_status` (VARCHAR(50), DEFAULT 'ACTIVE')
+  * `nominated_by` (BIGINT)
+  * `effective_from` (DATE)
+  * `effective_to` (DATE)
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
+  * `version` (INT, DEFAULT 1)
+* **`caretaker_verification`**:
+  * `verification_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `caretaker_id` (BIGINT, NOT NULL, FK -> caretakers.caretaker_id)
+  * `verification_type` (VARCHAR(50), DEFAULT 'IDENTITY')
+  * `verification_method` (VARCHAR(50), DEFAULT 'DOCUMENT')
+  * `verification_status` (VARCHAR(50), DEFAULT 'VERIFIED')
+  * `evidence_reference` (VARCHAR(255))
+  * `verification_by` (VARCHAR(100))
+  * `verified_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `expires_at` (TIMESTAMP)
+  * `failure_reason` (VARCHAR(255))
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
 * **`care_plans`**:
   * `care_plan_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `pet_id` (BIGINT NOT NULL UNIQUE)
-  * `feeding_instructions` (TEXT), `medication_instructions` (TEXT), `vet_details` (TEXT)
-  * `routine_details` (TEXT), `special_requirements` (TEXT), `status` (VARCHAR(50) DEFAULT 'ACTIVE')
-  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP), `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
+  * `pet_id` (BIGINT, NOT NULL)
+  * `feeding_instructions` (TEXT)
+  * `medication_instructions` (TEXT)
+  * `vet_details` (TEXT)
+  * `routine_details` (TEXT)
+  * `special_requirements` (TEXT)
+  * `status` (VARCHAR(50), DEFAULT 'ACTIVE')
+  * `plan_version` (INT, DEFAULT 1)
+  * `effective_from` (DATE)
+  * `effective_to` (DATE)
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `updated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
 * **`pet_verifications`**:
   * `pet_verification_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `pet_id` (BIGINT NOT NULL), `caretaker_id` (BIGINT NOT NULL, FK -> caretakers.caretaker_id)
-  * `verification_method` (VARCHAR(100) DEFAULT 'MOBILE_CHECKIN'), `verification_status` (VARCHAR(50) DEFAULT 'PASSED')
-  * `evidence_reference` (VARCHAR(500)), `verified_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
-  * `next_verification_date` (DATE), `remarks` (TEXT)
+  * `pet_id` (BIGINT, NOT NULL)
+  * `caretaker_id` (BIGINT, NOT NULL, FK -> caretakers.caretaker_id)
+  * `verification_method` (VARCHAR(50), DEFAULT 'MOBILE_CHECKIN')
+  * `verification_status` (VARCHAR(50), DEFAULT 'PASSED')
+  * `evidence_reference` (VARCHAR(255))
+  * `verified_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `next_verification_date` (DATE)
+  * `remarks` (TEXT)
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
 * **`verification_history`**:
   * `history_id` (BIGINT, PK, AUTO_INCREMENT)
-  * `pet_id` (BIGINT NOT NULL), `caretaker_id` (BIGINT NOT NULL, FK -> caretakers.caretaker_id)
-  * `verification_type` (VARCHAR(100) NOT NULL), `old_status` (VARCHAR(50)), `new_status` (VARCHAR(50) NOT NULL)
-  * `verification_method` (VARCHAR(100)), `verified_by` (VARCHAR(100))
-  * `verified_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP), `remarks` (TEXT)
+  * `pet_id` (BIGINT, NOT NULL)
+  * `caretaker_id` (BIGINT, NOT NULL, FK -> caretakers.caretaker_id)
+  * `verification_type` (VARCHAR(50))
+  * `old_status` (VARCHAR(50))
+  * `new_status` (VARCHAR(50))
+  * `verification_method` (VARCHAR(50))
+  * `verified_by` (VARCHAR(100))
+  * `verified_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `remarks` (TEXT)
+* **`monthly_eligible_checks`**:
+  * `eligibility_check_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `pet_id` (BIGINT, NOT NULL)
+  * `assignment_id` (BIGINT, NOT NULL, FK -> pet_caretaker_assignments.assignment_id)
+  * `fund_id` (BIGINT, NOT NULL)
+  * `eligibility_month` (VARCHAR(20), NOT NULL)
+  * `caretaker_verified` (BOOLEAN, DEFAULT TRUE)
+  * `pet_verified` (BOOLEAN, DEFAULT TRUE)
+  * `policy_active` (BOOLEAN, DEFAULT TRUE)
+  * `fund_active` (BOOLEAN, DEFAULT TRUE)
+  * `eligible` (BOOLEAN, DEFAULT TRUE)
+  * `failure_reason` (VARCHAR(255))
+  * `evaluated_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `correlation_id` (VARCHAR(100))
+* **`care_transfers`**:
+  * `transfer_id` (BIGINT, PK, AUTO_INCREMENT)
+  * `pet_id` (BIGINT, NOT NULL)
+  * `from_assignment_id` (BIGINT, FK -> pet_caretaker_assignments.assignment_id)
+  * `to_assignment_id` (BIGINT, FK -> pet_caretaker_assignments.assignment_id)
+  * `reason` (VARCHAR(255))
+  * `effective_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  * `initiated_by` (VARCHAR(100))
+  * `status` (VARCHAR(50), DEFAULT 'COMPLETED')
+  * `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
 
 ---
 
-## 4. Next Steps to Run and Verify the System
+## 4. Complete Microservices REST Endpoints Directory (Post-Schema Update)
+
+Every table across all 34 database entities is supported with meaningful REST endpoints and robust inter-service communication:
+
+### 1. AuthService (`/api/auth`)
+| HTTP Method | Route | Description | Meaningfulness & Schema Alignment |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Register new user | Populates `users` table |
+| `POST` | `/api/auth/login` | Authenticate & issue JWT cookie | Issues stateless `jwt_token` `HttpOnly` cookie |
+| `POST` | `/api/auth/logout` | Revoke session | Clears `jwt_token` cookie |
+| `GET` | `/api/auth/validate` | In-memory token verification | Checks token validity |
+| `GET` | `/api/auth/users` | List all users | Admin user management |
+| `GET` | `/api/auth/users/{id}` | Get user by ID | Inspects user record |
+| `PUT` | `/api/auth/users/{id}` | Update user details/role | Updates `users` table |
+| `DELETE` | `/api/auth/users/{id}` | Remove user | Soft/hard delete user |
+
+### 2. CustomerService (`/api/customers`)
+| HTTP Method | Route | Description | Meaningfulness & Schema Alignment |
+|---|---|---|---|
+| `POST` | `/api/customers` | Create customer profile | Populates `customers` |
+| `GET` | `/api/customers` | List all customer profiles | Admin overview |
+| `GET` | `/api/customers/{id}` | Get customer by ID | Core entity query (used by Underwriting) |
+| `GET` | `/api/customers/user/{userId}` | Get profile by auth user ID | Profile resolution |
+| `PUT` | `/api/customers/{id}` | Update customer profile | Profile updates |
+| `DELETE` | `/api/customers/{id}` | Delete customer profile | Customer removal |
+| `POST` | `/api/customers/{id}/addresses` | Add address for customer | Populates `addresses` table |
+| `GET` | `/api/customers/{id}/addresses` | List addresses of customer | Queries `addresses` table |
+| `GET` | `/api/customers/addresses/{addressId}` | Get single address | Address lookup |
+| `PUT` | `/api/customers/addresses/{addressId}` | Update address | Updates `addresses` table |
+| `DELETE` | `/api/customers/addresses/{addressId}` | Delete address | Removes address record |
+
+### 3. PetService (`/api/pets`)
+| HTTP Method | Route | Description | Meaningfulness & Schema Alignment |
+|---|---|---|---|
+| `POST` | `/api/pets` | Register new pet | Populates `pets` |
+| `GET` | `/api/pets` | List all registered pets | Pet directory |
+| `GET` | `/api/pets/{id}` | Get pet by ID | Entity query (called by Underwriting) |
+| `GET` | `/api/pets/customer/{customerId}` | List pets for a customer | Owner pet inventory |
+| `PUT` | `/api/pets/{id}` | Update pet details | Pet updates |
+| `DELETE` | `/api/pets/{id}` | Delete pet record | Pet removal |
+| `POST` | `/api/pets/{id}/medical-records` | Add medical record | Populates `pet_medical_records` |
+| `GET` | `/api/pets/{id}/medical-records` | List medical records for pet | Health history (called by Underwriting) |
+| `GET` | `/api/pets/medical-records/{recordId}` | Get medical record by ID | Medical record lookup |
+| `PUT` | `/api/pets/medical-records/{recordId}` | Update medical record | Health record updates |
+| `DELETE` | `/api/pets/medical-records/{recordId}` | Delete medical record | Health record removal |
+
+### 4. UnderWritingRiskService (`/api/underwriting`)
+| HTTP Method | Route | Description | Meaningfulness & Schema Alignment |
+|---|---|---|---|
+| `POST` | `/api/underwriting/quotes` | Generate actuarial quote | Aggregates Pet, Customer, CarePlan; creates `quotes` |
+| `GET` | `/api/underwriting/quotes` | List all quotes | Quotes overview |
+| `GET` | `/api/underwriting/quotes/{id}` | Get quote by ID | Fetches quote (called by PolicyService) |
+| `PUT` | `/api/underwriting/quotes/{id}` | Update quote | Recalculates premium |
+| `DELETE` | `/api/underwriting/quotes/{id}` | Delete quote | Quote removal |
+| `GET` | `/api/underwriting/rules` | List rating rules | Queries `rating_rules` |
+| `POST` | `/api/underwriting/rules` | Create rating rule | Populates `rating_rules` |
+| `GET` | `/api/underwriting/rules/{id}` | Get rating rule by ID | Rule inspection |
+| `PUT` | `/api/underwriting/rules/{id}` | Update rating rule | Updates `rating_rules` |
+| `DELETE` | `/api/underwriting/rules/{id}` | Delete rating rule | Removes rating rule |
+| `GET` | `/api/underwriting/assessments/quote/{quoteId}` | Get assessment for quote | Queries `risk_assessments` |
+| `GET` | `/api/underwriting/risk-monitoring/{petId}` | Periodic risk score | Real-time actuarial evaluation |
+
+### 5. PolicyService (`/api/policies`)
+| HTTP Method | Route | Description | Meaningfulness & Schema Alignment |
+|---|---|---|---|
+| `POST` | `/api/policies/from-quote/{quoteId}` | Issue policy from quote | Binds quote into `policies`, creates initial `coverages` |
+| `POST` | `/api/policies/{id}/activate` | Activate policy upon payment | Transitions status (called by PaymentFundService) |
+| `POST` | `/api/policies/{id}/status` | Update policy status | Records status audit in `policy_status_history` |
+| `GET` | `/api/policies` | List all policies | Administrative oversight |
+| `GET` | `/api/policies/{id}` | Get policy by ID | Entity query (called by ClaimsService) |
+| `GET` | `/api/policies/by-number/{policyNumber}` | Lookup policy by number | Policy lookup |
+| `GET` | `/api/policies/customer/{customerId}` | List policies of customer | Customer policy list |
+| `PUT` | `/api/policies/{id}` | Update policy details | Policy adjustments |
+| `DELETE` | `/api/policies/{id}` | Delete policy | Policy removal |
+| `GET` | `/api/policies/{id}/coverages` | List coverages of policy | Queries `coverages` table |
+| `POST` | `/api/policies/{id}/coverages` | Add coverage to policy | Adds rider to `coverages` table |
+| `GET` | `/api/policies/{id}/history` | Get policy status history | Queries `policy_status_history` audit trail |
+
+### 6. ClaimsService (`/api/claims`)
+| HTTP Method | Route | Description | Meaningfulness & Schema Alignment |
+|---|---|---|---|
+| `POST` | `/api/claims` | File owner death claim | Validates policy; populates `claims` |
+| `GET` | `/api/claims` | List all claims | Claims queue |
+| `POST` | `/api/claims/{id}/verify-death` | Verify death certificate | Updates claim verification status |
+| `POST` | `/api/claims/{id}/investigate` | Run claim investigation | Calculates fraud score, evaluates policy |
+| `POST` | `/api/claims/{id}/approve` | Approve claim & trigger fund | Calls PaymentFundService to allocate fund |
+| `POST` | `/api/claims/{id}/reject` | Reject claim with reason | Rejects claim, updates status |
+| `GET` | `/api/claims/policy/{policyId}` | List claims for policy | Policy claim history |
+| `GET` | `/api/claims/{id}` | Get claim by ID | Claim details |
+| `PUT` | `/api/claims/{id}` | Update claim details | Claim modifications |
+| `DELETE` | `/api/claims/{id}` | Delete claim | Claim removal |
+| `POST` | `/api/claims/{id}/documents` | Upload document (death cert) | Populates `claim_documents` table |
+| `GET` | `/api/claims/{id}/documents` | List documents for claim | Queries `claim_documents` table |
+| `GET` | `/api/claims/{id}/history` | Get claim status history | Queries `claim_status_history` audit trail |
+
+### 7. PaymentFundService (`/api/payments`)
+| HTTP Method | Route | Description | Meaningfulness & Schema Alignment |
+|---|---|---|---|
+| `POST` | `/api/payments/premium` | Pay monthly policy premium | Calls PolicyService to activate policy |
+| `GET` | `/api/payments/premium` | List all premium payments | Premium payments list |
+| `GET` | `/api/payments/premium/{id}` | Get premium payment by ID | Payment lookup |
+| `POST` | `/api/payments/funds/create` | Initialize pet continuity fund | Triggered upon approved death claim |
+| `GET` | `/api/payments/funds` | List all trust funds | Continuity funds overview |
+| `GET` | `/api/payments/funds/{id}` | Get trust fund by ID | Continuity fund details |
+| `PUT` | `/api/payments/funds/{id}/status` | Update fund status | Records audit in `fund_status_history` |
+| `POST` | `/api/payments/funds/{id}/disburse-monthly` | Disburse monthly stipend | Verifies caretaker eligibility with CareService |
+| `POST` | `/api/payments/funds/{id}/expense` | Record vet or emergency cost | Deducts reserve and records transaction |
+| `GET` | `/api/payments/funds/{id}/transactions` | List fund transactions | Queries `fund_transactions` |
+| `GET` | `/api/payments/funds/{id}/disbursements` | List monthly disbursements | Queries `disbursements` table |
+| `GET` | `/api/payments/funds/{id}/expenses` | List recorded expenses | Queries `expenses` table |
+| `GET` | `/api/payments/funds/{id}/history` | List fund status history | Queries `fund_status_history` audit trail |
+
+### 8. CareVerificationService (`/api/care`)
+| HTTP Method | Route | Description | Meaningfulness & Schema Alignment |
+|---|---|---|---|
+| `POST` | `/api/care/caretakers` | Register designated caretaker | Populates `caretakers` table |
+| `GET` | `/api/care/caretakers` | List all caretakers | Caretakers directory |
+| `GET` | `/api/care/caretakers/{id}` | Get caretaker by ID | Caretaker details |
+| `PUT` | `/api/care/caretakers/{id}` | Update caretaker details | Caretaker modifications |
+| `DELETE` | `/api/care/caretakers/{id}` | Delete caretaker | Caretaker removal |
+| `POST` | `/api/care/caretakers/{id}/status` | Update caretaker status | Marks active/unavailable |
+| `POST` | `/api/care/caretakers/{id}/verifications` | Record ID / background check | Populates `caretaker_verification` |
+| `GET` | `/api/care/caretakers/{id}/verifications` | List caretaker checks | Queries `caretaker_verification` |
+| `POST` | `/api/care/care-plans` | Create/update pet care plan | Populates `care_plans` |
+| `GET` | `/api/care/care-plans` | List all care plans | Care plans overview |
+| `GET` | `/api/care/care-plans/{id}` | Get care plan by ID | Plan lookup |
+| `GET` | `/api/care/care-plans/pet/{petId}` | Get care plan for pet | Fetched by Underwriting & Payment |
+| `POST` | `/api/care/verifications` | Log monthly pet checkin | Populates `pet_verifications` |
+| `GET` | `/api/care/verifications` | List all verifications | Welfare audits |
+| `GET` | `/api/care/verifications/pet/{petId}` | Welfare checks for pet | Queries pet checkin history |
+| `POST` | `/api/care/backup-transfer/{petId}` | Trigger backup caretaker transfer | Updates roles and records in `care_transfers` |
+| `GET` | `/api/care/transfers/pet/{petId}` | List transfer history | Queries `care_transfers` table |
+| `GET` | `/api/care/eligibility/check` | Check monthly stipend eligibility | Evaluates caretaker & pet status (called by Payment) |
+
+---
+
+## 5. Next Steps to Run and Verify the System
 
 ### Step 1: Initialize the MySQL Databases & Seed Data
 Execute the master SQL seed script:

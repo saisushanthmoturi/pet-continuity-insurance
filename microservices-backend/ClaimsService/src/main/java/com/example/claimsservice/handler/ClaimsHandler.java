@@ -2,6 +2,7 @@ package com.example.claimsservice.handler;
 
 import com.example.claimsservice.dto.ClaimRequest;
 import com.example.claimsservice.dto.DeathVerificationRequest;
+import com.example.claimsservice.dto.DocumentRequest;
 import com.example.claimsservice.service.ClaimsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -149,6 +150,42 @@ public class ClaimsHandler {
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(claimsService.getByPolicyId(policyId), Object.class)
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
+
+    public Mono<ServerResponse> addDocument(ServerRequest request) {
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return request.bodyToMono(DocumentRequest.class)
+                .flatMap(req -> claimsService.addDocument(id, req))
+                .flatMap(doc -> ServerResponse.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).bodyValue(doc))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(e -> ServerResponse.status(HttpStatus.BAD_REQUEST)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(Map.of("error", e.getMessage())));
+    }
+
+    public Mono<ServerResponse> getDocuments(ServerRequest request) {
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(claimsService.getDocumentsByClaimId(id), Object.class)
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
+
+    public Mono<ServerResponse> getStatusHistory(ServerRequest request) {
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(claimsService.getClaimStatusHistory(id), Object.class)
                 .onErrorResume(AccessDeniedException.class, e ->
                         ServerResponse.status(HttpStatus.FORBIDDEN)
                                 .contentType(MediaType.APPLICATION_JSON)
