@@ -42,6 +42,17 @@ public class PaymentFundHandler {
                         .bodyValue(Map.of("error", e.getMessage())));
     }
 
+    public Mono<ServerResponse> getPaymentsByCustomerId(ServerRequest request) {
+        Long customerId = Long.valueOf(request.pathVariable("customerId"));
+        return paymentFundService.getPaymentsByCustomerId(customerId)
+                .collectList()
+                .flatMap(list -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(list))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
+
     public Mono<ServerResponse> createFund(ServerRequest request) {
         return request.bodyToMono(CreateFundRequest.class)
                 .flatMap(paymentFundService::createFund)

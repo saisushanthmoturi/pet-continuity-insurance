@@ -41,11 +41,10 @@ public class CarePlan {
     @Column("updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    // Transient fields for backward compatibility
-    @Transient
+    @Column("primary_caretaker_id")
     private Long primaryCaretakerId;
 
-    @Transient
+    @Column("backup_caretaker_id")
     private Long backupCaretakerId;
 
     public CarePlan() {

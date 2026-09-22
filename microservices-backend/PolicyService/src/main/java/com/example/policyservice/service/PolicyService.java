@@ -74,6 +74,9 @@ public class PolicyService {
                                     if ("REJECTED".equalsIgnoreCase(quote.decision())) {
                                         return Mono.error(new IllegalStateException("Cannot create policy for rejected quote: " + quoteId));
                                     }
+                                    if (quote.validUntil() != null && quote.validUntil().isBefore(java.time.LocalDateTime.now())) {
+                                        return Mono.error(new IllegalStateException("Quote " + quoteId + " has expired on " + quote.validUntil() + ". Please generate a new quote."));
+                                    }
                                     Policy policy = Policy.createFromQuote(
                                              quote.id(),
                                             quote.customerId(),

@@ -67,13 +67,49 @@ public class UnderwritingHandler {
     }
 
     public Mono<ServerResponse> getAllQuotes(ServerRequest request) {
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(underwritingService.getAllQuotes(), Object.class)
+        return underwritingService.getAllQuotes()
+                .collectList()
+                .flatMap(list -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(list))
                 .onErrorResume(AccessDeniedException.class, e ->
                         ServerResponse.status(HttpStatus.FORBIDDEN)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
+
+    public Mono<ServerResponse> getQuotesByCustomerId(ServerRequest request) {
+        Long customerId = Long.valueOf(request.pathVariable("customerId"));
+        return underwritingService.getQuotesByCustomerId(customerId)
+                .collectList()
+                .flatMap(list -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(list))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
+
+    public Mono<ServerResponse> getQuotesByPetId(ServerRequest request) {
+        Long petId = Long.valueOf(request.pathVariable("petId"));
+        return underwritingService.getQuotesByPetId(petId)
+                .collectList()
+                .flatMap(list -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(list))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)));
+    }
+
+    public Mono<ServerResponse> reassessPetRisk(ServerRequest request) {
+        Long petId = Long.valueOf(request.pathVariable("petId"));
+        return underwritingService.reassessPetRisk(petId)
+                .flatMap(ass -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(ass))
+                .onErrorResume(AccessDeniedException.class, e ->
+                        ServerResponse.status(HttpStatus.FORBIDDEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage(), "status", 403)))
+                .onErrorResume(IllegalArgumentException.class, e ->
+                        ServerResponse.status(HttpStatus.BAD_REQUEST)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(Map.of("error", e.getMessage())));
     }
 
     public Mono<ServerResponse> updateQuote(ServerRequest request) {

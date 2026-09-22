@@ -525,16 +525,111 @@ Transitions policy status from `PENDING_PAYMENT` to `ACTIVE` upon payment confir
 
 ---
 
-## 7. Recommended Test Execution Sequence
+## 7. Payment & Fund Service (`PaymentFundService`)
+> **Direct Port**: `8087` | **Gateway Route**: `/api/payments/**`
 
-1. **Auth**: `POST /api/auth/register` (or `/login`) -> Copy `token`.
-2. **Customer**: `POST /api/customers` -> Creates Customer #1.
-3. **Address**: `POST /api/customers/addresses` -> Assigns address to Customer #1.
-4. **Pet**: `POST /api/pets` -> Registers "Buddy" (Pet #1).
-5. **Medical Record**: `POST /api/pets/1/medical-records` -> Adds baseline health history.
-6. **Caretakers**: `POST /api/care/caretakers` (twice) -> Registers Primary & Backup caretakers.
-7. **Care Plan**: `POST /api/care/care-plans` -> Sets daily care plan for Buddy.
-8. **Check-in**: `POST /api/care/verifications` -> Records monthly pet welfare check.
-9. **Quote**: `POST /api/underwriting/quotes` -> Computes quote & actuarial risk score.
-10. **Policy**: `POST /api/policies/from-quote/1` -> Issues Policy #1 (`PENDING_PAYMENT`).
-11. **Activate**: `POST /api/policies/1/activate` -> Activates Policy #1 (`ACTIVE`).
+### 7.1 Process Policy Premium Payment
+Paying the first monthly premium confirms coverage and automatically transitions the policy from `PENDING_PAYMENT` to `ACTIVE`.
+
+* **Endpoint**: `POST http://localhost:8080/api/payments/premiums/pay`
+* **Headers**: `Authorization: Bearer <TOKEN>`
+* **Request Body**:
+```json
+{
+  "policyId": 2,
+  "amount": 187.50,
+  "paymentMethod": "CREDIT_CARD",
+  "transactionReference": "TXN-PET-2026-001"
+}
+```
+* **Expected Response (`200 OK`)**:
+```json
+{
+  "paymentId": 1,
+  "policyId": 2,
+  "customerId": 1,
+  "amount": 187.50,
+  "status": "SUCCESS",
+  "message": "Premium payment processed successfully and policy activated"
+}
+```
+
+### 7.2 Query Payments & Policy Fund
+* **Get Payments for Policy**: `GET http://localhost:8080/api/payments/premiums/policy/2`
+* **Get Pet Continuity Fund for Policy**: `GET http://localhost:8080/api/payments/funds/by-policy/2`
+* **Disburse Monthly Caretaker Allowance**: `POST http://localhost:8080/api/payments/funds/1/disburse-monthly?petId=1`
+
+---
+
+## 8. Claims & Adjudication Service (`ClaimsService`)
+> **Direct Port**: `8086` | **Gateway Route**: `/api/claims/**`
+
+### 8.1 File Continuity Claim
+Claimant files a claim following the owner's death with civil death certificate details.
+
+* **Endpoint**: `POST http://localhost:8080/api/claims`
+* **Headers**: `Authorization: Bearer <TOKEN>`
+* **Request Body**:
+```json
+{
+  "policyId": 2,
+  "claimantName": "Jane Doe",
+  "relationship": "SPOUSE",
+  "deathCertificateNo": "DC-998877",
+  "dateOfDeath": "2026-09-20",
+  "notes": "Filing pet continuity care claim following policyholder passing"
+}
+```
+* **Expected Response (`201 CREATED`)**:
+```json
+{
+  "id": 1,
+  "claimNumber": "CLM-1790097087664",
+  "policyId": 2,
+  "claimantName": "Jane Doe",
+  "relationship": "SPOUSE",
+  "deathCertificateNo": "DC-998877",
+  "status": "PENDING"
+}
+```
+
+### 8.2 Investigate & Approve Claim (Claims Officer / Admin)
+Evaluates death certificate authenticity, validates policy status, sets fraud score, and triggers the Pet Continuity Fund creation in `PaymentFundService`.
+
+* **Endpoint**: `POST http://localhost:8080/api/claims/1/approve`
+*(Or `POST http://localhost:8080/api/claims/1/investigate`)*
+* **Headers**: `Authorization: Bearer <CLAIMS_OFFICER_OR_ADMIN_TOKEN>`
+* **Expected Response (`200 OK`)**:
+```json
+{
+  "id": 1,
+  "claimNumber": "CLM-1790097087664",
+  "policyId": 2,
+  "claimantName": "Jane Doe",
+  "relationship": "SPOUSE",
+  "deathCertificateNo": "DC-998877",
+  "status": "APPROVED",
+  "investigationDecision": "APPROVED",
+  "fraudScore": 10
+}
+```
+
+---
+
+## 9. Recommended End-to-End Test Execution Sequence
+
+1. **Auth**: `POST /api/auth/register` (Customer) -> Copy token.
+2. **Auth (Officer)**: `POST /api/auth/register` (Role `CLAIMS_OFFICER`) -> Copy officer token.
+3. **Customer**: `POST /api/customers` -> Creates Customer #1.
+4. **Address**: `POST /api/customers/addresses` -> Assigns address to Customer #1.
+5. **Pet**: `POST /api/pets` -> Registers "Buddy" (Pet #1).
+6. **Medical Record**: `POST /api/pets/1/medical-records` -> Adds baseline medical record.
+7. **Caretakers**: `POST /api/care/caretakers` (twice) -> Registers Primary (#1) & Backup (#2) caretakers.
+8. **Care Plan**: `POST /api/care/care-plans` -> Sets care plan ($300/mo allowance).
+9. **Quote**: `POST /api/underwriting/quotes` -> Computes quote ($25,000 coverage, $187.50 premium).
+10. **Policy**: `POST /api/policies/from-quote/3` -> Issues Policy #2 (`PENDING_PAYMENT`).
+11. **Premium Payment**: `POST /api/payments/premiums/pay` -> Pays $187.50, activates Policy #2 (`ACTIVE`).
+12. **File Claim**: `POST /api/claims` -> Files Claim #1 with death certificate (`PENDING`).
+13. **Approve Claim**: `POST /api/claims/1/approve` -> Claim `APPROVED`, Policy `CLAIM_FILED`, $25,000 Fund allocated.
+14. **Disbursement**: `POST /api/payments/funds/1/disburse-monthly?petId=1` -> Disburses $300 to caretaker.
+

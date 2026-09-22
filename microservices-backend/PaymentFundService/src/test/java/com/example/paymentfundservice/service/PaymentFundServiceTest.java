@@ -81,7 +81,7 @@ class PaymentFundServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     void processPremiumPayment_successPath_activatesPolicy() {
-        PaymentRequest req = new PaymentRequest(100L, 45.0, "SIMULATED_CARD", false);
+        PaymentRequest req = new PaymentRequest(100L, 10L, 45.0, "SIMULATED_CARD", false);
         PremiumPayment payment = PremiumPayment.create(100L, 45.0, "SIMULATED_CARD", "SUCCESS");
         payment.setId(10L);
 
@@ -108,7 +108,7 @@ class PaymentFundServiceTest {
 
     @Test
     void processPremiumPayment_simulatedFailure_doesNotActivatePolicy() {
-        PaymentRequest req = new PaymentRequest(100L, 45.0, "SIMULATED_CARD", true);
+        PaymentRequest req = new PaymentRequest(100L, 10L, 45.0, "SIMULATED_CARD", true);
         PremiumPayment payment = PremiumPayment.create(100L, 45.0, "SIMULATED_CARD", "FAILED");
         payment.setId(11L);
 

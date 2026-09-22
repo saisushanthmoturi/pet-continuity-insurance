@@ -19,6 +19,8 @@ public class PaymentFundRouter {
                 .path("/api/payments", builder -> builder
                         .POST("/premium", accept(MediaType.APPLICATION_JSON), handler::payPremium)
                         .GET("/premium", handler::getAllPayments)
+                        .GET("/premium/customer/{customerId}", handler::getPaymentsByCustomerId)
+                        .GET("/customer/{customerId}", handler::getPaymentsByCustomerId)
                         .GET("/premium/{id}", handler::getPaymentById)
                         .POST("/funds/create", accept(MediaType.APPLICATION_JSON), handler::createFund)
                         .POST("/funds", accept(MediaType.APPLICATION_JSON), handler::createFund)

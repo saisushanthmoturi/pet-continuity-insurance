@@ -68,8 +68,8 @@ public class UnderwritingService {
                         .retrieve()
                         .bodyToMono(PetDto.class),
                 e -> {
-                    log.warn("CircuitBreaker fallback for PetService: {}", e.getMessage());
-                    return Mono.just(new PetDto(req.petId(), req.customerId(), "Pet", "Dog", "Mixed", 5, 20.0, "Unknown", 1200.0));
+                    log.error("CircuitBreaker fallback for PetService: {}", e.getMessage());
+                    return Mono.error(new IllegalStateException("Pet service unavailable to fetch profile for pet " + req.petId()));
                 }
         );
 
@@ -95,12 +95,12 @@ public class UnderwritingService {
                         .retrieve()
                         .bodyToMono(CustomerDto.class),
                 e -> {
-                    log.warn("CircuitBreaker fallback for CustomerService: {}", e.getMessage());
-                    return Mono.just(new CustomerDto(req.customerId(), null, "Policyholder", "", "", ""));
+                    log.error("CircuitBreaker fallback for CustomerService: {}", e.getMessage());
+                    return Mono.error(new IllegalStateException("Customer service unavailable to fetch profile for customer " + req.customerId()));
                 }
         );
 
-        // 4. Fetch care plan from CareVerificationService
+        // 4. Fetch care plan from CareVerificationService (with safe fallback if no care plan created yet)
         Mono<CarePlanDto> carePlanMono = cb.run(
                 webClient.get()
                         .uri("http://CareVerificationService/api/care/care-plans/pet/{petId}", req.petId())
@@ -111,21 +111,40 @@ public class UnderwritingService {
                     log.warn("CircuitBreaker fallback for CareVerificationService: {}", e.getMessage());
                     return Mono.empty();
                 }
-        );
+        ).defaultIfEmpty(CarePlanDto.empty());
 
-        return Mono.zip(petMono, medRecordsMono, customerMono)
+        return Mono.zip(petMono, medRecordsMono, customerMono, carePlanMono)
                 .flatMap(tuple -> {
                     PetDto pet = tuple.getT1();
                     List<MedicalRecordDto> medRecords = tuple.getT2();
                     CustomerDto customer = tuple.getT3();
+                    CarePlanDto carePlan = tuple.getT4();
+
+                    // Security check: Validate Customer-Pet Ownership
+                    if (pet.customerId() != null && !pet.customerId().equals(req.customerId())) {
+                        return Mono.error(new IllegalArgumentException("Pet ID " + req.petId() + " does not belong to Customer ID " + req.customerId()));
+                    }
 
                     log.info("Evaluating underwriting for customer '{}' and pet '{}' (breed: {}, age: {})",
                             customer.fullName(), pet.name(), pet.breed(), pet.age());
 
-                    // Actuarial calculation
-                    double ageFactor = Math.max(0, (pet.age() - 3) * 5.0);
-                    double healthFactor = medRecords.size() * 15.0;
-                    int riskScore = (int) Math.min(100, Math.max(10, 20 + ageFactor + healthFactor));
+                    // 1. Age Factor (scaled life stage curve)
+                    double ageFactor = Math.max(0, (pet.age() - 2) * 4.5);
+
+                    // 2. Breed Factor (known hereditary/actuarial risk)
+                    double breedFactor = calculateBreedFactor(pet.breed());
+
+                    // 3. Medical Severity Factor (considers count AND total cost)
+                    double annualMed = medRecords.stream().mapToDouble(r -> r.estimatedAnnualMedCost() != null ? r.estimatedAnnualMedCost() : 0.0).sum();
+                    double healthFactor = (medRecords.size() * 8.0) + Math.min(30.0, annualMed / 50.0);
+
+                    // 4. Care Plan Continuity Compliance Factor
+                    double carePlanFactor = (carePlan != null && carePlan.primaryCaretakerId() != null)
+                            ? (carePlan.backupCaretakerId() != null ? -10.0 : 0.0)
+                            : 15.0;
+
+                    // Total multi-factor risk score
+                    int riskScore = (int) Math.min(100, Math.max(10, 20 + ageFactor + breedFactor + healthFactor + carePlanFactor));
 
                     String riskLevel;
                     double riskMultiplier;
@@ -154,7 +173,6 @@ public class UnderwritingService {
 
                     int remainingYears = Math.max(1, 15 - pet.age());
                     double annualCare = pet.estimatedAnnualCareCost() != null ? pet.estimatedAnnualCareCost() : 1200.0;
-                    double annualMed = medRecords.stream().mapToDouble(r -> r.estimatedAnnualMedCost() != null ? r.estimatedAnnualMedCost() : 0.0).sum();
                     double projectedLiability = Math.round((annualCare + annualMed) * remainingYears * 1.05 * 100.0) / 100.0;
 
                     double monthlyPremium = Math.round((req.requestedCoverage() * 0.003 * riskMultiplier) * 100.0) / 100.0;
@@ -173,6 +191,8 @@ public class UnderwritingService {
                                         coverageGap,
                                         riskLevel
                                 );
+                                assessment.setBreedFactor(breedFactor);
+                                assessment.setExplanation("Assessment complete. BreedFactor: " + breedFactor + ", CarePlanDiscount: " + carePlanFactor + ", MedCost: $" + annualMed);
                                 return riskAssessmentRepository.save(assessment)
                                         .map(savedAss -> {
                                             log.info("Generated quote id={}, petId={}, score={}, decision={}, premium=${}",
@@ -186,12 +206,127 @@ public class UnderwritingService {
                                                     savedQuote.getRiskScore(),
                                                     savedQuote.getDecision(),
                                                     savedQuote.getStatus(),
-                                                    savedAss.getProjectedCareLiability(),
-                                                    savedAss.getCoverageGap(),
-                                                    savedAss.getRiskLevel(),
+                                                    projectedLiability,
+                                                    coverageGap,
+                                                    riskLevel,
                                                     savedQuote.getValidUntil()
                                             );
                                         });
+                            });
+                });
+    }
+
+    private double calculateBreedFactor(String breed) {
+        if (breed == null) return 0.0;
+        String b = breed.toUpperCase();
+        if (b.contains("BULLDOG") || b.contains("PUG") || b.contains("BOXER") || b.contains("ROTTWEILER") || b.contains("MASTIFF") || b.contains("GERMAN_SHEPHERD")) {
+            return 15.0;
+        } else if (b.contains("POODLE") || b.contains("BEAGLE") || b.contains("RETRIEVER")) {
+            return 5.0;
+        }
+        return 0.0;
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
+    public Flux<QuoteResponse> getQuotesByCustomerId(Long customerId) {
+        return quoteRepository.findByCustomerId(customerId)
+                .flatMap(quote -> riskAssessmentRepository.findByQuoteId(quote.getId())
+                        .map(ass -> toQuoteResponse(quote, ass))
+                        .defaultIfEmpty(toQuoteResponse(quote, null)));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
+    public Flux<QuoteResponse> getQuotesByPetId(Long petId) {
+        return quoteRepository.findByPetId(petId)
+                .flatMap(quote -> riskAssessmentRepository.findByQuoteId(quote.getId())
+                        .map(ass -> toQuoteResponse(quote, ass))
+                        .defaultIfEmpty(toQuoteResponse(quote, null)));
+    }
+
+    private QuoteResponse toQuoteResponse(Quote quote, RiskAssessment ass) {
+        return new QuoteResponse(
+                quote.getId(),
+                quote.getCustomerId(),
+                quote.getPetId(),
+                quote.getRequestedCoverage(),
+                quote.getMonthlyPremium(),
+                quote.getRiskScore(),
+                quote.getDecision(),
+                quote.getStatus(),
+                ass != null ? ass.getProjectedCareLiability() : 0.0,
+                ass != null ? ass.getCoverageGap() : 0.0,
+                ass != null ? ass.getRiskLevel() : quote.getRiskClass(),
+                quote.getValidUntil()
+        );
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_UNDERWRITER', 'ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE')")
+    public Mono<RiskAssessment> reassessPetRisk(Long petId) {
+        ReactiveCircuitBreaker cb = circuitBreakerFactory.create("underwritingCB");
+        Mono<PetDto> petMono = cb.run(
+                webClient.get().uri("http://PetService/api/pets/{id}", petId).header("X-User-Role", "INTERNAL_SERVICE").retrieve().bodyToMono(PetDto.class),
+                e -> Mono.error(new IllegalStateException("Failed to reach PetService: " + e.getMessage()))
+        );
+        Mono<List<MedicalRecordDto>> medRecordsMono = cb.run(
+                webClient.get().uri("http://PetService/api/pets/{id}/medical-records", petId).header("X-User-Role", "INTERNAL_SERVICE").retrieve().bodyToFlux(MedicalRecordDto.class).collectList(),
+                e -> Mono.just(List.of())
+        );
+        Mono<CarePlanDto> carePlanMono = cb.run(
+                webClient.get().uri("http://CareVerificationService/api/care/care-plans/pet/{petId}", petId).header("X-User-Role", "INTERNAL_SERVICE").retrieve().bodyToMono(CarePlanDto.class),
+                e -> Mono.empty()
+        ).defaultIfEmpty(CarePlanDto.empty());
+
+        return Mono.zip(petMono, medRecordsMono, carePlanMono)
+                .flatMap(t -> {
+                    PetDto pet = t.getT1();
+                    List<MedicalRecordDto> medRecords = t.getT2();
+                    CarePlanDto carePlan = t.getT3();
+
+                    double ageFactor = Math.max(0, (pet.age() - 2) * 4.5);
+                    double breedFactor = calculateBreedFactor(pet.breed());
+                    double annualMed = medRecords.stream().mapToDouble(r -> r.estimatedAnnualMedCost() != null ? r.estimatedAnnualMedCost() : 0.0).sum();
+                    double healthFactor = (medRecords.size() * 8.0) + Math.min(30.0, annualMed / 50.0);
+                    double carePlanFactor = (carePlan != null && carePlan.primaryCaretakerId() != null)
+                            ? (carePlan.backupCaretakerId() != null ? -10.0 : 0.0) : 15.0;
+
+                    int riskScore = (int) Math.min(100, Math.max(10, 20 + ageFactor + breedFactor + healthFactor + carePlanFactor));
+                    String riskLevel = riskScore <= 40 ? "LOW" : (riskScore <= 70 ? "MODERATE" : (riskScore <= 85 ? "HIGH" : "EXTREME"));
+
+                    int remainingYears = Math.max(1, 15 - pet.age());
+                    double annualCare = pet.estimatedAnnualCareCost() != null ? pet.estimatedAnnualCareCost() : 1200.0;
+                    double projectedLiability = Math.round((annualCare + annualMed) * remainingYears * 1.05 * 100.0) / 100.0;
+
+                    return quoteRepository.findByPetId(petId)
+                            .collectList()
+                            .flatMap(quotes -> {
+                                Mono<Quote> quoteMono;
+                                if (!quotes.isEmpty()) {
+                                    Quote latest = quotes.get(quotes.size() - 1);
+                                    latest.setRiskScore(riskScore);
+                                    latest.setDecision(riskScore <= 80 ? "APPROVED" : (riskScore <= 90 ? "REFERRED" : "REJECTED"));
+                                    latest.setRiskClass(riskLevel);
+                                    quoteMono = quoteRepository.save(latest);
+                                } else {
+                                    double multiplier = riskScore <= 40 ? 1.0 : (riskScore <= 70 ? 1.35 : (riskScore <= 85 ? 1.75 : 2.5));
+                                    Quote draft = Quote.createNew(
+                                            pet.customerId() != null ? pet.customerId() : 1L,
+                                            petId,
+                                            15000.0,
+                                            Math.round((15000.0 * 0.003 * multiplier) * 100.0) / 100.0,
+                                            riskScore,
+                                            riskScore <= 80 ? "APPROVED" : "REFERRED"
+                                    );
+                                    draft.setStatus("REASSESSED");
+                                    quoteMono = quoteRepository.save(draft);
+                                }
+                                return quoteMono.flatMap(savedQuote -> {
+                                    RiskAssessment assessment = RiskAssessment.createNew(
+                                            savedQuote.getId(), petId, ageFactor, healthFactor, projectedLiability, 0.0, riskLevel
+                                    );
+                                    assessment.setBreedFactor(breedFactor);
+                                    assessment.setExplanation("On-demand reassessment. Med records: " + medRecords.size() + ", totalMedCost: $" + annualMed + ", carePlanCompliance: " + (carePlanFactor <= 0 ? "SATISFACTORY" : "PENDING"));
+                                    return riskAssessmentRepository.save(assessment);
+                                });
                             });
                 });
     }

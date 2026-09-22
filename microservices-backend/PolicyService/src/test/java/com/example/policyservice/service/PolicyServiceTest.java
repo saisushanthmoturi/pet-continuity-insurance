@@ -83,7 +83,7 @@ class PolicyServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     void createPolicyFromQuote_successForApprovedQuote() {
-        QuoteDto approvedQuote = new QuoteDto(5L, 10L, 20L, 5000.0, 45.0, 30, "APPROVED");
+        QuoteDto approvedQuote = new QuoteDto(5L, 10L, 20L, 5000.0, 45.0, 30, "APPROVED", java.time.LocalDateTime.now().plusDays(30));
 
         when(circuitBreakerFactory.create("policyCB")).thenReturn(circuitBreaker);
         when(policyRepository.findByQuoteId(5L)).thenReturn(Mono.empty());
@@ -114,7 +114,7 @@ class PolicyServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     void createPolicyFromQuote_rejectedQuote_throwsError() {
-        QuoteDto rejectedQuote = new QuoteDto(5L, 10L, 20L, 5000.0, 45.0, 90, "REJECTED");
+        QuoteDto rejectedQuote = new QuoteDto(5L, 10L, 20L, 5000.0, 45.0, 90, "REJECTED", java.time.LocalDateTime.now().plusDays(30));
 
         when(circuitBreakerFactory.create("policyCB")).thenReturn(circuitBreaker);
         when(policyRepository.findByQuoteId(5L)).thenReturn(Mono.empty());

@@ -78,31 +78,57 @@ public class PaymentFundService {
         boolean failure = Boolean.TRUE.equals(req.simulateFailure());
         String status = failure ? "FAILED" : "SUCCESS";
         String method = req.paymentMethod() != null ? req.paymentMethod() : "SIMULATED_CARD";
-
-        PremiumPayment payment = PremiumPayment.create(req.policyId(), req.amount(), method, status);
         ReactiveCircuitBreaker cb = circuitBreakerFactory.create("paymentCB");
 
-        return paymentRepository.save(payment)
-                .flatMap(saved -> {
-                    if ("SUCCESS".equals(status)) {
-                        log.info("Payment SUCCESS for policyId={}, calling PolicyService to activate", req.policyId());
-                        return cb.run(
-                                webClient.post()
-                                        .uri("http://PolicyService/api/policies/{id}/activate", req.policyId())
-                                        .header("X-User-Role", "INTERNAL_SERVICE")
-                                        .retrieve()
-                                        .toBodilessEntity()
-                                        .thenReturn(saved),
-                                e -> {
-                                    log.warn("CircuitBreaker fallback: Could not activate policy via REST: {}", e.getMessage());
-                                    return Mono.just(saved);
-                                }
-                        );
-                    } else {
-                        log.warn("Simulated payment FAILED for policyId={}", req.policyId());
-                        return Mono.just(saved);
+        Mono<Long> customerIdMono;
+        if (req.customerId() != null) {
+            customerIdMono = Mono.just(req.customerId());
+        } else {
+            customerIdMono = cb.run(
+                    webClient.get()
+                            .uri("http://PolicyService/api/policies/{id}", req.policyId())
+                            .header("X-User-Role", "INTERNAL_SERVICE")
+                            .retrieve()
+                            .bodyToMono(com.example.paymentfundservice.dto.PolicyDto.class)
+                            .map(com.example.paymentfundservice.dto.PolicyDto::customerId),
+                    e -> {
+                        log.warn("Could not fetch policy from PolicyService for policyId {}: {}", req.policyId(), e.getMessage());
+                        return Mono.empty();
                     }
-                });
+            ).defaultIfEmpty(1L);
+        }
+
+        return customerIdMono.flatMap(customerId -> {
+            PremiumPayment payment = PremiumPayment.create(req.policyId(), req.amount(), method, status);
+            payment.setCustomerId(customerId);
+
+            return paymentRepository.save(payment)
+                    .flatMap(saved -> {
+                        if ("SUCCESS".equals(status)) {
+                            log.info("Payment SUCCESS for policyId={}, customerId={}, calling PolicyService to activate", req.policyId(), customerId);
+                            return cb.run(
+                                    webClient.post()
+                                            .uri("http://PolicyService/api/policies/{id}/activate", req.policyId())
+                                            .header("X-User-Role", "INTERNAL_SERVICE")
+                                            .retrieve()
+                                            .toBodilessEntity()
+                                            .thenReturn(saved),
+                                    e -> {
+                                        log.warn("CircuitBreaker fallback: Could not activate policy via REST: {}", e.getMessage());
+                                        return Mono.just(saved);
+                                    }
+                            );
+                        } else {
+                            log.warn("Simulated payment FAILED for policyId={}", req.policyId());
+                            return Mono.just(saved);
+                        }
+                    });
+        });
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
+    public Flux<PremiumPayment> getPaymentsByCustomerId(Long customerId) {
+        return paymentRepository.findByCustomerId(customerId);
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_INTERNAL_SERVICE', 'ROLE_CLAIMS_OFFICER')")

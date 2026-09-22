@@ -9,4 +9,7 @@ public record CarePlanDto(
         String feedingInstructions,
         String specialNeeds
 ) {
+    public static CarePlanDto empty() {
+        return new CarePlanDto(null, null, null, null, null, null, null);
+    }
 }

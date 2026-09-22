@@ -1,5 +1,7 @@
 package com.example.policyservice.dto;
 
+import java.time.LocalDateTime;
+
 public record QuoteDto(
         Long id,
         Long customerId,
@@ -7,5 +9,6 @@ public record QuoteDto(
         Double requestedCoverage,
         Double monthlyPremium,
         Integer riskScore,
-        String decision
+        String decision,
+        LocalDateTime validUntil
 ) {}

@@ -86,6 +86,11 @@ public class ClaimsService {
                     req.dateOfDeath() != null ? req.dateOfDeath() : "Recent",
                     req.notes()
             );
+            claim.setCustomerId(policy.customerId() != null ? policy.customerId() : 1L);
+            claim.setPetId(policy.petId() != null ? policy.petId() : 1L);
+            if (policy.coverageAmount() != null) {
+                claim.setClaimAmount(policy.coverageAmount());
+            }
             return claimRepository.save(claim)
                     .map(saved -> {
                         log.info("Filed claim id={}, number={}, policyId={}", saved.getId(), saved.getClaimNumber(), saved.getPolicyId());
@@ -119,7 +124,7 @@ public class ClaimsService {
         return claimRepository.findById(claimId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Claim not found with id: " + claimId)))
                 .flatMap(claim -> {
-                    if (!"VERIFIED".equals(claim.getStatus()) && !"PENDING".equals(claim.getStatus())) {
+                    if (!"VERIFIED".equals(claim.getStatus()) && !"PENDING".equals(claim.getStatus()) && !"MANUAL_REVIEW".equals(claim.getStatus())) {
                         return Mono.error(new IllegalStateException("Claim is in status " + claim.getStatus() + "; cannot run investigation"));
                     }
 
@@ -137,7 +142,9 @@ public class ClaimsService {
                     .flatMap(policy -> {
                         boolean policyActive = "ACTIVE".equalsIgnoreCase(policy.status());
                         boolean waitingPeriodPassed = true;
-                        int fraudScore = (claim.getDeathCertificateNo() == null || claim.getDeathCertificateNo().length() < 5) ? 65 : 10;
+                        boolean hasCert = (claim.getDeathCertificateNo() != null && claim.getDeathCertificateNo().length() >= 5)
+                                || (claim.getClaimReason() != null && claim.getClaimReason().contains("Cert:") && !claim.getClaimReason().contains("Cert: N/A"));
+                        int fraudScore = hasCert ? 10 : 65;
 
                         String decision;
                         String notes;
@@ -265,13 +272,35 @@ public class ClaimsService {
     }
 
     private ClaimResponse toResponse(Claim c, ClaimInvestigation inv) {
+        String certNo = c.getDeathCertificateNo();
+        String claimant = c.getClaimantName();
+        String rel = c.getRelationship();
+        if (certNo == null && c.getClaimReason() != null && c.getClaimReason().contains("Cert: ")) {
+            try {
+                int certIdx = c.getClaimReason().indexOf("Cert: ");
+                certNo = c.getClaimReason().substring(certIdx + 6).trim();
+            } catch (Exception ignored) {}
+        }
+        if (claimant == null && c.getClaimReason() != null && c.getClaimReason().startsWith("Continuity care claim filed by ")) {
+            try {
+                int start = "Continuity care claim filed by ".length();
+                int paren = c.getClaimReason().indexOf(" (", start);
+                if (paren > start) {
+                    claimant = c.getClaimReason().substring(start, paren).trim();
+                    int endParen = c.getClaimReason().indexOf(");", paren);
+                    if (endParen > paren + 2) {
+                        rel = c.getClaimReason().substring(paren + 2, endParen).trim();
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
         return new ClaimResponse(
                 c.getId(),
                 c.getClaimNumber(),
                 c.getPolicyId(),
-                c.getClaimantName(),
-                c.getRelationship(),
-                c.getDeathCertificateNo(),
+                claimant,
+                rel,
+                certNo,
                 c.getDateOfDeath(),
                 c.getStatus(),
                 c.getRejectionReason(),

@@ -19,6 +19,8 @@ public class UnderwritingRouter {
                 .path("/api/underwriting", builder -> builder
                         .POST("/quotes", accept(MediaType.APPLICATION_JSON), handler::generateQuote)
                         .GET("/quotes", handler::getAllQuotes)
+                        .GET("/quotes/customer/{customerId}", handler::getQuotesByCustomerId)
+                        .GET("/quotes/pet/{petId}", handler::getQuotesByPetId)
                         .GET("/quotes/{id}", handler::getQuoteById)
                         .PUT("/quotes/{id}", accept(MediaType.APPLICATION_JSON), handler::updateQuote)
                         .DELETE("/quotes/{id}", handler::deleteQuote)
@@ -28,6 +30,7 @@ public class UnderwritingRouter {
                         .PUT("/rules/{id}", accept(MediaType.APPLICATION_JSON), handler::updateRule)
                         .DELETE("/rules/{id}", handler::deleteRule)
                         .GET("/assessments/quote/{quoteId}", handler::getAssessmentByQuoteId)
+                        .POST("/assessments/reassess/{petId}", handler::reassessPetRisk)
                         .GET("/risk-monitoring/{petId}", handler::getRiskMonitoring)
                 )
                 .build();

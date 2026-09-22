@@ -50,9 +50,10 @@ public class Claim {
     @Column("updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    // Transient fields for compatibility with existing service DTOs
-    @Transient
+    @Column("claim_number")
     private String claimNumber;
+
+    // Transient fields for compatibility with existing service DTOs
 
     @Transient
     private String claimantName;
@@ -103,7 +104,7 @@ public class Claim {
     public static Claim create(Long policyId, String claimantName, String relationship, String deathCertificateNo, String dateOfDeath, String notes) {
         Claim claim = new Claim();
         claim.setPolicyId(policyId);
-        claim.setClaimReason("Continuity care claim filed by " + (claimantName != null ? claimantName : "claimant") + " (" + relationship + ")");
+        claim.setClaimReason("Continuity care claim filed by " + (claimantName != null ? claimantName : "claimant") + " (" + relationship + "); Cert: " + (deathCertificateNo != null ? deathCertificateNo : "N/A"));
         claim.setClaimantName(claimantName);
         claim.setRelationship(relationship);
         claim.setDeathCertificateNo(deathCertificateNo);
