@@ -11,3 +11,10 @@ target/
 **/.vscode/
 *.log
 microservices-backend.zip
+
+node_modules/
+**/node_modules/
+.angular/
+**/.angular/
+test-results/
+playwright-report/

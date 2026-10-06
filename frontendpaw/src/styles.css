@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root {
+  --color-black: #000000;
+  --color-claret: #75013F;
+  --color-fuchsia: #FE3082;
+  --color-warm-grey: #EAE5DF;
+  --color-white: #FFFFFF;
+}
+
+body {
+  background-color: #FAFAFA;
+  color: #111827;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  margin: 0;
+  padding: 0;
+}

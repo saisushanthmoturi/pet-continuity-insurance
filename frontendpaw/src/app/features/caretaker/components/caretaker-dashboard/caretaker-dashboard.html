@@ -1,0 +1,243 @@
+<div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+  <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-[#EAE5DF] mb-8 gap-4">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-[#000000]">Caretaker Fiduciary Portal</h1>
+      <p class="text-xs text-gray-500 mt-0.5">Manage pet custody verification, monthly care disbursements, and veterinary expense reimbursement</p>
+    </div>
+    <div class="flex items-center space-x-2 text-xs">
+      <span class="px-3 py-1 rounded-full bg-[#75013F] text-white font-semibold">
+        Certified Caretaker
+      </span>
+    </div>
+  </div>
+
+  <div class="flex overflow-x-auto space-x-2 pb-3 mb-6 border-b border-gray-200 text-sm font-semibold">
+    <button
+      (click)="setTab('custody')"
+      [class.text-[#75013F]]="activeTab === 'custody'"
+      [class.border-[#75013F]]="activeTab === 'custody'"
+      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
+      Pet Custody Verification
+    </button>
+    <button
+      (click)="setTab('funds')"
+      [class.text-[#75013F]]="activeTab === 'funds'"
+      [class.border-[#75013F]]="activeTab === 'funds'"
+      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
+      Care Trust & Disbursements
+    </button>
+    <button
+      (click)="setTab('expenses')"
+      [class.text-[#75013F]]="activeTab === 'expenses'"
+      [class.border-[#75013F]]="activeTab === 'expenses'"
+      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
+      Expense Reimbursements
+    </button>
+    <button
+      (click)="setTab('transfer')"
+      [class.text-[#75013F]]="activeTab === 'transfer'"
+      [class.border-[#75013F]]="activeTab === 'transfer'"
+      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
+      Backup Transfer
+    </button>
+  </div>
+
+  <!-- TAB: CUSTODY -->
+  <div *ngIf="activeTab === 'custody'" class="space-y-6">
+    <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm max-w-2xl mx-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+        <div>
+          <h3 class="text-base font-bold text-gray-900">Custodial Receipt & Verification</h3>
+          <p class="text-xs text-gray-500 mt-0.5">Certifies physical custody of the designated companion animal</p>
+        </div>
+        <span
+          *ngIf="custodyVerified"
+          class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          Custody Verified
+        </span>
+      </div>
+
+      <div class="space-y-4 my-6">
+        <div class="p-4 rounded-xl bg-[#FAFAFA] border border-gray-200 text-xs">
+          <div class="font-bold text-gray-800 mb-1">Companion Profile: Buster (Golden Retriever)</div>
+          <p class="text-gray-600">Daily routine: 45 min walk, twice daily feeding (1.5 cups dry food), indoor bedding.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Verification Type</label>
+          <select
+            [(ngModel)]="verificationModel.verificationType"
+            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 bg-white">
+            <option value="PHYSICAL_INSPECTION">Physical In-Person Custody Handover</option>
+            <option value="VET_CONFIRMATION">Veterinary Facility Intake</option>
+            <option value="SHELTER_TRANSITION">Assisted Living Care Transition</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Inspection Notes & Welfare Observations</label>
+          <textarea
+            rows="3"
+            [(ngModel)]="verificationModel.notes"
+            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300"></textarea>
+        </div>
+
+        <button
+          (click)="onVerifyCustody()"
+          class="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
+          Submit Physical Custody Confirmation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: CARE FUND & DISBURSEMENTS -->
+  <div *ngIf="activeTab === 'funds'" class="space-y-6">
+    <!-- Fund Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" *ngIf="activeFund$ | async as fund; else defaultFundView">
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Allocated Trust Fund</div>
+        <div class="text-3xl font-extrabold text-[#000000]">${{ fund.totalAllocated || 25000 }}</div>
+        <p class="text-xs text-gray-400 mt-1">Guaranteed total continuity capital</p>
+      </div>
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Current Reserve Balance</div>
+        <div class="text-3xl font-extrabold text-[#75013F]">${{ fund.currentBalance || 23200 }}</div>
+        <p class="text-xs text-gray-400 mt-1">Available for care disbursements</p>
+      </div>
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Monthly Allowance</div>
+        <div class="text-3xl font-extrabold text-[#FE3082]">${{ fund.monthlyAllowance || 600 }}</div>
+        <p class="text-xs text-gray-400 mt-1">Routine monthly care budget</p>
+      </div>
+    </div>
+
+    <ng-template #defaultFundView>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Allocated Trust Fund</div>
+          <div class="text-3xl font-extrabold text-[#000000]">$25,000</div>
+          <p class="text-xs text-gray-400 mt-1">Guaranteed total continuity capital</p>
+        </div>
+        <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Current Reserve Balance</div>
+          <div class="text-3xl font-extrabold text-[#75013F]">$23,200</div>
+          <p class="text-xs text-gray-400 mt-1">Available for care disbursements</p>
+        </div>
+        <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Monthly Allowance</div>
+          <div class="text-3xl font-extrabold text-[#FE3082]">$600</div>
+          <p class="text-xs text-gray-400 mt-1">Routine monthly care budget</p>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Disbursement Action Box -->
+    <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm max-w-xl mx-auto text-center">
+      <h3 class="text-base font-bold text-gray-900 mb-1">Claim Monthly Care Allowance</h3>
+      <p class="text-xs text-gray-500 mb-6">Transfers the recurring monthly care allowance directly to the verified caretaker account</p>
+
+      <button
+        (click)="onDisburseAllowance()"
+        class="px-8 py-3 rounded-xl text-sm font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
+        Disburse Current Monthly Allowance ($600.00)
+      </button>
+    </div>
+  </div>
+
+  <!-- TAB: EXPENSES -->
+  <div *ngIf="activeTab === 'expenses'" class="space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- File Expense Form -->
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+        <h3 class="text-base font-bold text-gray-900 mb-4">File Extra Expense</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Expense Category</label>
+            <select
+              [(ngModel)]="newExpense.category"
+              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 bg-white">
+              <option value="VET_CARE">Veterinary & Medical Treatment</option>
+              <option value="FOOD_NUTRITION">Special Dietary / Prescription Food</option>
+              <option value="SHELTER_SUPPLIES">Bedding, Grooming & Supplies</option>
+              <option value="EMERGENCY">Emergency Care</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Expense Amount ($)</label>
+            <input
+              type="number"
+              [(ngModel)]="newExpense.amount"
+              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Receipt URL / Document</label>
+            <input
+              type="text"
+              [(ngModel)]="newExpense.receiptUrl"
+              class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Description</label>
+            <textarea
+              rows="2"
+              [(ngModel)]="newExpense.description"
+              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300"></textarea>
+          </div>
+          <button
+            (click)="onSubmitExpense()"
+            class="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
+            Submit for Reimbursement
+          </button>
+        </div>
+      </div>
+
+      <!-- Expense History Table -->
+      <div class="lg:col-span-2 bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+        <h3 class="text-base font-bold text-gray-900 mb-4">Reimbursement Ledger</h3>
+        <div class="space-y-3" *ngIf="expenses$ | async as expenses">
+          <div *ngFor="let ex of expenses" class="p-3 bg-[#FAFAFA] rounded-xl border border-gray-200 flex justify-between items-center text-xs">
+            <div>
+              <div class="font-bold text-gray-900">{{ ex.category }}</div>
+              <div class="text-gray-500 mt-0.5">{{ ex.description }}</div>
+            </div>
+            <div class="text-right">
+              <span class="text-sm font-bold text-[#FE3082]">${{ ex.amount }}</span>
+              <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">REIMBURSED</div>
+            </div>
+          </div>
+          <div *ngIf="expenses.length === 0" class="py-6 text-center text-gray-500 text-xs">
+            No one-off expenses filed yet. Routine costs are drawn from monthly allowance.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: BACKUP TRANSFER -->
+  <div *ngIf="activeTab === 'transfer'" class="space-y-6">
+    <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm max-w-xl mx-auto">
+      <h3 class="text-base font-bold text-gray-900 mb-1">Initiate Backup Caretaker Transfer</h3>
+      <p class="text-xs text-gray-500 mb-6">Transfers perpetual care trust responsibilities to the pre-designated backup caretaker</p>
+
+      <div *ngIf="transferSuccess" class="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700">
+        Custody transfer request submitted successfully. Backup caretaker notified.
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Transfer Reason</label>
+          <textarea
+            rows="3"
+            [(ngModel)]="backupTransfer.reason"
+            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300"></textarea>
+        </div>
+        <button
+          (click)="onTransferBackup()"
+          class="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm">
+          Execute Backup Caretaker Handover
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
