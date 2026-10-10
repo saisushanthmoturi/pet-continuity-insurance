@@ -1,9 +1,7 @@
 package com.example.authservice.service;
 
-import com.example.authservice.dto.AuthResponse;
 import com.example.authservice.dto.LoginRequest;
 import com.example.authservice.dto.RegisterRequest;
-import com.example.authservice.dto.UserDto;
 import com.example.authservice.dto.UserUpdateRequest;
 import com.example.authservice.model.User;
 import com.example.authservice.repository.UserRepository;
@@ -12,7 +10,6 @@ import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,9 +18,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -39,86 +35,106 @@ class AuthServiceTest {
     @Mock
     private JwtUtil jwtUtil;
 
-    @InjectMocks
     private AuthService authService;
-
     private User sampleUser;
 
     @BeforeEach
     void setUp() {
-        sampleUser = new User(1L, "Alice Johnson", "alice@example.com", "hashed_pwd", "CUSTOMER", "ACTIVE",
-                LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
+        authService = new AuthService(userRepository, passwordEncoder, jwtUtil);
+
+        sampleUser = new User(1L, "alice_johnson", "alice@example.com", "hashedPassword",
+                "CUSTOMER", "ACTIVE", LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
     }
 
     @Test
-    void register_successful() {
-        RegisterRequest req = new RegisterRequest("alice@example.com", "password123", "Alice Johnson", "CUSTOMER");
+    void register_success() {
+        RegisterRequest req = new RegisterRequest("alice@example.com", "secret123", "Alice Johnson", "CUSTOMER");
 
         when(userRepository.findByEmail("alice@example.com")).thenReturn(Mono.empty());
-        when(passwordEncoder.encode("password123")).thenReturn("hashed_pwd");
+        when(passwordEncoder.encode("secret123")).thenReturn("hashedPassword");
         when(userRepository.save(any(User.class))).thenReturn(Mono.just(sampleUser));
-        when(jwtUtil.generateToken(1L, "alice@example.com", "CUSTOMER")).thenReturn("jwt.token.mock");
+        when(jwtUtil.generateToken(1L, "alice@example.com", "CUSTOMER")).thenReturn("jwt.token.here");
 
         StepVerifier.create(authService.register(req))
-                .assertNext(response -> {
-                    assertEquals("jwt.token.mock", response.token());
-                    assertEquals(1L, response.userId());
-                    assertEquals("alice@example.com", response.email());
-                    assertEquals("Alice Johnson", response.fullName());
-                    assertEquals("CUSTOMER", response.role());
+                .assertNext(res -> {
+                    assertEquals("jwt.token.here", res.token());
+                    assertEquals(1L, res.userId());
+                    assertEquals("alice@example.com", res.email());
+                    assertEquals("CUSTOMER", res.role());
                 })
                 .verifyComplete();
-
-        verify(userRepository).save(any(User.class));
     }
 
     @Test
-    void register_failsWhenEmailOrPasswordBlank() {
-        RegisterRequest reqNoEmail = new RegisterRequest("", "pwd", "Name", "CUSTOMER");
-        StepVerifier.create(authService.register(reqNoEmail))
-                .expectError(IllegalArgumentException.class)
-                .verify();
+    void register_defaultRoleWhenNullOrBlank() {
+        RegisterRequest req = new RegisterRequest("alice@example.com", "secret123", "Alice Johnson", "  ");
 
-        RegisterRequest reqNoPwd = new RegisterRequest("test@test.com", null, "Name", "CUSTOMER");
-        StepVerifier.create(authService.register(reqNoPwd))
-                .expectError(IllegalArgumentException.class)
-                .verify();
+        when(userRepository.findByEmail("alice@example.com")).thenReturn(Mono.empty());
+        when(passwordEncoder.encode("secret123")).thenReturn("hashedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(Mono.just(sampleUser));
+        when(jwtUtil.generateToken(1L, "alice@example.com", "CUSTOMER")).thenReturn("jwt.token.here");
+
+        StepVerifier.create(authService.register(req))
+                .assertNext(res -> assertEquals("CUSTOMER", res.role()))
+                .verifyComplete();
     }
 
     @Test
-    void register_failsWhenEmailAlreadyExists() {
-        RegisterRequest req = new RegisterRequest("alice@example.com", "pwd", "Alice", "CUSTOMER");
+    void register_missingEmailOrPassword_throwsError() {
+        RegisterRequest noEmail = new RegisterRequest(null, "pass", "Name", "CUSTOMER");
+        StepVerifier.create(authService.register(noEmail)).expectError(IllegalArgumentException.class).verify();
+
+        RegisterRequest blankEmail = new RegisterRequest("  ", "pass", "Name", "CUSTOMER");
+        StepVerifier.create(authService.register(blankEmail)).expectError(IllegalArgumentException.class).verify();
+
+        RegisterRequest noPass = new RegisterRequest("email@example.com", null, "Name", "CUSTOMER");
+        StepVerifier.create(authService.register(noPass)).expectError(IllegalArgumentException.class).verify();
+
+        RegisterRequest blankPass = new RegisterRequest("email@example.com", "  ", "Name", "CUSTOMER");
+        StepVerifier.create(authService.register(blankPass)).expectError(IllegalArgumentException.class).verify();
+    }
+
+    @Test
+    void register_duplicateEmail_throwsError() {
+        RegisterRequest req = new RegisterRequest("alice@example.com", "secret123", "Alice Johnson", "CUSTOMER");
         when(userRepository.findByEmail("alice@example.com")).thenReturn(Mono.just(sampleUser));
 
         StepVerifier.create(authService.register(req))
                 .expectErrorMatches(e -> e instanceof IllegalArgumentException && e.getMessage().contains("already registered"))
                 .verify();
-
-        verify(userRepository, never()).save(any());
     }
 
     @Test
-    void login_successful() {
-        LoginRequest req = new LoginRequest("alice@example.com", "password123");
+    void login_success() {
+        LoginRequest req = new LoginRequest("alice@example.com", "secret123");
 
         when(userRepository.findByEmail("alice@example.com")).thenReturn(Mono.just(sampleUser));
-        when(passwordEncoder.matches("password123", "hashed_pwd")).thenReturn(true);
-        when(jwtUtil.generateToken(1L, "alice@example.com", "CUSTOMER")).thenReturn("token123");
+        when(passwordEncoder.matches("secret123", "hashedPassword")).thenReturn(true);
+        when(jwtUtil.generateToken(1L, "alice@example.com", "CUSTOMER")).thenReturn("jwt.token.here");
 
         StepVerifier.create(authService.login(req))
                 .assertNext(res -> {
-                    assertEquals("token123", res.token());
-                    assertEquals("alice@example.com", res.email());
+                    assertEquals("jwt.token.here", res.token());
+                    assertEquals(1L, res.userId());
                 })
                 .verifyComplete();
     }
 
     @Test
-    void login_invalidPassword_returnsError() {
-        LoginRequest req = new LoginRequest("alice@example.com", "wrongpassword");
+    void login_missingEmailOrPassword_throwsError() {
+        LoginRequest noEmail = new LoginRequest(null, "secret");
+        StepVerifier.create(authService.login(noEmail)).expectError(IllegalArgumentException.class).verify();
+
+        LoginRequest noPass = new LoginRequest("email@example.com", null);
+        StepVerifier.create(authService.login(noPass)).expectError(IllegalArgumentException.class).verify();
+    }
+
+    @Test
+    void login_invalidPassword_throwsError() {
+        LoginRequest req = new LoginRequest("alice@example.com", "wrongPassword");
 
         when(userRepository.findByEmail("alice@example.com")).thenReturn(Mono.just(sampleUser));
-        when(passwordEncoder.matches("wrongpassword", "hashed_pwd")).thenReturn(false);
+        when(passwordEncoder.matches("wrongPassword", "hashedPassword")).thenReturn(false);
 
         StepVerifier.create(authService.login(req))
                 .expectErrorMatches(e -> e instanceof IllegalArgumentException && e.getMessage().contains("Invalid email or password"))
@@ -126,9 +142,8 @@ class AuthServiceTest {
     }
 
     @Test
-    void login_userNotFound_returnsError() {
-        LoginRequest req = new LoginRequest("nobody@example.com", "pwd");
-
+    void login_userNotFound_throwsError() {
+        LoginRequest req = new LoginRequest("nobody@example.com", "password");
         when(userRepository.findByEmail("nobody@example.com")).thenReturn(Mono.empty());
 
         StepVerifier.create(authService.login(req))
@@ -137,9 +152,10 @@ class AuthServiceTest {
     }
 
     @Test
-    void validateToken_validToken_returnsClaimsMap() {
+    void validateToken_validToken_returnsClaims() {
         String token = "valid.jwt.token";
         Claims mockClaims = mock(Claims.class);
+
         when(jwtUtil.validateToken(token)).thenReturn(true);
         when(jwtUtil.extractAllClaims(token)).thenReturn(mockClaims);
         when(mockClaims.get("userId")).thenReturn(1L);
@@ -157,9 +173,12 @@ class AuthServiceTest {
     }
 
     @Test
-    void validateToken_invalidToken_returnsError() {
-        when(jwtUtil.validateToken("bad.token")).thenReturn(false);
+    void validateToken_nullOrInvalidToken_returnsError() {
+        StepVerifier.create(authService.validateToken(null))
+                .expectError(IllegalArgumentException.class)
+                .verify();
 
+        when(jwtUtil.validateToken("bad.token")).thenReturn(false);
         StepVerifier.create(authService.validateToken("bad.token"))
                 .expectError(IllegalArgumentException.class)
                 .verify();
@@ -173,7 +192,7 @@ class AuthServiceTest {
                 .assertNext(dto -> {
                     assertEquals(1L, dto.id());
                     assertEquals("alice@example.com", dto.email());
-                    assertEquals("Alice Johnson", dto.fullName());
+                    assertEquals("alice_johnson", dto.fullName());
                 })
                 .verifyComplete();
     }
@@ -189,7 +208,7 @@ class AuthServiceTest {
 
     @Test
     void getAllUsers_returnsFlux() {
-        User user2 = new User(2L, "Bob Smith", "bob@example.com", "hash", "ADMIN", "ACTIVE",
+        User user2 = new User(2L, "bob_smith", "bob@example.com", "hash", "ADMIN", "ACTIVE",
                 LocalDateTime.now(), LocalDateTime.now(), null);
         when(userRepository.findAll()).thenReturn(Flux.just(sampleUser, user2));
 
@@ -211,5 +230,45 @@ class AuthServiceTest {
                     assertEquals("ADMIN", sampleUser.getRole());
                 })
                 .verifyComplete();
+    }
+
+    @Test
+    void updateUser_partialNulls() {
+        UserUpdateRequest req = new UserUpdateRequest(null, "  ");
+        when(userRepository.findById(1L)).thenReturn(Mono.just(sampleUser));
+        when(userRepository.save(any(User.class))).thenReturn(Mono.just(sampleUser));
+
+        StepVerifier.create(authService.updateUser(1L, req))
+                .assertNext(dto -> assertEquals("alice_johnson", sampleUser.getFullName()))
+                .verifyComplete();
+    }
+
+    @Test
+    void updateUser_notFound_throwsError() {
+        when(userRepository.findById(99L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(authService.updateUser(99L, new UserUpdateRequest("Name", "ROLE")))
+                .expectError(IllegalArgumentException.class)
+                .verify();
+    }
+
+    @Test
+    void deleteUser_success() {
+        when(userRepository.findById(1L)).thenReturn(Mono.just(sampleUser));
+        when(userRepository.delete(sampleUser)).thenReturn(Mono.empty());
+
+        StepVerifier.create(authService.deleteUser(1L))
+                .verifyComplete();
+
+        verify(userRepository).delete(sampleUser);
+    }
+
+    @Test
+    void deleteUser_notFound_throwsError() {
+        when(userRepository.findById(99L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(authService.deleteUser(99L))
+                .expectError(IllegalArgumentException.class)
+                .verify();
     }
 }

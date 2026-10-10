@@ -78,7 +78,7 @@ export class UnderwriterDashboardComponent implements OnInit {
   }
 
   onCreateRule(): void {
-    this.store.dispatch(createRatingRule({ rule: this.newRule }));
+    this.store.dispatch(createRatingRule({ rule: { ...this.newRule, baseRate: Number(this.newRule.baseRate) || 45, multiplier: Number(this.newRule.multiplier) || 1.35 } }));
   }
 
   onReassessPet(): void {

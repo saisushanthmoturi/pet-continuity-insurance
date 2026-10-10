@@ -11,30 +11,6 @@
     </div>
   </div>
 
-  <div class="flex overflow-x-auto space-x-2 pb-3 mb-6 border-b border-gray-200 text-sm font-semibold">
-    <button
-      (click)="setTab('queue')"
-      [class.text-[#75013F]]="activeTab === 'queue'"
-      [class.border-[#75013F]]="activeTab === 'queue'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Quotes Review Queue
-    </button>
-    <button
-      (click)="setTab('rules')"
-      [class.text-[#75013F]]="activeTab === 'rules'"
-      [class.border-[#75013F]]="activeTab === 'rules'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Rating Rules & Multipliers
-    </button>
-    <button
-      (click)="setTab('reassess')"
-      [class.text-[#75013F]]="activeTab === 'reassess'"
-      [class.border-[#75013F]]="activeTab === 'reassess'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Pet Risk Re-Assessment
-    </button>
-  </div>
-
   <!-- TAB: QUOTES QUEUE -->
   <div *ngIf="activeTab === 'queue'" class="space-y-6">
     <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
@@ -66,12 +42,15 @@
               <td class="py-3 px-4 font-bold text-[#FE3082]">${{ q.calculatedPremium || 720 }}</td>
               <td class="py-3 px-4">
                 <span
-                  [class.bg-emerald-50]="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED'"
-                  [class.text-emerald-700]="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED'"
-                  [class.bg-amber-50]="q.status === 'PENDING' || q.status === 'REFERRED'"
-                  [class.text-amber-700]="q.status === 'PENDING' || q.status === 'REFERRED'"
+                  [class.bg-[#75013F]/10]="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED'"
+                  [class.text-[#75013F]]="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED'"
+                  [class.border-[#75013F]/20]="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED'"
+                  [class.bg-[#FE3082]/10]="q.status === 'PENDING' || q.status === 'REFERRED'"
+                  [class.text-[#FE3082]]="q.status === 'PENDING' || q.status === 'REFERRED'"
+                  [class.border-[#FE3082]/30]="q.status === 'PENDING' || q.status === 'REFERRED'"
                   [class.bg-red-50]="q.status === 'REJECTED'"
                   [class.text-red-700]="q.status === 'REJECTED'"
+                  [class.border-red-200]="q.status === 'REJECTED'"
                   class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border">
                   {{ q.status || 'PENDING' }}
                 </span>
@@ -79,7 +58,7 @@
               <td class="py-3 px-4 text-right space-x-1.5">
                 <button
                   (click)="onApproveQuote(q.quoteId)"
-                  class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
+                  class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#75013F] text-white hover:bg-[#FE3082] transition-colors">
                   Approve
                 </button>
                 <button
@@ -215,7 +194,7 @@
         <div class="grid grid-cols-2 gap-3 text-xs">
           <div>Pet ID: <span class="font-bold">{{ reassessmentResult.petId || reassessPetId }}</span></div>
           <div>Risk Multiplier: <span class="font-bold text-[#75013F]">{{ reassessmentResult.totalScore || reassessmentResult.updatedRiskScore || 1.18 }}x</span></div>
-          <div>Decision: <span class="font-bold text-emerald-700">{{ reassessmentResult.riskClass || reassessmentResult.recommendation || 'APPROVED' }}</span></div>
+          <div>Decision: <span class="font-bold text-[#75013F]">{{ reassessmentResult.riskClass || reassessmentResult.recommendation || 'APPROVED' }}</span></div>
           <div>Explanation: <span class="text-gray-500">{{ reassessmentResult.explanation || 'Reassessment completed' }}</span></div>
         </div>
       </div>

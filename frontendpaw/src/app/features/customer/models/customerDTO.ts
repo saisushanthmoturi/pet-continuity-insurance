@@ -3,6 +3,7 @@ export interface CustomerDTO {
   userId: number;
   firstName: string;
   lastName: string;
+  email?: string;
   phone: string;
   kycStatus: string;
   status?: string;
@@ -55,6 +56,7 @@ export interface MedicalRecordDTO {
 export interface CaretakerDTO {
   caretakerId?: number;
   petId: number;
+  customerId?: number;
   userId?: number;
   name: string;
   phone: string;
@@ -69,6 +71,8 @@ export interface CaretakerDTO {
 export interface CarePlanDTO {
   carePlanId?: number;
   petId: number;
+  primaryCaretakerId?: number;
+  backupCaretakerId?: number;
   feedingInstructions: string;
   medicationInstructions: string;
   vetDetails: string;
@@ -80,12 +84,12 @@ export interface CarePlanDTO {
 export interface PolicyDTO {
   policyId?: number;
   policyNumber?: string;
-  quoteId: number;
+  quoteId?: number;
   customerId: number;
   petId: number;
   coverageAmount: number;
   premiumAmount: number;
-  deductible: number;
+  deductible?: number;
   currency?: string;
   startDate?: string;
   endDate?: string;

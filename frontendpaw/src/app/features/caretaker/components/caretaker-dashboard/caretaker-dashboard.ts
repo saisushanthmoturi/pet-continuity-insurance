@@ -89,7 +89,10 @@ export class CaretakerDashboardComponent implements OnInit {
   }
 
   onVerifyCustody(): void {
-    this.store.dispatch(verifyCustody({ verification: this.verificationModel }));
+    const verPayload: PetVerificationDTO = {
+      ...this.verificationModel
+    };
+    this.store.dispatch(verifyCustody({ verification: verPayload }));
     this.custodyVerified = true;
   }
 
@@ -101,15 +104,29 @@ export class CaretakerDashboardComponent implements OnInit {
   }
 
   onSubmitExpense(): void {
-    this.newExpense.fundId = this.activeFundId;
+    const expensePayload: ExpenseDTO = {
+      ...this.newExpense,
+      fundId: this.activeFundId,
+      amount: Number(this.newExpense.amount) || 0
+    };
     this.store.dispatch(submitExpense({
       fundId: this.activeFundId,
-      expense: this.newExpense
+      expense: expensePayload
     }));
+    this.newExpense = {
+      fundId: this.activeFundId,
+      category: "VET_CARE",
+      amount: 0,
+      receiptUrl: "",
+      description: ""
+    };
   }
 
   onTransferBackup(): void {
-    this.store.dispatch(transferBackup({ transfer: this.backupTransfer }));
+    const transferPayload: BackupTransferDTO = {
+      ...this.backupTransfer
+    };
+    this.store.dispatch(transferBackup({ transfer: transferPayload }));
     this.transferSuccess = true;
   }
 }

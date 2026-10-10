@@ -11,37 +11,6 @@
     </div>
   </div>
 
-  <div class="flex overflow-x-auto space-x-2 pb-3 mb-6 border-b border-gray-200 text-sm font-semibold">
-    <button
-      (click)="setTab('custody')"
-      [class.text-[#75013F]]="activeTab === 'custody'"
-      [class.border-[#75013F]]="activeTab === 'custody'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Pet Custody Verification
-    </button>
-    <button
-      (click)="setTab('funds')"
-      [class.text-[#75013F]]="activeTab === 'funds'"
-      [class.border-[#75013F]]="activeTab === 'funds'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Care Trust & Disbursements
-    </button>
-    <button
-      (click)="setTab('expenses')"
-      [class.text-[#75013F]]="activeTab === 'expenses'"
-      [class.border-[#75013F]]="activeTab === 'expenses'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Expense Reimbursements
-    </button>
-    <button
-      (click)="setTab('transfer')"
-      [class.text-[#75013F]]="activeTab === 'transfer'"
-      [class.border-[#75013F]]="activeTab === 'transfer'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Backup Transfer
-    </button>
-  </div>
-
   <!-- TAB: CUSTODY -->
   <div *ngIf="activeTab === 'custody'" class="space-y-6">
     <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm max-w-2xl mx-auto">
@@ -52,7 +21,7 @@
         </div>
         <span
           *ngIf="custodyVerified"
-          class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          class="px-3 py-1 rounded-full text-xs font-bold bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/20">
           Custody Verified
         </span>
       </div>
@@ -203,7 +172,7 @@
             </div>
             <div class="text-right">
               <span class="text-sm font-bold text-[#FE3082]">${{ ex.amount }}</span>
-              <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">REIMBURSED</div>
+              <div class="text-[10px] text-[#75013F] font-semibold mt-0.5">REIMBURSED</div>
             </div>
           </div>
           <div *ngIf="expenses.length === 0" class="py-6 text-center text-gray-500 text-xs">
@@ -220,7 +189,7 @@
       <h3 class="text-base font-bold text-gray-900 mb-1">Initiate Backup Caretaker Transfer</h3>
       <p class="text-xs text-gray-500 mb-6">Transfers perpetual care trust responsibilities to the pre-designated backup caretaker</p>
 
-      <div *ngIf="transferSuccess" class="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700">
+      <div *ngIf="transferSuccess" class="mb-4 p-3 bg-[#75013F]/10 border border-[#75013F]/20 rounded-xl text-xs text-[#75013F] font-semibold">
         Custody transfer request submitted successfully. Backup caretaker notified.
       </div>
 

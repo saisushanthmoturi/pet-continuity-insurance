@@ -27,14 +27,26 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(withInterceptors([httpReqInterceptor])),
-    provideStore({
-      login: loginReducer,
-      customer: customerReducer,
-      underwriter: underwriterReducer,
-      claims: claimsReducer,
-      caretaker: caretakerReducer,
-      admin: adminReducer
-    }),
+    provideStore(
+      {
+        login: loginReducer,
+        customer: customerReducer,
+        underwriter: underwriterReducer,
+        claims: claimsReducer,
+        caretaker: caretakerReducer,
+        admin: adminReducer
+      },
+      {
+        runtimeChecks: {
+          strictStateImmutability: true,
+          strictActionImmutability: false,
+          strictStateSerializability: false,
+          strictActionSerializability: false,
+          strictActionWithinNgZone: false,
+          strictActionTypeUniqueness: false
+        }
+      }
+    ),
     provideEffects([
       LoginEffects,
       CustomerEffects,

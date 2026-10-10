@@ -60,3 +60,5 @@ export const issuePolicy = createAction('[CUSTOMER] ISSUE POLICY', props<{ quote
 export const issuePolicySuccess = createAction('[CUSTOMER] ISSUE POLICY SUCCESS', props<{ policy: PolicyDTO }>());
 export const payPremium = createAction('[CUSTOMER] PAY PREMIUM', props<{ payment: PremiumPaymentDTO }>());
 export const payPremiumSuccess = createAction('[CUSTOMER] PAY PREMIUM SUCCESS');
+
+export const resetCustomerState = createAction('[CUSTOMER] RESET STATE');

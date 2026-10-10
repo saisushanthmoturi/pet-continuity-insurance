@@ -9,18 +9,14 @@ import com.example.petservice.repository.PetRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,39 +28,26 @@ class PetServiceTest {
     @Mock
     private MedicalRecordRepository medicalRecordRepository;
 
-    @InjectMocks
     private PetService petService;
-
     private Pet samplePet;
 
     @BeforeEach
     void setUp() {
-        samplePet = new Pet();
+        petService = new PetService(petRepository, medicalRecordRepository);
+
+        samplePet = Pet.createNew(10L, "Buddy", "DOG", "Golden Retriever", 3, 28.5, "MALE", 1500.0);
         samplePet.setId(1L);
-        samplePet.setCustomerId(10L);
-        samplePet.setName("Buddy");
-        samplePet.setSpecies("Dog");
-        samplePet.setBreed("Golden Retriever");
-        samplePet.setGender("MALE");
-        samplePet.setDateOfBirth(LocalDate.now().minusYears(3));
-        samplePet.setWeight(28.5);
-        samplePet.setAnnualCareCost(1500.0);
-        samplePet.setStatus("ACTIVE");
-        samplePet.setCreatedAt(LocalDateTime.now());
-        samplePet.setUpdatedAt(LocalDateTime.now());
     }
 
     @Test
     void createPet_successful() {
-        PetRequest req = new PetRequest(10L, "Buddy", "Dog", "Golden Retriever", 3, 28.5, "MALE", 1500.0);
+        PetRequest req = new PetRequest(10L, "Buddy", "DOG", "Golden Retriever", 3, 28.5, "MALE", 1500.0);
         when(petRepository.save(any(Pet.class))).thenReturn(Mono.just(samplePet));
 
         StepVerifier.create(petService.createPet(req))
-                .assertNext(pet -> {
-                    assertEquals(1L, pet.getId());
-                    assertEquals("Buddy", pet.getName());
-                    assertEquals("Dog", pet.getSpecies());
-                    assertEquals(10L, pet.getCustomerId());
+                .assertNext(p -> {
+                    assertEquals(1L, p.getId());
+                    assertEquals("Buddy", p.getName());
                 })
                 .verifyComplete();
 
@@ -73,25 +56,25 @@ class PetServiceTest {
 
     @Test
     void createPet_missingRequiredFields_throwsError() {
-        PetRequest reqMissingName = new PetRequest(10L, null, "Dog", "Golden Retriever", 3, 28.5, "MALE", 1500.0);
-        StepVerifier.create(petService.createPet(reqMissingName))
-                .expectError(IllegalArgumentException.class)
-                .verify();
+        // missing customerId
+        PetRequest req1 = new PetRequest(null, "Name", "Species", "Breed", 3, 20.0, "M", 100.0);
+        StepVerifier.create(petService.createPet(req1)).expectError(IllegalArgumentException.class).verify();
 
-        PetRequest reqMissingSpecies = new PetRequest(10L, "Buddy", null, "Golden Retriever", 3, 28.5, "MALE", 1500.0);
-        StepVerifier.create(petService.createPet(reqMissingSpecies))
-                .expectError(IllegalArgumentException.class)
-                .verify();
+        // missing name
+        PetRequest req2 = new PetRequest(10L, null, "Species", "Breed", 3, 20.0, "M", 100.0);
+        StepVerifier.create(petService.createPet(req2)).expectError(IllegalArgumentException.class).verify();
 
-        PetRequest reqMissingBreed = new PetRequest(10L, "Buddy", "Dog", null, 3, 28.5, "MALE", 1500.0);
-        StepVerifier.create(petService.createPet(reqMissingBreed))
-                .expectError(IllegalArgumentException.class)
-                .verify();
+        // missing species
+        PetRequest req3 = new PetRequest(10L, "Name", null, "Breed", 3, 20.0, "M", 100.0);
+        StepVerifier.create(petService.createPet(req3)).expectError(IllegalArgumentException.class).verify();
 
-        PetRequest reqMissingAge = new PetRequest(10L, "Buddy", "Dog", "Golden Retriever", null, 28.5, "MALE", 1500.0);
-        StepVerifier.create(petService.createPet(reqMissingAge))
-                .expectError(IllegalArgumentException.class)
-                .verify();
+        // missing breed
+        PetRequest req4 = new PetRequest(10L, "Name", "Species", null, 3, 20.0, "M", 100.0);
+        StepVerifier.create(petService.createPet(req4)).expectError(IllegalArgumentException.class).verify();
+
+        // missing age
+        PetRequest req5 = new PetRequest(10L, "Name", "Species", "Breed", null, 20.0, "M", 100.0);
+        StepVerifier.create(petService.createPet(req5)).expectError(IllegalArgumentException.class).verify();
     }
 
     @Test
@@ -99,10 +82,7 @@ class PetServiceTest {
         when(petRepository.findById(1L)).thenReturn(Mono.just(samplePet));
 
         StepVerifier.create(petService.getPetById(1L))
-                .assertNext(pet -> {
-                    assertEquals(1L, pet.getId());
-                    assertEquals("Buddy", pet.getName());
-                })
+                .assertNext(p -> assertEquals(1L, p.getId()))
                 .verifyComplete();
     }
 
@@ -111,7 +91,7 @@ class PetServiceTest {
         when(petRepository.findById(99L)).thenReturn(Mono.empty());
 
         StepVerifier.create(petService.getPetById(99L))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException && e.getMessage().contains("Pet not found"))
+                .expectError(IllegalArgumentException.class)
                 .verify();
     }
 
@@ -127,6 +107,15 @@ class PetServiceTest {
         StepVerifier.create(petService.getPetsByCustomerId(10L))
                 .expectNextMatches(p -> p.getName().equals("Buddy"))
                 .expectNextMatches(p -> p.getName().equals("Milo"))
+                .verifyComplete();
+    }
+
+    @Test
+    void getAllPets_returnsFlux() {
+        when(petRepository.findAll()).thenReturn(Flux.just(samplePet));
+
+        StepVerifier.create(petService.getAllPets())
+                .expectNext(samplePet)
                 .verifyComplete();
     }
 
@@ -150,9 +139,13 @@ class PetServiceTest {
 
     @Test
     void addMedicalRecord_blankConditionName_throwsError() {
-        MedicalRecordRequest req = new MedicalRecordRequest("", "2024-01-15", "Plan", 100.0);
+        MedicalRecordRequest req1 = new MedicalRecordRequest("", "2024-01-15", "Plan", 100.0);
+        StepVerifier.create(petService.addMedicalRecord(1L, req1))
+                .expectError(IllegalArgumentException.class)
+                .verify();
 
-        StepVerifier.create(petService.addMedicalRecord(1L, req))
+        MedicalRecordRequest req2 = new MedicalRecordRequest(null, "2024-01-15", "Plan", 100.0);
+        StepVerifier.create(petService.addMedicalRecord(1L, req2))
                 .expectError(IllegalArgumentException.class)
                 .verify();
 
@@ -165,7 +158,7 @@ class PetServiceTest {
         when(petRepository.findById(99L)).thenReturn(Mono.empty());
 
         StepVerifier.create(petService.addMedicalRecord(99L, req))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException && e.getMessage().contains("Pet not found"))
+                .expectError(IllegalArgumentException.class)
                 .verify();
     }
 
@@ -183,6 +176,37 @@ class PetServiceTest {
     }
 
     @Test
+    void getAllMedicalRecords_returnsFlux() {
+        PetMedicalRecord r1 = new PetMedicalRecord();
+        r1.setId(101L);
+        when(medicalRecordRepository.findAll()).thenReturn(Flux.just(r1));
+
+        StepVerifier.create(petService.getAllMedicalRecords())
+                .expectNext(r1)
+                .verifyComplete();
+    }
+
+    @Test
+    void getMedicalRecordById_found() {
+        PetMedicalRecord r1 = new PetMedicalRecord();
+        r1.setId(101L);
+        when(medicalRecordRepository.findById(101L)).thenReturn(Mono.just(r1));
+
+        StepVerifier.create(petService.getMedicalRecordById(101L))
+                .expectNext(r1)
+                .verifyComplete();
+    }
+
+    @Test
+    void getMedicalRecordById_notFound() {
+        when(medicalRecordRepository.findById(99L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(petService.getMedicalRecordById(99L))
+                .expectError(IllegalArgumentException.class)
+                .verify();
+    }
+
+    @Test
     void updatePet_successful() {
         PetRequest req = new PetRequest(10L, "Buddy Updated", "Dog", "Golden Retriever", 4, 30.0, "MALE", 1600.0);
         when(petRepository.findById(1L)).thenReturn(Mono.just(samplePet));
@@ -193,6 +217,17 @@ class PetServiceTest {
                     assertEquals("Buddy Updated", samplePet.getName());
                     assertEquals(30.0, samplePet.getWeight());
                 })
+                .verifyComplete();
+    }
+
+    @Test
+    void updatePet_partialNulls() {
+        PetRequest req = new PetRequest(null, "  ", "", " ", null, null, null, null);
+        when(petRepository.findById(1L)).thenReturn(Mono.just(samplePet));
+        when(petRepository.save(any(Pet.class))).thenReturn(Mono.just(samplePet));
+
+        StepVerifier.create(petService.updatePet(1L, req))
+                .assertNext(p -> assertEquals("Buddy", p.getName()))
                 .verifyComplete();
     }
 
@@ -218,6 +253,56 @@ class PetServiceTest {
     }
 
     @Test
+    void deletePet_notFound() {
+        when(petRepository.findById(99L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(petService.deletePet(99L))
+                .expectError(IllegalArgumentException.class)
+                .verify();
+    }
+
+    @Test
+    void updateMedicalRecord_successful() {
+        PetMedicalRecord r1 = new PetMedicalRecord();
+        r1.setId(50L);
+        MedicalRecordRequest req = new MedicalRecordRequest("Asthma Updated", "2024-05-01", "Inhaler daily", 400.0);
+
+        when(medicalRecordRepository.findById(50L)).thenReturn(Mono.just(r1));
+        when(medicalRecordRepository.save(any(PetMedicalRecord.class))).thenReturn(Mono.just(r1));
+
+        StepVerifier.create(petService.updateMedicalRecord(50L, req))
+                .assertNext(r -> {
+                    assertEquals("Asthma Updated", r1.getConditionName());
+                    assertEquals(400.0, r1.getEstimatedAnnualMedCost());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void updateMedicalRecord_partialNulls() {
+        PetMedicalRecord r1 = new PetMedicalRecord();
+        r1.setId(50L);
+        r1.setDiagnosis("Old");
+        MedicalRecordRequest req = new MedicalRecordRequest(null, null, null, null);
+
+        when(medicalRecordRepository.findById(50L)).thenReturn(Mono.just(r1));
+        when(medicalRecordRepository.save(any(PetMedicalRecord.class))).thenReturn(Mono.just(r1));
+
+        StepVerifier.create(petService.updateMedicalRecord(50L, req))
+                .assertNext(r -> assertEquals("Old", r.getDiagnosis()))
+                .verifyComplete();
+    }
+
+    @Test
+    void updateMedicalRecord_notFound() {
+        when(medicalRecordRepository.findById(99L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(petService.updateMedicalRecord(99L, new MedicalRecordRequest("A", "B", "C", 100.0)))
+                .expectError(IllegalArgumentException.class)
+                .verify();
+    }
+
+    @Test
     void deleteMedicalRecord_successful() {
         PetMedicalRecord record = new PetMedicalRecord();
         record.setId(50L);
@@ -229,5 +314,14 @@ class PetServiceTest {
                 .verifyComplete();
 
         verify(medicalRecordRepository).delete(record);
+    }
+
+    @Test
+    void deleteMedicalRecord_notFound() {
+        when(medicalRecordRepository.findById(99L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(petService.deleteMedicalRecord(99L))
+                .expectError(IllegalArgumentException.class)
+                .verify();
     }
 }

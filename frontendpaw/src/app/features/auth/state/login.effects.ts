@@ -16,7 +16,18 @@ export class LoginEffects {
       ofType(LoginActions.login),
       switchMap(({ jwtReq }) =>
         this.authService.login(jwtReq).pipe(
-          map((jwtRes) => {
+          tap((jwtRes) => {
+            localStorage.setItem('token', jwtRes.token);
+            localStorage.setItem('role', jwtRes.role);
+            localStorage.setItem('currentUser', JSON.stringify({
+              userId: jwtRes.userId,
+              email: jwtRes.email,
+              role: jwtRes.role,
+              token: jwtRes.token,
+              fullName: jwtRes.fullName || (jwtRes as any).username || ''
+            }));
+          }),
+          tap((jwtRes) => {
             if (jwtRes.role === 'ROLE_UNDERWRITER' || jwtRes.role === 'UNDERWRITER') {
               this.router.navigate(['underwriter']);
             } else if (jwtRes.role === 'ROLE_CLAIMS_ADJUSTER' || jwtRes.role === 'CLAIMS_ADJUSTER') {
@@ -28,8 +39,8 @@ export class LoginEffects {
             } else {
               this.router.navigate(['customer']);
             }
-            return LoginActions.loginSuccess({ jwtRes });
           }),
+          map((jwtRes) => LoginActions.loginSuccess({ jwtRes })),
           catchError((error) =>
             of(LoginActions.loginFailure({ error: error?.error?.message || error?.message || 'Login failed' }))
           )
@@ -57,7 +68,12 @@ export class LoginEffects {
     () =>
       this.actions$.pipe(
         ofType(LoginActions.logout),
-        tap(() => this.router.navigate(['auth/login']))
+        tap(() => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('role');
+          localStorage.removeItem('currentUser');
+          this.router.navigate(['auth/login']);
+        })
       ),
     { dispatch: false }
   );

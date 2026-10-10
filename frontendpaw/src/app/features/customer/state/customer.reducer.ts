@@ -4,6 +4,7 @@ import * as CustActions from './customer.actions';
 
 export const customerReducer = createReducer(
   InitialCustomerState,
+  on(CustActions.resetCustomerState, () => InitialCustomerState),
   on(CustActions.loadCustomer, (state) => ({
     ...state,
     profileStatus: { loading: true, success: false, error: '' }

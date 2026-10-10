@@ -1,62 +1,56 @@
 <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+  <!-- Top Header -->
   <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-[#EAE5DF] mb-8 gap-4">
     <div>
       <h1 class="text-2xl font-bold tracking-tight text-[#000000]">Pet Owner Portal</h1>
-      <p class="text-xs text-gray-500 mt-0.5">Manage pet registrations, care trusts, policies, and continuity claims</p>
+      <p class="text-xs text-gray-500 mt-0.5">
+        Welcome<span *ngIf="newProfile.firstName">, <strong>{{ newProfile.firstName }} {{ newProfile.lastName }}</strong></span> • Manage pet registrations, clinical medical history, caretaker trusts, policies, and continuity claims
+      </p>
     </div>
-    <div class="flex items-center space-x-2 text-xs">
-      <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
-        KYC Verified
-      </span>
-      <span class="px-3 py-1 rounded-full bg-[#EAE5DF] text-[#75013F] font-semibold">
-        Customer #{{ currentCustomerId }}
-      </span>
+    <div class="flex items-center space-x-3 text-xs">
+      <button
+        (click)="openProfileModal()"
+        id="open-profile-btn"
+        class="px-4 py-2 rounded-xl border border-[#EAE5DF] bg-white hover:border-[#75013F] text-gray-800 hover:text-[#75013F] font-semibold transition-all shadow-sm flex items-center space-x-2 hover:shadow-md cursor-pointer">
+        <svg class="w-4 h-4 text-[#75013F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+        <span>Owner Profile & Address</span>
+      </button>
     </div>
   </div>
 
-  <div class="flex overflow-x-auto space-x-2 pb-3 mb-6 border-b border-gray-200 text-sm font-semibold">
-    <button
-      (click)="setTab('overview')"
-      [class.text-[#75013F]]="activeTab === 'overview'"
-      [class.border-[#75013F]]="activeTab === 'overview'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Overview & Profile
+  <!-- Global Success Notifications -->
+  <div *ngIf="petSuccessMessage" class="mb-6 p-4 rounded-2xl bg-[#75013F]/10 border border-[#75013F]/30 text-xs font-bold text-[#75013F] flex items-center justify-between shadow-sm">
+    <div class="flex items-center space-x-2">
+      <span class="text-base">🐾</span>
+      <span>{{ petSuccessMessage }}</span>
+    </div>
+    <button (click)="setTab('plans')" class="px-3 py-1 rounded-xl bg-[#75013F] text-white font-semibold hover:bg-[#FE3082] text-[11px] transition-colors">
+      Add Caretakers Now →
     </button>
-    <button
-      (click)="setTab('pets')"
-      [class.text-[#75013F]]="activeTab === 'pets'"
-      [class.border-[#75013F]]="activeTab === 'pets'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      My Pets
-    </button>
-    <button
-      (click)="setTab('plans')"
-      [class.text-[#75013F]]="activeTab === 'plans'"
-      [class.border-[#75013F]]="activeTab === 'plans'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Care Plans & Caretakers
-    </button>
-    <button
-      (click)="setTab('quotes')"
-      [class.text-[#75013F]]="activeTab === 'quotes'"
-      [class.border-[#75013F]]="activeTab === 'quotes'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Get Quote
-    </button>
-    <button
-      (click)="setTab('policies')"
-      [class.text-[#75013F]]="activeTab === 'policies'"
-      [class.border-[#75013F]]="activeTab === 'policies'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Policies & Billing
-    </button>
-    <button
-      (click)="setTab('claims')"
-      [class.text-[#75013F]]="activeTab === 'claims'"
-      [class.border-[#75013F]]="activeTab === 'claims'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Claims & Continuity
-    </button>
+  </div>
+
+  <div *ngIf="caretakerSuccessMessage" class="mb-6 p-4 rounded-2xl bg-[#75013F]/10 border border-[#75013F]/30 text-xs font-bold text-[#75013F] flex items-center space-x-2 shadow-sm">
+    <svg class="w-4 h-4 text-[#75013F] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+    </svg>
+    <span>{{ caretakerSuccessMessage }}</span>
+  </div>
+
+  <div *ngIf="medicalSuccessMessage" class="mb-6 p-4 rounded-2xl bg-[#75013F]/10 border border-[#75013F]/30 text-xs font-bold text-[#75013F] flex items-center space-x-2 shadow-sm">
+    <span class="text-base">📋</span>
+    <span>{{ medicalSuccessMessage }}</span>
+  </div>
+
+  <div *ngIf="profileSuccessMessage" class="mb-6 p-4 rounded-2xl bg-[#75013F]/10 border border-[#75013F]/30 text-xs font-bold text-[#75013F] flex items-center space-x-2 shadow-sm">
+    <span class="text-base">✓</span>
+    <span>{{ profileSuccessMessage }}</span>
+  </div>
+
+  <div *ngIf="addressSuccessMessage" class="mb-6 p-4 rounded-2xl bg-[#75013F]/10 border border-[#75013F]/30 text-xs font-bold text-[#75013F] flex items-center space-x-2 shadow-sm">
+    <span class="text-base">📍</span>
+    <span>{{ addressSuccessMessage }}</span>
   </div>
 
   <!-- TAB: OVERVIEW -->
@@ -79,107 +73,151 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-        <h3 class="text-base font-bold text-gray-900 mb-4">Owner Profile</h3>
-        <div class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
+    <!-- Quick Shortcuts & Protection Overview (Replaces raw profile forms on landing page) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Account & Profile Summary Card -->
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#75013F]">Owner Credentials</span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900">
+            {{ newProfile.firstName }} {{ newProfile.lastName }}
+          </h3>
+          <p class="text-xs text-gray-500 mt-0.5">{{ newProfile.email }}</p>
+
+          <div class="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-600 space-y-2">
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">First Name</label>
-              <input
-                type="text"
-                [(ngModel)]="newProfile.firstName"
-                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+              <span class="text-gray-400">Phone:</span>
+              <span class="font-medium ml-1.5">{{ newProfile.phone || 'Not added yet' }}</span>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Last Name</label>
-              <input
-                type="text"
-                [(ngModel)]="newProfile.lastName"
-                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+              <span class="text-gray-400">Address:</span>
+              <span class="font-medium ml-1.5">
+                {{ newAddress.streetAddress ? (newAddress.streetAddress + ', ' + newAddress.city + (newAddress.state ? ', ' + newAddress.state : '')) : 'No residential address on file' }}
+              </span>
             </div>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
-            <input
-              type="text"
-              [(ngModel)]="newProfile.phone"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
-          </div>
-          <button
-            (click)="onSaveProfile()"
-            class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
-            Save Profile
-          </button>
         </div>
+
+        <button
+          (click)="openProfileModal()"
+          class="mt-5 w-full py-2.5 px-4 rounded-xl text-xs font-bold text-[#75013F] bg-[#75013F]/5 hover:bg-[#75013F] hover:text-white border border-[#75013F]/20 transition-all flex items-center justify-center space-x-1.5 cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+          </svg>
+          <span>Manage Profile & Address</span>
+        </button>
       </div>
 
-      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-        <h3 class="text-base font-bold text-gray-900 mb-4">Residential Address</h3>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Street Address</label>
-            <input
-              type="text"
-              [(ngModel)]="newAddress.streetAddress"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
-          </div>
-          <div class="grid grid-cols-3 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">City</label>
-              <input
-                type="text"
-                [(ngModel)]="newAddress.city"
-                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+      <!-- Quick Continuity Actions -->
+      <div class="lg:col-span-2 bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+        <h3 class="text-base font-bold text-gray-900 mb-1">Continuity Care Management</h3>
+        <p class="text-xs text-gray-500 mb-4">Direct access to companion registration, fiduciary trusts, and claims</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <!-- Card 1: Manage Pets (keeps cute paw print) -->
+          <div (click)="setTab('pets')" class="group p-4 rounded-xl border border-[#EAE5DF] hover:border-[#75013F] hover:shadow-md cursor-pointer transition-all bg-[#FAFAFA] hover:bg-white flex items-start space-x-3.5">
+            <div class="w-10 h-10 rounded-xl bg-pink-50 border border-pink-200/80 flex items-center justify-center text-lg shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+              🐾
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">State</label>
-              <input
-                type="text"
-                [(ngModel)]="newAddress.state"
-                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Postal Code</label>
-              <input
-                type="text"
-                [(ngModel)]="newAddress.postalCode"
-                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+              <div class="text-xs font-bold text-gray-900 group-hover:text-[#75013F] transition-colors">Manage Pets</div>
+              <div class="text-[11px] text-gray-500 mt-0.5 leading-relaxed">Register companions and view medical records</div>
             </div>
           </div>
-          <button
-            (click)="onAddAddress()"
-            class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
-            Update Address
-          </button>
+
+          <!-- Card 2: Care Plans & Caretakers (guardian & caretaker icon in website color) -->
+          <div (click)="setTab('plans')" class="group p-4 rounded-xl border border-[#EAE5DF] hover:border-[#75013F] hover:shadow-md cursor-pointer transition-all bg-[#FAFAFA] hover:bg-white flex items-start space-x-3.5">
+            <div class="w-10 h-10 rounded-xl bg-[#75013F]/5 border border-[#75013F]/20 text-[#75013F] flex items-center justify-center shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5 text-[#75013F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-gray-900 group-hover:text-[#75013F] transition-colors">Care Plans & Caretakers</div>
+              <div class="text-[11px] text-gray-500 mt-0.5 leading-relaxed">Designate primary and backup caretakers</div>
+            </div>
+          </div>
+
+          <!-- Card 3: Actuarial Quotes (precision risk calculator icon in website color) -->
+          <div (click)="setTab('quotes')" class="group p-4 rounded-xl border border-[#EAE5DF] hover:border-[#75013F] hover:shadow-md cursor-pointer transition-all bg-[#FAFAFA] hover:bg-white flex items-start space-x-3.5">
+            <div class="w-10 h-10 rounded-xl bg-[#75013F]/5 border border-[#75013F]/20 text-[#75013F] flex items-center justify-center shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5 text-[#75013F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="4" y="2" width="16" height="20" rx="2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="8" y1="6" x2="16" y2="6" stroke-width="1.8" stroke-linecap="round"/>
+                <line x1="16" y1="14" x2="16" y2="18" stroke-width="1.8" stroke-linecap="round"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M8 18h.01M12 18h.01"/>
+              </svg>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-gray-900 group-hover:text-[#75013F] transition-colors">Actuarial Quotes</div>
+              <div class="text-[11px] text-gray-500 mt-0.5 leading-relaxed">Instant life-expectancy risk calculation</div>
+            </div>
+          </div>
+
+          <!-- Card 4: Claims & Continuity (trust guarantee shield SVG in website color) -->
+          <div (click)="setTab('claims')" class="group p-4 rounded-xl border border-[#EAE5DF] hover:border-[#75013F] hover:shadow-md cursor-pointer transition-all bg-[#FAFAFA] hover:bg-white flex items-start space-x-3.5">
+            <div class="w-10 h-10 rounded-xl bg-pink-50 border border-[#FE3082]/30 text-[#FE3082] flex items-center justify-center shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5 text-[#FE3082]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-gray-900 group-hover:text-[#75013F] transition-colors">Claims & Continuity</div>
+              <div class="text-[11px] text-gray-500 mt-0.5 leading-relaxed">Initiate claim or track fund release status</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- TAB: PETS -->
+  <!-- TAB: PETS & MEDICAL HISTORY -->
   <div *ngIf="activeTab === 'pets'" class="space-y-8">
+    <!-- Registered Pets List -->
     <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-bold text-gray-900">Registered Pets</h3>
-        <span class="text-xs text-gray-500">Click a pet to inspect details and medical records</span>
+        <div>
+          <h3 class="text-base font-bold text-gray-900">Registered Pets</h3>
+          <p class="text-xs text-gray-500">Click a companion pet to inspect details and clinical medical history</p>
+        </div>
+        <span class="text-xs font-bold text-[#75013F]">
+          {{ (pets$ | async)?.length || 0 }} Pets Protected
+        </span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" *ngIf="pets$ | async as pets">
+        <div *ngIf="pets.length === 0" class="col-span-full p-8 text-center rounded-2xl border border-dashed border-gray-300 text-xs text-gray-500 bg-[#FAFAFA]">
+          <span class="text-3xl block mb-2">🐾</span>
+          <span class="font-bold text-gray-800 text-sm">No companion pets registered yet.</span><br>
+          <span class="text-gray-500 mt-1 block">Fill in the companion demographics form below to register your companion pet and activate continuity protection.</span>
+        </div>
         <div
           *ngFor="let p of pets"
           (click)="onSelectPet(p)"
-          class="p-4 rounded-xl border border-[#EAE5DF] hover:border-[#75013F] cursor-pointer transition-all hover:shadow-sm bg-[#FAFAFA]">
+          [class.border-[#75013F]]="p.petId === selectedPetId"
+          [class.ring-2]="p.petId === selectedPetId"
+          [class.ring-[#75013F]/20]="p.petId === selectedPetId"
+          class="p-5 rounded-2xl border border-[#EAE5DF] hover:border-[#75013F] cursor-pointer transition-all hover:shadow-md bg-[#FAFAFA] relative">
           <div class="flex items-center justify-between">
-            <h4 class="text-sm font-bold text-[#75013F]">{{ p.name }}</h4>
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white border border-[#EAE5DF] text-gray-600 uppercase">
+            <h4 class="text-base font-bold text-[#75013F] flex items-center space-x-1.5">
+              <span>🐾</span>
+              <span>{{ p.name }}</span>
+            </h4>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#EAE5DF] text-gray-600 uppercase">
               {{ p.speciesCode }}
             </span>
           </div>
-          <p class="text-xs text-gray-600 mt-1">Breed: {{ p.breedCode }} | Gender: {{ p.gender }}</p>
-          <div class="text-xs text-gray-500 mt-2 flex justify-between">
-            <span>Weight: {{ p.weightValue }} {{ p.weightUnit }}</span>
-            <span>Annual Cost: ${{ p.annualCareCost }}</span>
+          <p class="text-xs text-gray-600 mt-2">Breed: <span class="font-medium text-gray-800">{{ p.breedCode }}</span> | Gender: <span class="font-medium text-gray-800">{{ p.gender }}</span></p>
+          <div class="text-xs text-gray-500 mt-2 flex justify-between pt-2 border-t border-gray-200">
+            <span>Weight: <strong>{{ p.weightValue }} {{ p.weightUnit }}</strong></span>
+            <span>Annual Budget: <strong class="text-[#FE3082]">${{ p.annualCareCost }}</strong></span>
+          </div>
+          <div *ngIf="p.petId === selectedPetId" class="mt-2 text-right">
+            <span class="text-[10px] font-extrabold text-[#75013F] bg-[#75013F]/10 px-2 py-0.5 rounded-md">
+              ✓ Selected Pet
+            </span>
           </div>
         </div>
       </div>
@@ -187,10 +225,17 @@
 
     <!-- Register New Pet Form -->
     <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-      <h3 class="text-base font-bold text-gray-900 mb-4">Register New Pet</h3>
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-base font-bold text-gray-900">Register New Pet</h3>
+          <p class="text-xs text-gray-500">Provide companion demographics to initialize perpetual care coverage</p>
+        </div>
+        <span class="text-[11px] font-semibold text-gray-400">Step 1 of Continuity Onboarding</span>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
-          <label class="block text-xs font-semibold text-gray-700 mb-1">Pet Name</label>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Pet Name *</label>
           <input
             type="text"
             [(ngModel)]="newPet.name"
@@ -218,7 +263,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
         <div>
           <label class="block text-xs font-semibold text-gray-700 mb-1">Gender</label>
           <select
@@ -249,52 +294,121 @@
             [(ngModel)]="newPet.annualCareCost"
             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
         </div>
-      </div>
-
-      <button
-        (click)="onCreatePet()"
-        class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
-        Register Pet
-      </button>
-    </div>
-
-    <!-- Selected Pet Medical Records -->
-    <div *ngIf="selectedPet$ | async as pet" class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-      <h3 class="text-base font-bold text-gray-900 mb-2">Medical Records for {{ pet.name }}</h3>
-      <p class="text-xs text-gray-500 mb-4">Actuarial risk assessments will evaluate these entries during underwriting</p>
-
-      <div class="space-y-3 mb-6" *ngIf="medicalRecords$ | async as records">
-        <div *ngFor="let rec of records" class="p-3 rounded-xl border border-gray-200 bg-[#FAFAFA] flex justify-between items-center text-xs">
-          <div>
-            <div class="font-bold text-gray-800">{{ rec.recordType }}: {{ rec.diagnosis }}</div>
-            <div class="text-gray-500 mt-0.5">Treatment: {{ rec.treatment }} | Vet: {{ rec.vetName }}</div>
-          </div>
-          <div class="text-right">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-              Risk: {{ rec.riskLevel }}
-            </span>
-            <div class="text-gray-500 mt-1">${{ rec.annualMedCost }}/yr</div>
-          </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Microchip ID</label>
+          <input
+            type="text"
+            [(ngModel)]="newPet.microchipId"
+            placeholder="e.g. 985141002"
+            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
         </div>
       </div>
 
-      <div class="bg-[#FAFAFA] p-4 rounded-xl border border-dashed border-gray-300">
-        <h4 class="text-xs font-bold text-gray-800 mb-3">Add Clinical Record</h4>
+      <div class="flex items-center space-x-3">
+        <button
+          (click)="onCreatePet()"
+          class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
+          Register Pet
+        </button>
+        <span class="text-xs text-gray-500">After registering, proceed to add Caretakers and Clinical Records below.</span>
+      </div>
+    </div>
+
+    <!-- Selected Pet Medical History Section -->
+    <div *ngIf="selectedPet$ | async as pet" class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-gray-200 mb-6 gap-2">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-lg">🩺</span>
+            <h3 class="text-base font-bold text-gray-900">Medical History & Clinical Dossier: {{ pet.name }}</h3>
+          </div>
+          <p class="text-xs text-gray-500 mt-0.5">Comprehensive chronological medical records submitted for actuarial health assessment</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/20">
+            {{ (medicalRecords$ | async)?.length || 0 }} Records on File
+          </span>
+        </div>
+      </div>
+
+      <!-- Medical Records Table -->
+      <div class="overflow-x-auto mb-6" *ngIf="medicalRecords$ | async as records">
+        <table class="w-full text-left text-xs" *ngIf="records.length > 0">
+          <thead class="bg-[#FAFAFA] text-gray-600 uppercase tracking-wider text-[11px] border-b border-gray-200">
+            <tr>
+              <th class="py-3 px-4">Record Type</th>
+              <th class="py-3 px-4">Diagnosis / Condition</th>
+              <th class="py-3 px-4">Treatment Plan</th>
+              <th class="py-3 px-4">Attending Vet</th>
+              <th class="py-3 px-4">Date</th>
+              <th class="py-3 px-4">Risk Level</th>
+              <th class="py-3 px-4 text-right">Annual Cost</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let rec of records" class="hover:bg-[#FAFAFA]">
+              <td class="py-3 px-4 font-bold text-[#75013F]">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAE5DF] text-[#75013F]">
+                  {{ rec.recordType }}
+                </span>
+              </td>
+              <td class="py-3 px-4 font-semibold text-gray-900">{{ rec.diagnosis }}</td>
+              <td class="py-3 px-4 text-gray-600">{{ rec.treatment }}</td>
+              <td class="py-3 px-4 text-gray-500">{{ rec.vetName }}</td>
+              <td class="py-3 px-4 text-gray-500 whitespace-nowrap">{{ rec.recordDate }}</td>
+              <td class="py-3 px-4">
+                <span
+                  [class.bg-[#75013F]/10]="rec.riskLevel === 'LOW'"
+                  [class.text-[#75013F]]="rec.riskLevel === 'LOW'"
+                  [class.border-[#75013F]/20]="rec.riskLevel === 'LOW'"
+                  [class.bg-amber-50]="rec.riskLevel === 'MEDIUM'"
+                  [class.text-amber-700]="rec.riskLevel === 'MEDIUM'"
+                  [class.border-amber-200]="rec.riskLevel === 'MEDIUM'"
+                  [class.bg-red-50]="rec.riskLevel === 'HIGH'"
+                  [class.text-red-700]="rec.riskLevel === 'HIGH'"
+                  [class.border-red-200]="rec.riskLevel === 'HIGH'"
+                  class="px-2 py-0.5 rounded-full text-[10px] font-bold border">
+                  {{ rec.riskLevel }}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-right font-bold text-gray-800">${{ rec.annualMedCost }}/yr</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty state -->
+        <div *ngIf="records.length === 0" class="p-8 text-center rounded-2xl border border-dashed border-gray-300 text-xs text-gray-400 bg-[#FAFAFA]">
+          <span class="text-2xl block mb-2">📋</span>
+          No medical records recorded yet for <strong>{{ pet.name }}</strong>.<br>
+          Use the form below to log vaccination history, diagnoses, and veterinary treatments.
+        </div>
+      </div>
+
+      <!-- Add Clinical Record Form -->
+      <div class="bg-[#FAFAFA] p-5 rounded-2xl border border-dashed border-gray-300">
+        <h4 class="text-xs font-bold text-gray-800 mb-3 flex items-center space-x-1.5">
+          <span>➕</span>
+          <span>Add Clinical Record for {{ pet.name }}</span>
+        </h4>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
           <div>
-            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Record Type</label>
-            <input
-              type="text"
+            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Record Type *</label>
+            <select
               [(ngModel)]="newMedical.recordType"
-              placeholder="e.g. VACCINATION"
-              class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300" />
+              class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 bg-white">
+              <option value="VACCINATION">Vaccination / Immunization</option>
+              <option value="ROUTINE_CHECKUP">Routine Veterinary Checkup</option>
+              <option value="SURGERY">Surgical Procedure</option>
+              <option value="CHRONIC_CONDITION">Chronic Condition</option>
+              <option value="MEDICATION">Prescription Drug Treatment</option>
+            </select>
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Diagnosis</label>
+            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Diagnosis / Condition *</label>
             <input
               type="text"
               [(ngModel)]="newMedical.diagnosis"
-              placeholder="e.g. Routine Immunization"
+              placeholder="e.g. Annual Rabies Booster"
               class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300" />
           </div>
           <div>
@@ -302,139 +416,344 @@
             <select
               [(ngModel)]="newMedical.riskLevel"
               class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 bg-white">
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
+              <option value="LOW">Low Risk</option>
+              <option value="MEDIUM">Medium Risk</option>
+              <option value="HIGH">High Risk</option>
             </select>
           </div>
         </div>
-        <button
-          (click)="onAddMedical()"
-          class="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors">
-          Add Clinical Record
-        </button>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+          <div>
+            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Treatment Plan</label>
+            <input
+              type="text"
+              [(ngModel)]="newMedical.treatment"
+              placeholder="e.g. Administered 1ml subcutaneous"
+              class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Attending Vet Name</label>
+            <input
+              type="text"
+              [(ngModel)]="newMedical.vetName"
+              placeholder="e.g. Dr. Emily Watson, DVM"
+              class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Date Administered</label>
+            <input
+              type="date"
+              [(ngModel)]="newMedical.recordDate"
+              class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Est. Annual Cost ($)</label>
+            <input
+              type="number"
+              [(ngModel)]="newMedical.annualMedCost"
+              class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300" />
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <button
+            (click)="onAddMedical()"
+            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
+            Add Clinical Record
+          </button>
+          <span class="text-[11px] text-gray-500">Record is saved to medical history and evaluated during underwriting.</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- TAB: CARE PLANS -->
+  <!-- TAB: CARE PLANS & CARETAKERS -->
   <div *ngIf="activeTab === 'plans'" class="space-y-6">
+    <!-- ABSENCE OF OWNER GUARDIAN DIRECTIVES (PROMINENT UI CARD) -->
+    <div class="bg-gradient-to-r from-[#75013F]/5 via-pink-50 to-[#EAE5DF]/30 border-2 border-[#75013F]/20 rounded-3xl p-6 md:p-8 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-[#75013F]/20 gap-3">
+        <div>
+          <span class="text-[10px] font-extrabold uppercase tracking-widest text-[#FE3082]">Legal Pet Continuity Directive</span>
+          <h2 class="text-xl font-black text-gray-900 mt-0.5">Designated Caretakers in Absence of Owner</h2>
+          <p class="text-xs text-gray-600 mt-1">
+            Specify the primary caretaker assigned by default in absence of the owner, along with a contingency backup caretaker.
+          </p>
+        </div>
+        <span class="px-3.5 py-1 rounded-full text-xs font-bold bg-[#75013F] text-white self-start md:self-auto">
+          Custody Protocol Active
+        </span>
+      </div>
+
+      <!-- Two Guardian Cards Side by Side -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <!-- PRIMARY CARETAKER CARD -->
+        <div class="bg-white rounded-2xl p-5 border-2 border-[#75013F]/20 shadow-sm relative overflow-hidden">
+          <div class="absolute top-0 right-0 bg-[#75013F] text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider flex items-center gap-1">
+            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            Assigned Default Guardian
+          </div>
+          <div class="text-xs font-bold text-[#75013F] uppercase tracking-wider mb-2">
+            Primary Caretaker
+          </div>
+          <div *ngIf="primaryCaretaker" class="space-y-2">
+            <h4 class="text-lg font-extrabold text-gray-900">{{ primaryCaretaker.name }}</h4>
+            <div class="text-xs text-gray-600 space-y-1">
+              <div><strong>Relationship:</strong> {{ primaryCaretaker.relationship }}</div>
+              <div><strong>Phone:</strong> {{ primaryCaretaker.phone }} • <strong>Email:</strong> {{ primaryCaretaker.email }}</div>
+              <div><strong>Address:</strong> {{ primaryCaretaker.address }}</div>
+            </div>
+            <div class="mt-3 p-3 rounded-xl bg-[#75013F]/5 border border-[#75013F]/20 text-[11px] text-[#75013F] font-semibold leading-relaxed">
+              ✓ <strong>Assigned by default as caretaker in absence of the owner:</strong> {{ primaryCaretaker.name }} assumes immediate legal custody and receives monthly continuity care fund disbursements.
+            </div>
+          </div>
+          <div *ngIf="!primaryCaretaker" class="py-6 text-center text-xs text-gray-400">
+            <div class="w-10 h-10 mx-auto rounded-xl bg-[#75013F]/10 text-[#75013F] flex items-center justify-center mb-2">
+              <svg class="w-5 h-5 text-[#75013F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>
+            No Primary Caretaker registered yet.<br>Complete Form 1 below to assign the default guardian.
+          </div>
+        </div>
+
+        <!-- BACKUP CARETAKER CARD -->
+        <div class="bg-white rounded-2xl p-5 border-2 border-[#FE3082]/20 shadow-sm relative overflow-hidden">
+          <div class="absolute top-0 right-0 bg-[#FE3082] text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider flex items-center gap-1">
+            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            Contingency Guardian
+          </div>
+          <div class="text-xs font-bold text-[#FE3082] uppercase tracking-wider mb-2">
+            Backup Caretaker
+          </div>
+          <div *ngIf="backupCaretaker" class="space-y-2">
+            <h4 class="text-lg font-extrabold text-gray-900">{{ backupCaretaker.name }}</h4>
+            <div class="text-xs text-gray-600 space-y-1">
+              <div><strong>Relationship:</strong> {{ backupCaretaker.relationship }}</div>
+              <div><strong>Phone:</strong> {{ backupCaretaker.phone }} • <strong>Email:</strong> {{ backupCaretaker.email }}</div>
+              <div><strong>Address:</strong> {{ backupCaretaker.address }}</div>
+            </div>
+            <div class="mt-3 p-3 rounded-xl bg-pink-50 border border-[#FE3082]/20 text-[11px] text-[#75013F] font-semibold leading-relaxed">
+              ✓ <strong>Contingency custodian:</strong> Steps into custody automatically if the primary caretaker is unreachable or unavailable.
+            </div>
+          </div>
+          <div *ngIf="!backupCaretaker" class="py-6 text-center text-xs text-gray-400">
+            <div class="w-10 h-10 mx-auto rounded-xl bg-pink-50 text-[#FE3082] flex items-center justify-center mb-2">
+              <svg class="w-5 h-5 text-[#FE3082]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+            </div>
+            No Backup Caretaker registered yet.<br>Complete Form 2 below to designate contingency care.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Caretaker Registration Forms -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- FORM 1: PRIMARY CARETAKER -->
       <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-        <h3 class="text-base font-bold text-gray-900 mb-4">Designate Caretaker</h3>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-[#75013F] bg-[#75013F]/10 px-2.5 py-0.5 rounded-full border border-[#75013F]/20">
+              Form 1 • Primary
+            </span>
+            <h3 class="text-base font-bold text-gray-900 mt-1">Designate Caretaker</h3>
+            <p class="text-[11px] text-gray-500">Assigned by default as caretaker in absence of owner</p>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-[#75013F]/10 border border-[#75013F]/20 text-[#75013F] flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-[#75013F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+          </div>
+        </div>
+
         <div class="space-y-3">
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Full Name *</label>
             <input
               type="text"
-              [(ngModel)]="newCaretaker.name"
+              [(ngModel)]="newPrimaryCaretaker.name"
               placeholder="e.g. Michael Miller"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300" />
+              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1">Email</label>
               <input
                 type="email"
-                [(ngModel)]="newCaretaker.email"
+                [(ngModel)]="newPrimaryCaretaker.email"
                 placeholder="michael@example.com"
-                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300" />
+                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Phone</label>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Phone *</label>
               <input
                 type="text"
-                [(ngModel)]="newCaretaker.phone"
+                [(ngModel)]="newPrimaryCaretaker.phone"
                 placeholder="555-0188"
-                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300" />
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Priority</label>
-              <select
-                [(ngModel)]="newCaretaker.priority"
-                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 bg-white">
-                <option value="PRIMARY">Primary Caretaker</option>
-                <option value="SECONDARY">Secondary / Backup</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Relationship</label>
-              <input
-                type="text"
-                [(ngModel)]="newCaretaker.relationship"
-                placeholder="e.g. Sibling, Professional Sitter"
-                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300" />
+                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
             </div>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Address</label>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Relationship to Owner</label>
             <input
               type="text"
-              [(ngModel)]="newCaretaker.address"
+              [(ngModel)]="newPrimaryCaretaker.relationship"
+              placeholder="e.g. Brother & Designated Primary Guardian"
+              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Residential Address</label>
+            <input
+              type="text"
+              [(ngModel)]="newPrimaryCaretaker.address"
               placeholder="104 Pine Rd, Eugene, OR"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300" />
+              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
           </div>
           <button
-            (click)="onAddCaretaker()"
-            class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
+            (click)="onAddPrimaryCaretaker()"
+            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm cursor-pointer">
             Register Caretaker
           </button>
         </div>
       </div>
 
+      <!-- FORM 2: BACKUP CARETAKER -->
       <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-        <h3 class="text-base font-bold text-gray-900 mb-4">Care Routine & Instructions</h3>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-[#FE3082] bg-pink-50 px-2.5 py-0.5 rounded-full border border-[#FE3082]/30">
+              Form 2 • Contingency
+            </span>
+            <h3 class="text-base font-bold text-gray-900 mt-1">Designate Backup Caretaker</h3>
+            <p class="text-[11px] text-gray-500">Contingency guardian if primary caretaker is unreachable</p>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-pink-50 border border-[#FE3082]/30 text-[#FE3082] flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-[#FE3082]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+          </div>
+        </div>
+
         <div class="space-y-3">
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Feeding Instructions</label>
-            <textarea
-              rows="2"
-              [(ngModel)]="newCarePlan.feedingInstructions"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300"></textarea>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Medication Instructions</label>
-            <textarea
-              rows="2"
-              [(ngModel)]="newCarePlan.medicationInstructions"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300"></textarea>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Veterinary Contact</label>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Full Name *</label>
             <input
               type="text"
-              [(ngModel)]="newCarePlan.vetDetails"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300" />
+              [(ngModel)]="newBackupCaretaker.name"
+              placeholder="e.g. Claire Anderson"
+              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                [(ngModel)]="newBackupCaretaker.email"
+                placeholder="claire@example.com"
+                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Phone *</label>
+              <input
+                type="text"
+                [(ngModel)]="newBackupCaretaker.phone"
+                placeholder="555-0192"
+                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+            </div>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Daily Routine & Notes</label>
-            <textarea
-              rows="2"
-              [(ngModel)]="newCarePlan.routineDetails"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300"></textarea>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Relationship to Owner</label>
+            <input
+              type="text"
+              [(ngModel)]="newBackupCaretaker.relationship"
+              placeholder="e.g. Family Friend / Vet Tech"
+              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Residential Address</label>
+            <input
+              type="text"
+              [(ngModel)]="newBackupCaretaker.address"
+              placeholder="218 Oak Street, Eugene, OR"
+              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
           </div>
           <button
-            (click)="onSaveCarePlan()"
-            class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
-            Save Care Plan
+            (click)="onAddBackupCaretaker()"
+            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm cursor-pointer">
+            Assign as Contingency Backup Caretaker
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- Care Routine Plan Instructions -->
+    <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+      <h3 class="text-base font-bold text-gray-900 mb-1">Care Routine & Instructions</h3>
+      <p class="text-xs text-gray-500 mb-4">Directives legally binding on the designated caretaker during continuity custody</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Feeding Instructions</label>
+          <textarea
+            rows="2"
+            [(ngModel)]="newCarePlan.feedingInstructions"
+            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Medication Instructions</label>
+          <textarea
+            rows="2"
+            [(ngModel)]="newCarePlan.medicationInstructions"
+            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300"></textarea>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Veterinary Contact</label>
+          <input
+            type="text"
+            [(ngModel)]="newCarePlan.vetDetails"
+            placeholder="City Animal Hospital, 555-0199"
+            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Daily Routine & Behavioral Notes</label>
+          <textarea
+            rows="2"
+            [(ngModel)]="newCarePlan.routineDetails"
+            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300"></textarea>
+        </div>
+      </div>
+      <button
+        (click)="onSaveCarePlan()"
+        class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
+        Save Care Plan
+      </button>
     </div>
   </div>
 
   <!-- TAB: GET QUOTE -->
   <div *ngIf="activeTab === 'quotes'" class="space-y-6">
     <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm max-w-3xl mx-auto">
-      <h3 class="text-lg font-bold text-gray-900 mb-1">Request Instant Continuity Quote</h3>
-      <p class="text-xs text-gray-500 mb-6">Our actuarial engine calculates risk-based pricing tailored to your pet's life expectancy</p>
+      <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+        <div>
+          <h3 class="text-lg font-bold text-gray-900">Request Instant Continuity Quote</h3>
+          <p class="text-xs text-gray-500">Our actuarial engine calculates risk-based pricing tailored to your pet's life expectancy</p>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-[#75013F]/10 border border-[#75013F]/20 text-[#75013F] flex items-center justify-center shrink-0 shadow-2xs">
+          <svg class="w-5 h-5 text-[#75013F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="4" y="2" width="16" height="20" rx="2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="8" y1="6" x2="16" y2="6" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="16" y1="14" x2="16" y2="18" stroke-width="1.8" stroke-linecap="round"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M8 18h.01M12 18h.01"/>
+          </svg>
+        </div>
+      </div>
 
       <div class="space-y-4 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Select Pet</label>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Select Companion Pet *</label>
             <select
               [(ngModel)]="quoteModel.petId"
               class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 bg-white">
@@ -486,7 +805,7 @@
             <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Quote #{{ generatedQuote.quoteId }}</span>
             <h4 class="text-lg font-bold text-gray-900 mt-0.5">Continuity Policy Proposal</h4>
           </div>
-          <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/20">
             {{ generatedQuote.status }}
           </span>
         </div>
@@ -521,10 +840,18 @@
     </div>
   </div>
 
-  <!-- TAB: POLICIES -->
+  <!-- TAB: POLICIES & BILLING -->
   <div *ngIf="activeTab === 'policies'" class="space-y-6">
     <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-      <h3 class="text-base font-bold text-gray-900 mb-4">Active Continuity Policies</h3>
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-base font-bold text-gray-900">Active Continuity Policies</h3>
+          <p class="text-xs text-gray-500">Pay premiums to transition policies from Pending Payment to Active coverage</p>
+        </div>
+        <span class="text-xs font-semibold text-gray-600">
+          {{ (policies$ | async)?.length || 0 }} Policies Bound
+        </span>
+      </div>
 
       <div class="overflow-x-auto" *ngIf="policies$ | async as policies">
         <table class="w-full text-left text-xs">
@@ -532,7 +859,7 @@
             <tr>
               <th class="py-3 px-4">Policy Number</th>
               <th class="py-3 px-4">Coverage</th>
-              <th class="py-3 px-4">Premium</th>
+              <th class="py-3 px-4">Annual Premium</th>
               <th class="py-3 px-4">Status</th>
               <th class="py-3 px-4 text-right">Actions</th>
             </tr>
@@ -542,24 +869,51 @@
               <td class="py-3 px-4 font-semibold text-gray-900">
                 {{ pol.policyNumber || 'POL-00' + pol.policyId }}
               </td>
-              <td class="py-3 px-4">${{ pol.coverageAmount }}</td>
+              <td class="py-3 px-4 font-medium">${{ pol.coverageAmount }}</td>
               <td class="py-3 px-4 font-semibold text-[#75013F]">${{ pol.premiumAmount }}/yr</td>
               <td class="py-3 px-4">
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  {{ pol.status || 'ACTIVE' }}
+                <!-- Status Badges -->
+                <span *ngIf="pol.status === 'ACTIVE'" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/20">
+                  ACTIVE
+                </span>
+                <span *ngIf="pol.status !== 'ACTIVE'" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                  PENDING PAYMENT
                 </span>
               </td>
-              <td class="py-3 px-4 text-right space-x-2">
+              <td class="py-3 px-4 text-right">
+                <!-- Pay Premium Button Navigates to Payment Page -->
                 <button
-                  (click)="onPayPremium(pol.policyId)"
-                  class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#75013F] text-white hover:bg-[#FE3082] transition-colors">
-                  Pay Premium
+                  *ngIf="pol.status !== 'ACTIVE'"
+                  (click)="onPayPremium(pol)"
+                  class="px-4 py-1.5 rounded-xl text-xs font-bold bg-[#75013F] text-white hover:bg-[#FE3082] transition-colors shadow-sm inline-flex items-center space-x-1">
+                  <span>💳</span>
+                  <span>Pay Premium</span>
                 </button>
+                <!-- Active Policy Status Indicator & File Claim Action -->
+                <div *ngIf="pol.status === 'ACTIVE'" class="flex items-center justify-end space-x-2">
+                  <span class="inline-flex items-center space-x-1 text-xs font-semibold text-[#75013F]">
+                    <svg class="w-3.5 h-3.5 text-[#75013F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Paid & Enforced</span>
+                  </span>
+                  <span *ngIf="isPetClaimAccepted(pol.petId, pol.policyId)"
+                        class="px-3 py-1 rounded-xl text-xs font-bold bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/30 inline-flex items-center space-x-1 shadow-2xs">
+                    <span>✓</span>
+                    <span>Claim Settled</span>
+                  </span>
+                  <button
+                    *ngIf="!isPetClaimAccepted(pol.petId, pol.policyId)"
+                    (click)="onStartClaimForPolicy(pol)"
+                    class="px-3 py-1 rounded-xl text-xs font-bold bg-[#75013F] text-white hover:bg-[#FE3082] transition-colors shadow-2xs cursor-pointer">
+                    File Claim
+                  </button>
+                </div>
               </td>
             </tr>
             <tr *ngIf="policies.length === 0">
-              <td colspan="5" class="py-6 text-center text-gray-500">
-                No active policies yet. Request a quote to activate pet continuity assurance.
+              <td colspan="5" class="py-8 text-center text-gray-500">
+                No policies yet. Go to <button (click)="setTab('quotes')" class="text-[#75013F] font-bold underline">Get Quote</button> to generate an actuarial proposal.
               </td>
             </tr>
           </tbody>
@@ -568,85 +922,383 @@
     </div>
   </div>
 
-  <!-- TAB: CLAIMS -->
+  <!-- TAB: CLAIMS & CONTINUITY -->
   <div *ngIf="activeTab === 'claims'" class="space-y-6">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-        <h3 class="text-base font-bold text-gray-900 mb-1">Initiate Continuity Claim</h3>
-        <p class="text-xs text-gray-500 mb-4">Trigger perpetual care fund transfer in the event of owner incapacitation</p>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- Left: Simplified File Claim Form (7 cols) -->
+      <div class="lg:col-span-7 bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm space-y-4">
+        <div class="pb-3 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900">File a Claim</h3>
+            <p class="text-xs text-gray-500 mt-0.5">Submit care fund request for an active policy</p>
+          </div>
+          <span class="text-[11px] font-semibold text-[#75013F] bg-[#75013F]/10 px-2.5 py-1 rounded-full">
+            Care Fund Release
+          </span>
+        </div>
+
+        <!-- Feedback Alert -->
+        <div *ngIf="claimSubmissionMessage" class="p-3.5 rounded-xl text-xs font-semibold flex items-center space-x-2"
+             [ngClass]="claimSubmissionSuccess ? 'bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/20' : 'bg-red-50 text-red-800 border border-red-200'">
+          <span>{{ claimSubmissionSuccess ? '✓' : '⚠️' }}</span>
+          <span>{{ claimSubmissionMessage }}</span>
+        </div>
 
         <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Policy ID</label>
-            <input
-              type="number"
-              [(ngModel)]="newClaim.policyId"
-              placeholder="e.g. 1"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300" />
-          </div>
-          <div class="grid grid-cols-2 gap-3">
+          <!-- Row 1: Policy Selection & Amount -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Trigger Event</label>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Policy *</label>
+              <ng-container *ngIf="policies$ | async as polList">
+                <select
+                  *ngIf="polList.length > 0; else fallbackPolicyInput"
+                  [ngModel]="newClaim.policyId"
+                  (ngModelChange)="onSelectPolicyForClaim($event, polList)"
+                  class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 bg-white font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#75013F] transition-all">
+                  <option *ngFor="let pol of polList" [value]="pol.policyId" [disabled]="isPetClaimAccepted(pol.petId, pol.policyId)">
+                    {{ pol.policyNumber || ('POL-00' + pol.policyId) }} (${{ pol.coverageAmount | number }}){{ isPetClaimAccepted(pol.petId, pol.policyId) ? ' — [Claim Settled]' : '' }}
+                  </option>
+                </select>
+              </ng-container>
+              <ng-template #fallbackPolicyInput>
+                <input
+                  type="number"
+                  [(ngModel)]="newClaim.policyId"
+                  placeholder="Policy ID"
+                  class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+              </ng-template>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Care Fund Amount ($) *</label>
+              <input
+                type="number"
+                [(ngModel)]="newClaim.claimAmount"
+                placeholder="25000"
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#75013F] transition-all" />
+            </div>
+          </div>
+
+          <!-- Row 2: Claimant & Relationship -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Claimant / Caretaker Name *</label>
+              <input
+                type="text"
+                [(ngModel)]="newClaim.claimantName"
+                placeholder="e.g. Primary Beneficiary"
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] transition-all" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Relationship</label>
               <select
-                [(ngModel)]="newClaim.eventType"
-                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 bg-white">
-                <option value="OWNER_DEATH">Owner Deceased</option>
-                <option value="CRITICAL_INCAPACITY">Critical Incapacitation</option>
-                <option value="TERMINAL_ILLNESS">Terminal Illness / Hospice</option>
+                [(ngModel)]="newClaim.relationship"
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#75013F] transition-all">
+                <option value="CARETAKER">Designated Caretaker</option>
+                <option value="FAMILY">Family Member</option>
+                <option value="SPOUSE">Spouse / Partner</option>
+                <option value="EXECUTOR">Estate Administrator</option>
               </select>
             </div>
+          </div>
+
+          <!-- Row 3: Certificate & Date -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Date of Event</label>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Certificate / Ref No *</label>
+              <input
+                type="text"
+                [(ngModel)]="newClaim.deathCertificateNo"
+                placeholder="e.g. DC-2026-9001"
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 font-mono focus:outline-none focus:ring-2 focus:ring-[#75013F] transition-all" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Incident Date</label>
               <input
                 type="date"
                 [(ngModel)]="newClaim.eventDate"
-                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300" />
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] transition-all" />
             </div>
           </div>
+
+          <!-- Row 4: Reason / Notes -->
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Description / Circumstances</label>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Notes / Reason</label>
             <textarea
               rows="2"
               [(ngModel)]="newClaim.description"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300"></textarea>
+              placeholder="Brief circumstances or instructions (optional)..."
+              class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] transition-all"></textarea>
           </div>
-          <div class="p-3 bg-[#FAFAFA] rounded-xl border border-gray-200">
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Evidence Document URL</label>
-            <input
-              type="text"
-              [(ngModel)]="claimDoc.documentUrl"
-              class="w-full px-3 py-2 text-xs rounded-lg border border-gray-300 bg-white" />
+
+          <!-- Settled Pet Warning Banner -->
+          <div *ngIf="isPolicyClaimAccepted(newClaim.policyId)" class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center space-x-2">
+            <span>⚠️</span>
+            <span>A continuity claim has already been accepted and authorized for this pet. Further claims are prohibited.</span>
           </div>
+
+          <!-- Submit Button -->
           <button
+            [disabled]="isPolicyClaimAccepted(newClaim.policyId)"
             (click)="onSubmitClaim()"
-            class="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
-            File Claim for Adjudication
+            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-xs flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            <span>Submit Claim</span>
           </button>
         </div>
       </div>
 
-      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-        <h3 class="text-base font-bold text-gray-900 mb-4">Continuity Claim Status</h3>
+      <!-- Right: Simplified Claims Status & Tracking (5 cols) -->
+      <div class="lg:col-span-5 bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900">Claim History</h3>
+            <p class="text-xs text-gray-500 mt-0.5">Live status and payouts</p>
+          </div>
+          <button
+            (click)="onRefreshClaims()"
+            class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#EAE5DF]/70 hover:bg-[#EAE5DF] text-gray-700 transition-colors flex items-center space-x-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span>Refresh</span>
+          </button>
+        </div>
 
-        <div class="space-y-3">
-          <div *ngFor="let c of myClaims" class="p-4 rounded-xl border border-gray-200 bg-[#FAFAFA]">
+        <!-- Claims List -->
+        <div class="space-y-3" *ngIf="myClaims.length > 0; else noClaimsState">
+          <div *ngFor="let c of myClaims" class="p-3.5 rounded-xl border border-gray-200 bg-[#FAFAFA] space-y-2.5 hover:border-[#75013F]/30 transition-all">
+            <!-- Top Row: Claim #, Policy #, Status Badge -->
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-[#75013F]">Claim #{{ c.claimId }}</span>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                {{ c.status || 'SUBMITTED' }}
+              <div class="flex items-center space-x-2 truncate">
+                <span class="text-xs font-extrabold text-gray-900">#{{ c.claimNumber || ('CLM-' + c.claimId) }}</span>
+                <span class="text-[10px] font-semibold text-[#75013F] bg-[#75013F]/10 px-2 py-0.5 rounded-md truncate">
+                  {{ c.policyNumber || ('Pol #' + c.policyId) }}
+                </span>
+              </div>
+              <span
+                [class.bg-[#75013F]/10]="c.status === 'APPROVED'"
+                [class.text-[#75013F]]="c.status === 'APPROVED'"
+                [class.border-[#75013F]/30]="c.status === 'APPROVED'"
+                [class.bg-[#FE3082]/10]="c.status === 'INVESTIGATING' || c.status === 'MANUAL_REVIEW'"
+                [class.text-[#FE3082]]="c.status === 'INVESTIGATING' || c.status === 'MANUAL_REVIEW'"
+                [class.border-[#FE3082]/30]="c.status === 'INVESTIGATING' || c.status === 'MANUAL_REVIEW'"
+                [class.bg-gray-100]="c.status === 'VERIFIED' || c.status === 'PENDING' || c.status === 'SUBMITTED'"
+                [class.text-gray-700]="c.status === 'VERIFIED' || c.status === 'PENDING' || c.status === 'SUBMITTED'"
+                [class.border-gray-200]="c.status === 'VERIFIED' || c.status === 'PENDING' || c.status === 'SUBMITTED'"
+                [class.bg-red-50]="c.status === 'REJECTED'"
+                [class.text-red-700]="c.status === 'REJECTED'"
+                [class.border-red-200]="c.status === 'REJECTED'"
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0">
+                {{ c.status === 'APPROVED' ? 'ACCEPTED' : (c.status === 'MANUAL_REVIEW' ? 'UNDER REVIEW' : (c.status || 'PENDING')) }}
               </span>
             </div>
-            <p class="text-xs text-gray-700 mt-2 font-medium">{{ c.eventType }}: {{ c.description }}</p>
-            <div class="text-[11px] text-gray-500 mt-2 flex justify-between">
-              <span>Policy #{{ c.policyId }}</span>
-              <span>Claim Date: {{ c.eventDate }}</span>
+
+            <!-- Key Metrics 3-col strip -->
+            <div class="grid grid-cols-3 gap-2 text-xs bg-white p-2.5 rounded-lg border border-gray-100">
+              <div>
+                <span class="text-gray-400 block text-[10px]">Requested</span>
+                <span class="font-extrabold text-[#FE3082]">${{ (c.claimAmount || 25000) | number }}</span>
+              </div>
+              <div>
+                <span class="text-gray-400 block text-[10px]">Claimant</span>
+                <span class="font-semibold text-gray-800 truncate block">{{ c.claimantName || 'Beneficiary' }}</span>
+              </div>
+              <div>
+                <span class="text-gray-400 block text-[10px]">Cert No</span>
+                <span class="font-mono text-gray-700 text-[11px] truncate block">{{ c.deathCertificateNo || 'DC-2026-9001' }}</span>
+              </div>
+            </div>
+
+            <!-- Single Line Status Banner -->
+            <div *ngIf="c.status === 'APPROVED'" class="p-2 bg-[#75013F]/10 rounded-lg text-xs text-[#75013F] font-semibold flex items-center justify-between">
+              <span>✓ Payout Authorized</span>
+              <span class="font-black">${{ (c.approvedAmount || c.claimAmount || 25000) | number }}</span>
+            </div>
+
+            <div *ngIf="c.status === 'MANUAL_REVIEW' || c.status === 'INVESTIGATING'" class="p-2 bg-[#FE3082]/10 rounded-lg text-xs text-[#75013F] font-semibold">
+              Under Review — settlement price being finalized
+            </div>
+
+            <div *ngIf="c.status === 'REJECTED'" class="p-2 bg-red-50 rounded-lg text-xs text-red-700 font-semibold">
+              Claim Closed: {{ c.rejectionReason || 'Does not meet criteria' }}
+            </div>
+
+            <div *ngIf="c.status !== 'APPROVED' && c.status !== 'MANUAL_REVIEW' && c.status !== 'INVESTIGATING' && c.status !== 'REJECTED'" class="p-2 bg-gray-50 rounded-lg text-[11px] text-gray-500">
+              Submitted • Awaiting claims officer review
             </div>
           </div>
-          <div *ngIf="myClaims.length === 0" class="py-8 text-center text-gray-500 text-xs">
-            No claims filed. All registered companions remain under active standard protection.
-          </div>
         </div>
+
+        <ng-template #noClaimsState>
+          <div class="py-12 text-center text-gray-400 text-xs">
+            No claims filed yet. When you submit a claim, live tracking appears here.
+          </div>
+        </ng-template>
       </div>
     </div>
   </div>
+
+  <!-- SEPARATE PROFILE & RESIDENTIAL ADDRESS MODAL -->
+  <div *ngIf="isProfileModalOpen" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative bg-white rounded-3xl max-w-3xl w-full border border-[#EAE5DF] shadow-2xl p-6 md:p-8 my-8 animate-in fade-in zoom-in duration-200">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-[#EAE5DF] mb-6">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-[#75013F]/10 text-[#75013F] flex items-center justify-center font-bold text-lg">
+            👤
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-gray-900">Owner Profile & Residential Address</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Manage personal identity and residential location bound to legal continuity policies</p>
+          </div>
+        </div>
+        <button
+          (click)="closeProfileModal()"
+          class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center text-sm font-bold transition-all cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- In-Modal Feedback Alerts -->
+      <div *ngIf="profileSuccessMessage" class="mb-4 p-3.5 rounded-xl bg-[#75013F]/10 border border-[#75013F]/30 text-xs font-bold text-[#75013F] flex items-center space-x-2">
+        <span>✓</span>
+        <span>{{ profileSuccessMessage }}</span>
+      </div>
+      <div *ngIf="addressSuccessMessage" class="mb-4 p-3.5 rounded-xl bg-[#75013F]/10 border border-[#75013F]/30 text-xs font-bold text-[#75013F] flex items-center space-x-2">
+        <span>📍</span>
+        <span>{{ addressSuccessMessage }}</span>
+      </div>
+
+      <!-- Grid for Owner Profile and Address -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Card 1: Owner Profile -->
+        <div class="p-5 rounded-2xl border border-[#EAE5DF] bg-[#FAFAFA] space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-gray-900 flex items-center space-x-2">
+              <span>👤</span>
+              <span>Personal Details</span>
+            </h3>
+          </div>
+
+          <div class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">First Name</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newProfile.firstName"
+                  class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Last Name</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newProfile.lastName"
+                  class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] bg-white" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
+              <input
+                type="email"
+                [(ngModel)]="newProfile.email"
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] bg-white" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
+              <input
+                type="text"
+                [(ngModel)]="newProfile.phone"
+                placeholder="e.g. 555-0100"
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] bg-white" />
+            </div>
+
+            <button
+              (click)="onSaveProfile()"
+              class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm cursor-pointer">
+              Save Profile
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: Residential Address -->
+        <div class="p-5 rounded-2xl border border-[#EAE5DF] bg-[#FAFAFA] space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-gray-900 flex items-center space-x-2">
+              <span>📍</span>
+              <span>Residential Address</span>
+            </h3>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Street Address</label>
+              <input
+                type="text"
+                [(ngModel)]="newAddress.streetAddress"
+                placeholder="e.g. 123 Main St"
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] bg-white" />
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">City</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newAddress.city"
+                  placeholder="City"
+                  class="w-full px-2.5 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">State</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newAddress.state"
+                  placeholder="State"
+                  class="w-full px-2.5 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Postal Code</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newAddress.postalCode"
+                  placeholder="ZIP"
+                  class="w-full px-2.5 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] bg-white" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Country</label>
+              <input
+                type="text"
+                [(ngModel)]="newAddress.country"
+                placeholder="USA"
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] bg-white" />
+            </div>
+
+            <button
+              (click)="onAddAddress()"
+              class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm cursor-pointer">
+              Update Address
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="mt-6 pt-4 border-t border-gray-100 flex justify-end">
+        <button
+          (click)="closeProfileModal()"
+          class="px-5 py-2 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors cursor-pointer">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>

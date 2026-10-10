@@ -16,6 +16,15 @@ export class App implements OnInit {
   private store = inject(Store);
 
   ngOnInit(): void {
+    // If the browser is currently at an authentication page, do not restore previous session
+    const path = window.location.pathname;
+    if (path.includes('/auth/login') || path.includes('/auth/register')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('currentUser');
+      return;
+    }
+
     const rawUser = localStorage.getItem('currentUser');
     if (rawUser) {
       try {

@@ -1,0 +1,5 @@
+/* Payment Page Styles */
+:host {
+  display: block;
+  background-color: #FAFAFA;
+}

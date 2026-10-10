@@ -11,43 +11,12 @@
     </div>
   </div>
 
-  <div class="flex overflow-x-auto space-x-2 pb-3 mb-6 border-b border-gray-200 text-sm font-semibold">
-    <button
-      (click)="setTab('overview')"
-      [class.text-[#75013F]]="activeTab === 'overview'"
-      [class.border-[#75013F]]="activeTab === 'overview'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      System Overview
-    </button>
-    <button
-      (click)="setTab('users')"
-      [class.text-[#75013F]]="activeTab === 'users'"
-      [class.border-[#75013F]]="activeTab === 'users'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      User Directory
-    </button>
-    <button
-      (click)="setTab('policies')"
-      [class.text-[#75013F]]="activeTab === 'policies'"
-      [class.border-[#75013F]]="activeTab === 'policies'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Global Policies
-    </button>
-    <button
-      (click)="setTab('ledger')"
-      [class.text-[#75013F]]="activeTab === 'ledger'"
-      [class.border-[#75013F]]="activeTab === 'ledger'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Care Trust Ledger
-    </button>
-  </div>
-
   <!-- TAB: OVERVIEW -->
   <div *ngIf="activeTab === 'overview'" class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
       <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
         <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Platform Status</div>
-        <div class="text-2xl font-extrabold text-emerald-600">
+        <div class="text-2xl font-extrabold text-[#75013F]">
           {{ (health$ | async)?.status || 'ONLINE' }}
         </div>
         <p class="text-xs text-gray-400 mt-1">API Gateway & Microservices</p>
@@ -132,7 +101,7 @@
               <td class="py-3 px-4 font-semibold">${{ p.coverageAmount }}</td>
               <td class="py-3 px-4 text-[#75013F] font-bold">${{ p.premiumAmount }}/yr</td>
               <td class="py-3 px-4">
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/20">
                   {{ p.status || 'ACTIVE' }}
                 </span>
               </td>
@@ -172,10 +141,10 @@
               <td class="py-3 px-4 font-semibold text-[#75013F]">Pol #{{ f.policyId }}</td>
               <td class="py-3 px-4 font-bold">${{ f.totalAllocated }}</td>
               <td class="py-3 px-4 text-gray-600">${{ f.disbursedAmount || 0 }}</td>
-              <td class="py-3 px-4 font-bold text-emerald-700">${{ f.currentBalance }}</td>
+              <td class="py-3 px-4 font-bold text-[#75013F]">${{ f.currentBalance }}</td>
               <td class="py-3 px-4 text-[#FE3082] font-semibold">${{ f.monthlyAllowance }}/mo</td>
               <td class="py-3 px-4">
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/20">
                   {{ f.status || 'ACTIVE' }}
                 </span>
               </td>
@@ -183,6 +152,228 @@
             <tr *ngIf="funds.length === 0">
               <td colspan="7" class="py-6 text-center text-gray-500">
                 No trust funds active in ledger.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: CLAIMS & MANUAL REVIEW -->
+  <div *ngIf="activeTab === 'claims'" class="space-y-6">
+    <!-- Sub-header KPIs -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-5 shadow-sm">
+        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Claims</div>
+        <div class="text-2xl font-black text-gray-900">{{ claims.length }}</div>
+        <div class="text-[11px] text-gray-400 mt-1">Cross-system lifetime claims</div>
+      </div>
+      <div class="bg-white border border-[#FE3082]/30 rounded-2xl p-5 shadow-sm">
+        <div class="text-xs font-bold text-[#FE3082] uppercase tracking-wider mb-1 flex items-center justify-between">
+          <span>Under Review Section</span>
+          <span class="w-2 h-2 rounded-full bg-[#FE3082] animate-pulse"></span>
+        </div>
+        <div class="text-2xl font-black text-gray-900">{{ manualReviewCount }}</div>
+        <div class="text-[11px] text-gray-500 font-medium mt-1">Requiring manual settlement & price review</div>
+      </div>
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-5 shadow-sm">
+        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Accepted & Paid</div>
+        <div class="text-2xl font-black text-[#75013F]">{{ approvedClaimsCount }}</div>
+        <div class="text-[11px] text-gray-400 mt-1">Trust accounts active & funded</div>
+      </div>
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-5 shadow-sm flex flex-col justify-center items-center">
+        <button
+          (click)="loadAdminClaims()"
+          class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#75013F] hover:bg-[#FE3082] text-white shadow-sm transition-colors flex items-center justify-center space-x-2">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Refresh Claims Stream</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Rejection Modal if active -->
+    <div *ngIf="selectedClaimForReject" class="bg-white border-2 border-red-300 rounded-2xl p-6 shadow-md">
+      <div class="flex items-center justify-between pb-3 border-b border-red-100 mb-3">
+        <h4 class="text-sm font-bold text-red-800">Reject Claim #{{ selectedClaimForReject.claimId }}</h4>
+        <button (click)="cancelReject()" class="text-gray-400 hover:text-gray-600 font-bold text-sm">✕</button>
+      </div>
+      <p class="text-xs text-gray-600 mb-3">Provide a formal audit reason for declining this pet continuity claim:</p>
+      <textarea
+        rows="2"
+        [(ngModel)]="rejectionReasonModal"
+        class="w-full p-2.5 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400 mb-3"
+        placeholder="Reason for claim rejection..."></textarea>
+      <div class="flex justify-end space-x-2">
+        <button
+          (click)="cancelReject()"
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors">
+          Cancel
+        </button>
+        <button
+          (click)="onConfirmReject()"
+          class="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors">
+          Confirm Rejection
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Claims Panel -->
+    <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-gray-200 mb-4 gap-4">
+        <div>
+          <h3 class="text-base font-bold text-gray-900">Pet Continuity Claims Adjudication Desk</h3>
+          <p class="text-xs text-gray-500 mt-0.5">Fiduciary authority review, custom settlement price setting, and manual approval</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            (click)="claimFilter = 'ALL'"
+            [class.bg-[#75013F]]="claimFilter === 'ALL'"
+            [class.text-white]="claimFilter === 'ALL'"
+            [class.bg-[#FAFAFA]]="claimFilter !== 'ALL'"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 transition-colors">
+            All Claims ({{ claims.length }})
+          </button>
+          <button
+            (click)="claimFilter = 'MANUAL_REVIEW'"
+            [class.bg-[#FE3082]]="claimFilter === 'MANUAL_REVIEW'"
+            [class.text-white]="claimFilter === 'MANUAL_REVIEW'"
+            [class.bg-[#FE3082]/10]="claimFilter !== 'MANUAL_REVIEW'"
+            [class.text-[#75013F]]="claimFilter !== 'MANUAL_REVIEW'"
+            class="px-3 py-1.5 rounded-lg text-xs font-bold border border-[#FE3082]/30 transition-colors flex items-center space-x-1">
+            <span>Under Review ({{ manualReviewCount }})</span>
+          </button>
+          <button
+            (click)="claimFilter = 'APPROVED'"
+            [class.bg-[#75013F]]="claimFilter === 'APPROVED'"
+            [class.text-white]="claimFilter === 'APPROVED'"
+            [class.bg-[#FAFAFA]]="claimFilter !== 'APPROVED'"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 transition-colors">
+            Accepted ({{ approvedClaimsCount }})
+          </button>
+          <button
+            (click)="claimFilter = 'REJECTED'"
+            [class.bg-red-600]="claimFilter === 'REJECTED'"
+            [class.text-white]="claimFilter === 'REJECTED'"
+            [class.bg-[#FAFAFA]]="claimFilter !== 'REJECTED'"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 transition-colors">
+            Rejected
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-[#FAFAFA] text-gray-600 uppercase tracking-wider text-[11px] border-b border-gray-200">
+            <tr>
+              <th class="py-3 px-4">Claim ID</th>
+              <th class="py-3 px-4">Policy #</th>
+              <th class="py-3 px-4">Claimant / Caretaker</th>
+              <th class="py-3 px-4">Vital Record Cert</th>
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4">Settlement Price ($)</th>
+              <th class="py-3 px-4">Reason / Notes</th>
+              <th class="py-3 px-4 text-right">Admin Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let c of filteredClaims" class="hover:bg-[#FAFAFA] transition-colors">
+              <td class="py-3.5 px-4 font-bold text-gray-900">#{{ c.claimNumber || ('CLM-' + c.claimId) }}</td>
+              <td class="py-3.5 px-4 font-semibold text-[#75013F]">{{ c.policyNumber || ('Pol #' + c.policyId) }}</td>
+              <td class="py-3.5 px-4">
+                <div class="font-bold text-gray-800">{{ c.claimantName || 'Primary Beneficiary' }}</div>
+                <div class="text-[11px] text-gray-500">Rel: {{ c.relationship || 'FAMILY' }}</div>
+              </td>
+              <td class="py-3.5 px-4 text-gray-700 font-mono text-[11px]">
+                {{ c.deathCertificateNo || 'Pending registry cert' }}
+              </td>
+              <td class="py-3.5 px-4">
+                <span
+                  class="px-2.5 py-1 rounded-full text-[10px] font-bold"
+                  [ngClass]="{
+                    'bg-[#FE3082]/10 text-[#FE3082] border border-[#FE3082]/30': c.status === 'MANUAL_REVIEW' || c.status === 'INVESTIGATING',
+                    'bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/20': c.status === 'APPROVED',
+                    'bg-red-50 text-red-700 border border-red-200': c.status === 'REJECTED',
+                    'bg-gray-100 text-gray-700 border border-gray-200': c.status === 'PENDING' || c.status === 'VERIFIED' || c.status === 'SUBMITTED'
+                  }">
+                  {{ c.status === 'MANUAL_REVIEW' ? 'UNDER REVIEW' : (c.status === 'APPROVED' ? 'ACCEPTED' : (c.status || 'PENDING')) }}
+                </span>
+              </td>
+              <!-- Settlement Price Input & Presets -->
+              <td class="py-3.5 px-4">
+                <div *ngIf="c.status !== 'APPROVED' && c.status !== 'REJECTED'" class="space-y-1">
+                  <div class="flex items-center space-x-1">
+                    <span class="text-xs font-bold text-gray-500">$</span>
+                    <input
+                      type="number"
+                      [(ngModel)]="claimSettlementPrices[c.claimId!]"
+                      class="w-24 px-2 py-1 text-xs font-bold text-gray-900 bg-white border border-gray-300 rounded focus:ring-1 focus:ring-[#75013F] focus:outline-none"
+                      placeholder="5000" />
+                  </div>
+                  <div class="flex items-center space-x-1">
+                    <button
+                      type="button"
+                      (click)="setPricePreset(c.claimId!, 5000)"
+                      class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700">
+                      $5k
+                    </button>
+                    <button
+                      type="button"
+                      (click)="setPricePreset(c.claimId!, 10000)"
+                      class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700">
+                      $10k
+                    </button>
+                    <button
+                      type="button"
+                      (click)="setPricePreset(c.claimId!, 25000)"
+                      class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700">
+                      $25k
+                    </button>
+                  </div>
+                </div>
+                <div *ngIf="c.status === 'APPROVED'" class="text-sm font-extrabold text-[#75013F]">
+                  ${{ c.approvedAmount || c.claimAmount || 5000 }}
+                </div>
+                <div *ngIf="c.status === 'REJECTED'" class="text-xs font-medium text-red-500 line-through">
+                  ${{ c.claimAmount || 5000 }}
+                </div>
+              </td>
+              <td class="py-3.5 px-4 text-gray-600 max-w-xs truncate" [title]="c.rejectionReason || c.notes || c.description || ''">
+                {{ c.rejectionReason || c.notes || c.description || 'Standard continuity claim' }}
+              </td>
+              <td class="py-3.5 px-4 text-right space-x-2 whitespace-nowrap">
+                <!-- If under manual review or pending, show manual approve button and send to under review -->
+                <button
+                  *ngIf="c.status !== 'APPROVED' && c.status !== 'REJECTED'"
+                  (click)="onApproveClaim(c.claimId, claimSettlementPrices[c.claimId!])"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#75013F] hover:bg-[#FE3082] text-white shadow-sm transition-colors">
+                  Accept Claim (${{ claimSettlementPrices[c.claimId!] || c.claimAmount || 5000 }})
+                </button>
+                <button
+                  *ngIf="c.status !== 'APPROVED' && c.status !== 'REJECTED' && c.status !== 'MANUAL_REVIEW'"
+                  (click)="onSendToUnderReview(c.claimId)"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#FE3082]/10 hover:bg-[#FE3082]/20 text-[#75013F] border border-[#FE3082]/30 transition-colors">
+                  Send to Under Review
+                </button>
+                <button
+                  *ngIf="c.status !== 'APPROVED' && c.status !== 'REJECTED'"
+                  (click)="openRejectModal(c)"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors">
+                  Reject
+                </button>
+                <span *ngIf="c.status === 'APPROVED'" class="text-xs font-bold text-[#75013F] bg-[#75013F]/10 px-2.5 py-1 rounded-full border border-[#75013F]/20">
+                  Care Fund Active
+                </span>
+                <span *ngIf="c.status === 'REJECTED'" class="text-xs font-bold text-red-700 bg-red-50 px-2.5 py-1 rounded-full border border-red-200">
+                  Claim Closed
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="filteredClaims.length === 0">
+              <td colspan="8" class="py-8 text-center text-gray-500">
+                No continuity claims found for filter: {{ claimFilter }}.
               </td>
             </tr>
           </tbody>

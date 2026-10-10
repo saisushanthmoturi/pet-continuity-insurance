@@ -1,83 +1,110 @@
 <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-  <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-[#EAE5DF] mb-8 gap-4">
+  <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-[#EAE5DF] mb-6 gap-4">
     <div>
       <h1 class="text-2xl font-bold tracking-tight text-[#000000]">Claims Adjudication Desk</h1>
-      <p class="text-xs text-gray-500 mt-0.5">Verify continuity trigger events, investigate circumstances, and disburse pet welfare trusts</p>
+      <p class="text-xs text-gray-500 mt-0.5">Verify continuity trigger events, manually adjust settlement prices, and disburse pet welfare trusts</p>
     </div>
     <div class="flex items-center space-x-2 text-xs">
       <span class="px-3 py-1 rounded-full bg-[#75013F] text-white font-semibold">
-        Claims Department
+        Claims Department & Manual Review Desk
       </span>
     </div>
   </div>
 
-  <div class="flex overflow-x-auto space-x-2 pb-3 mb-6 border-b border-gray-200 text-sm font-semibold">
-    <button
-      (click)="setTab('queue')"
-      [class.text-[#75013F]]="activeTab === 'queue'"
-      [class.border-[#75013F]]="activeTab === 'queue'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Claims Queue
-    </button>
-    <button
-      (click)="setTab('adjudication')"
-      [class.text-[#75013F]]="activeTab === 'adjudication'"
-      [class.border-[#75013F]]="activeTab === 'adjudication'"
-      class="py-2.5 px-4 rounded-xl border-b-2 border-transparent transition-all hover:text-[#75013F] whitespace-nowrap">
-      Adjudication & Verification
-    </button>
+  <!-- Action Banners -->
+  <div *ngIf="actionNotification" class="mb-6 p-4 rounded-xl bg-[#75013F]/10 border border-[#75013F]/20 text-[#75013F] text-xs font-bold flex items-center justify-between shadow-sm">
+    <div class="flex items-center space-x-2">
+      <svg class="w-4 h-4 text-[#75013F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+      </svg>
+      <span>{{ actionNotification }}</span>
+    </div>
+    <button (click)="actionNotification = ''" class="text-[#75013F] hover:text-[#FE3082] font-bold ml-4">✕</button>
   </div>
 
-  <!-- TAB: CLAIMS QUEUE -->
+  <div *ngIf="actionError" class="mb-6 p-4 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs font-bold flex items-center justify-between shadow-sm">
+    <div class="flex items-center space-x-2">
+      <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <span>{{ actionError }}</span>
+    </div>
+    <button (click)="actionError = ''" class="text-red-700 hover:text-red-900 font-bold ml-4">✕</button>
+  </div>
+
+<!-- TAB 1: CLAIMS QUEUE -->
   <div *ngIf="activeTab === 'queue'" class="space-y-6">
     <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-      <h3 class="text-base font-bold text-gray-900 mb-4">Pending Claims Queue</h3>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 gap-2 mb-4">
+        <div>
+          <h3 class="text-base font-bold text-gray-900">Pending Claims Queue</h3>
+          <p class="text-xs text-gray-500">All claims filed across policies for vital review and underwriting adjudication</p>
+        </div>
+        <button
+          (click)="refreshClaimsList()"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#EAE5DF] hover:bg-gray-300 text-gray-800 transition-colors flex items-center space-x-1.5 self-start sm:self-auto">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Refresh Queue</span>
+        </button>
+      </div>
 
-      <div class="overflow-x-auto" *ngIf="claims$ | async as claims">
+      <div class="overflow-x-auto">
         <table class="w-full text-left text-xs">
           <thead class="bg-[#FAFAFA] text-gray-600 uppercase tracking-wider text-[11px] border-b border-gray-200">
             <tr>
               <th class="py-3 px-4">Claim ID</th>
               <th class="py-3 px-4">Policy ID</th>
-              <th class="py-3 px-4">Event Type</th>
-              <th class="py-3 px-4">Event Date</th>
-              <th class="py-3 px-4">Amount</th>
+              <th class="py-3 px-4">Trigger Event</th>
+              <th class="py-3 px-4">Date</th>
+              <th class="py-3 px-4">Settlement Payout</th>
               <th class="py-3 px-4">Status</th>
               <th class="py-3 px-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            <tr *ngFor="let c of claims" class="hover:bg-[#FAFAFA]">
-              <td class="py-3 px-4 font-bold text-gray-900">#{{ c.claimId }}</td>
-              <td class="py-3 px-4 font-semibold text-[#75013F]">Pol #{{ c.policyId }}</td>
-              <td class="py-3 px-4 font-medium">{{ c.eventType }}</td>
+            <tr *ngFor="let c of allClaimsList" class="hover:bg-[#FAFAFA] transition-colors">
+              <td class="py-3 px-4 font-bold text-gray-900">#{{ c.claimNumber || ('CLM-' + c.claimId) }}</td>
+              <td class="py-3 px-4 font-semibold text-[#75013F]">{{ c.policyNumber || ('Pol #' + c.policyId) }}</td>
+              <td class="py-3 px-4 font-medium">{{ c.eventType || 'DEATH' }}</td>
               <td class="py-3 px-4 text-gray-500">{{ c.eventDate }}</td>
-              <td class="py-3 px-4 font-bold text-[#FE3082]">${{ c.claimAmount }}</td>
+              <td class="py-3 px-4 font-bold text-[#FE3082]">${{ c.approvedAmount || c.claimAmount || 5000 }}</td>
               <td class="py-3 px-4">
                 <span
-                  [class.bg-emerald-50]="c.status === 'APPROVED'"
-                  [class.text-emerald-700]="c.status === 'APPROVED'"
-                  [class.bg-blue-50]="c.status === 'VERIFIED'"
-                  [class.text-blue-700]="c.status === 'VERIFIED'"
-                  [class.bg-amber-50]="c.status === 'SUBMITTED' || c.status === 'IN_REVIEW'"
-                  [class.text-amber-700]="c.status === 'SUBMITTED' || c.status === 'IN_REVIEW'"
+                  [class.bg-[#75013F]/10]="c.status === 'APPROVED'"
+                  [class.text-[#75013F]]="c.status === 'APPROVED'"
+                  [class.border-[#75013F]/20]="c.status === 'APPROVED'"
+                  [class.bg-[#FE3082]/10]="c.status === 'MANUAL_REVIEW' || c.status === 'INVESTIGATING'"
+                  [class.text-[#FE3082]]="c.status === 'MANUAL_REVIEW' || c.status === 'INVESTIGATING'"
+                  [class.border-[#FE3082]/30]="c.status === 'MANUAL_REVIEW' || c.status === 'INVESTIGATING'"
+                  [class.bg-gray-100]="c.status === 'VERIFIED' || c.status === 'SUBMITTED' || c.status === 'IN_REVIEW' || c.status === 'PENDING'"
+                  [class.text-gray-700]="c.status === 'VERIFIED' || c.status === 'SUBMITTED' || c.status === 'IN_REVIEW' || c.status === 'PENDING'"
+                  [class.border-gray-200]="c.status === 'VERIFIED' || c.status === 'SUBMITTED' || c.status === 'IN_REVIEW' || c.status === 'PENDING'"
                   [class.bg-red-50]="c.status === 'REJECTED'"
                   [class.text-red-700]="c.status === 'REJECTED'"
+                  [class.border-red-200]="c.status === 'REJECTED'"
                   class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border">
-                  {{ c.status || 'SUBMITTED' }}
+                  {{ c.status === 'MANUAL_REVIEW' ? 'UNDER REVIEW' : (c.status || 'SUBMITTED') }}
                 </span>
               </td>
-              <td class="py-3 px-4 text-right">
+              <td class="py-3 px-4 text-right space-x-2 whitespace-nowrap">
                 <button
                   (click)="onSelectClaim(c)"
-                  class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#75013F] text-white hover:bg-[#FE3082] transition-colors">
+                  class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#75013F] text-white hover:bg-[#FE3082] transition-colors shadow-sm">
                   Review Claim
+                </button>
+                <button
+                  *ngIf="c.status !== 'APPROVED' && c.status !== 'MANUAL_REVIEW' && c.status !== 'REJECTED'"
+                  (click)="onSendToUnderReview(c.claimId)"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#FE3082]/10 hover:bg-[#FE3082]/20 text-[#75013F] border border-[#FE3082]/30 transition-colors">
+                  Send to Under Review
                 </button>
               </td>
             </tr>
-            <tr *ngIf="claims.length === 0">
-              <td colspan="7" class="py-6 text-center text-gray-500">
-                No active claims submitted for adjudication.
+            <tr *ngIf="allClaimsList.length === 0">
+              <td colspan="7" class="py-8 text-center text-gray-500">
+                No active claims found in queue. Claims submitted by customers appear here immediately.
               </td>
             </tr>
           </tbody>
@@ -86,39 +113,203 @@
     </div>
   </div>
 
-  <!-- TAB: ADJUDICATION -->
+  <!-- TAB 2: UNDER REVIEW SECTION (MANUAL REVIEW) -->
+  <div *ngIf="activeTab === 'under_review'" class="space-y-6">
+    <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 gap-2 mb-6">
+        <div>
+          <div class="flex items-center space-x-2">
+            <h3 class="text-base font-bold text-gray-900">Under Review Section (Manual Claims Desk)</h3>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FE3082]/10 text-[#FE3082] border border-[#FE3082]/30">
+              {{ underReviewCount }} Flagged for Manual Review
+            </span>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">
+            Adjusters and administrators can examine evidence, manually set or negotiate the settlement payout price, and accept or reject claims.
+          </p>
+        </div>
+        <button
+          (click)="refreshClaimsList()"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#EAE5DF] hover:bg-gray-300 text-gray-800 transition-colors flex items-center space-x-1.5 self-start sm:self-auto">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Refresh List</span>
+        </button>
+      </div>
+
+      <!-- Under Review Cards -->
+      <div *ngIf="underReviewClaims.length > 0" class="space-y-6">
+        <div *ngFor="let c of underReviewClaims" class="border border-[#EAE5DF] bg-white rounded-2xl p-6 shadow-sm space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-[#EAE5DF] gap-2">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Manual Review Case</span>
+                <span class="font-black text-base text-gray-900">Claim #{{ c.claimNumber || ('CLM-' + c.claimId) }}</span>
+                <span class="font-bold text-xs text-[#75013F]">{{ c.policyNumber || ('Policy #' + c.policyId) }}</span>
+              </div>
+              <div class="text-xs text-gray-600 mt-1">
+                Claimant: <strong>{{ c.claimantName || 'Primary Beneficiary' }}</strong> ({{ c.relationship || 'FAMILY' }}) • Vital Cert: {{ c.deathCertificateNo || 'Verified by registry' }}
+              </div>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#FE3082]/10 text-[#FE3082] border border-[#FE3082]/30 self-start md:self-auto">
+              Under Review Section
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs bg-white p-3.5 rounded-xl border border-[#EAE5DF]">
+            <div>
+              <span class="text-gray-500 block">Continuity Trigger Event</span>
+              <span class="font-bold text-gray-900 text-sm">{{ c.eventType || 'DEATH' }}</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Incident / Reported Date</span>
+              <span class="font-bold text-gray-900 text-sm">{{ c.eventDate }}</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Original Policy Allowance</span>
+              <span class="font-bold text-[#FE3082] text-sm">${{ c.claimAmount || 5000 }}</span>
+            </div>
+          </div>
+
+          <div class="text-xs text-gray-700 bg-white p-3.5 rounded-xl border border-[#EAE5DF]">
+            <span class="font-bold text-gray-900 block mb-1">Circumstances & Filing Narrative:</span>
+            <p class="italic text-gray-600">{{ c.notes || c.description || 'Customer initiated continuity claim for pet custodial maintenance.' }}</p>
+          </div>
+
+          <!-- Adjuster Manual Price Setting & Action Panel -->
+          <div class="bg-white rounded-xl border border-[#EAE5DF] p-4 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="space-y-1.5 flex-1">
+                <label class="block text-xs font-bold text-gray-800 uppercase tracking-wider">
+                  Set Claim Settlement Price ($)
+                </label>
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm font-bold text-gray-500">$</span>
+                  <input
+                    type="number"
+                    [(ngModel)]="underReviewSettlementPrices[c.claimId!]"
+                    class="w-40 px-3 py-1.5 text-sm font-bold text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#75013F] focus:outline-none"
+                    placeholder="5000" />
+                  <span class="text-[11px] text-gray-500">Custom payout for trust fund creation</span>
+                </div>
+              </div>
+
+              <!-- Quick Presets -->
+              <div class="flex items-center space-x-2 text-xs">
+                <span class="text-gray-500 text-[11px] font-semibold">Presets:</span>
+                <button
+                  type="button"
+                  (click)="underReviewSettlementPrices[c.claimId!] = 5000"
+                  class="px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-800 transition-colors">
+                  $5,000 (Base)
+                </button>
+                <button
+                  type="button"
+                  (click)="underReviewSettlementPrices[c.claimId!] = 10000"
+                  class="px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-800 transition-colors">
+                  $10,000 (Enhanced)
+                </button>
+                <button
+                  type="button"
+                  (click)="underReviewSettlementPrices[c.claimId!] = 25000"
+                  class="px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-800 transition-colors">
+                  $25,000 (Lifetime)
+                </button>
+              </div>
+            </div>
+
+            <!-- Settlement Decision Buttons -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-3 border-t border-gray-100">
+              <button
+                (click)="onSelectClaim(c)"
+                class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#EAE5DF] hover:bg-gray-300 text-gray-800 transition-colors">
+                View Evidentiary Docs
+              </button>
+              <button
+                (click)="onRejectClaim(c.claimId)"
+                class="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">
+                ✕ Reject Claim
+              </button>
+              <button
+                (click)="onApproveClaim(c.claimId, underReviewSettlementPrices[c.claimId!])"
+                class="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-[#75013F] hover:bg-[#FE3082] shadow-sm transition-colors flex items-center space-x-1.5">
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>Accept Claim for ${{ underReviewSettlementPrices[c.claimId!] || c.claimAmount || 5000 }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="underReviewClaims.length === 0" class="py-12 text-center bg-[#FAFAFA] rounded-2xl border border-dashed border-gray-300 space-y-3">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-[#75013F]/10 flex items-center justify-center text-[#75013F]">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <h4 class="text-sm font-bold text-gray-800">No Claims Currently Under Review</h4>
+        <p class="text-xs text-gray-500 max-w-md mx-auto">
+          All customer claims have either been accepted or are in the initial queue. To place a claim into manual review, click <strong>Send to Under Review</strong> in the Claims Queue.
+        </p>
+        <button
+          (click)="setTab('queue')"
+          class="mt-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors">
+          Return to Claims Queue
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: ADJUDICATION & VERIFICATION -->
   <div *ngIf="activeTab === 'adjudication'" class="space-y-6">
     <div *ngIf="selectedClaim$ | async as claim; else noClaimSelected" class="space-y-6">
       <!-- Claim Detail Banner -->
       <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-gray-200 gap-2">
           <div>
-            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Adjudication Case</span>
-            <h3 class="text-lg font-bold text-gray-900 mt-0.5">Claim #{{ claim.claimId }} (Policy #{{ claim.policyId }})</h3>
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Adjudication Case Dossier</span>
+            <h3 class="text-lg font-bold text-gray-900 mt-0.5">Claim #{{ claim.claimNumber || ('CLM-' + claim.claimId) }} ({{ claim.policyNumber || ('Policy #' + claim.policyId) }})</h3>
           </div>
-          <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 self-start md:self-auto">
-            Status: {{ claim.status || 'SUBMITTED' }}
+          <span
+            [class.bg-[#75013F]/10]="claim.status === 'APPROVED'"
+            [class.text-[#75013F]]="claim.status === 'APPROVED'"
+            [class.border-[#75013F]/20]="claim.status === 'APPROVED'"
+            [class.bg-[#FE3082]/10]="claim.status === 'MANUAL_REVIEW' || claim.status === 'INVESTIGATING'"
+            [class.text-[#FE3082]]="claim.status === 'MANUAL_REVIEW' || claim.status === 'INVESTIGATING'"
+            [class.border-[#FE3082]/30]="claim.status === 'MANUAL_REVIEW' || claim.status === 'INVESTIGATING'"
+            [class.bg-gray-100]="claim.status !== 'APPROVED' && claim.status !== 'MANUAL_REVIEW' && claim.status !== 'INVESTIGATING' && claim.status !== 'REJECTED'"
+            [class.text-gray-700]="claim.status !== 'APPROVED' && claim.status !== 'MANUAL_REVIEW' && claim.status !== 'INVESTIGATING' && claim.status !== 'REJECTED'"
+            [class.border-gray-200]="claim.status !== 'APPROVED' && claim.status !== 'MANUAL_REVIEW' && claim.status !== 'INVESTIGATING' && claim.status !== 'REJECTED'"
+            [class.bg-red-50]="claim.status === 'REJECTED'"
+            [class.text-red-700]="claim.status === 'REJECTED'"
+            [class.border-red-200]="claim.status === 'REJECTED'"
+            class="px-3 py-1 rounded-full text-xs font-bold border self-start md:self-auto">
+            Status: {{ claim.status === 'MANUAL_REVIEW' ? 'UNDER REVIEW' : (claim.status || 'SUBMITTED') }}
           </span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-4 text-xs">
           <div>
             <span class="text-gray-500 block">Trigger Event</span>
-            <span class="font-bold text-gray-900 text-sm">{{ claim.eventType }}</span>
+            <span class="font-bold text-gray-900 text-sm">{{ claim.eventType || 'DEATH' }}</span>
           </div>
           <div>
             <span class="text-gray-500 block">Reported Date</span>
             <span class="font-bold text-gray-900 text-sm">{{ claim.eventDate }}</span>
           </div>
           <div>
-            <span class="text-gray-500 block">Continuity Allowance Required</span>
-            <span class="font-bold text-[#FE3082] text-sm">${{ claim.claimAmount }}</span>
+            <span class="text-gray-500 block">Requested Allowance</span>
+            <span class="font-bold text-[#FE3082] text-sm">${{ claim.claimAmount || 5000 }}</span>
           </div>
         </div>
 
         <div class="p-3 bg-[#FAFAFA] rounded-xl border border-gray-200 text-xs">
           <span class="font-bold text-gray-700 block mb-1">Circumstance Narrative:</span>
-          <p class="text-gray-600">{{ claim.description }}</p>
+          <p class="text-gray-600">{{ claim.description || claim.notes || 'No description provided.' }}</p>
         </div>
       </div>
 
@@ -134,13 +325,13 @@
           <div class="space-y-3">
             <button
               (click)="onVerifyEvent(claim.claimId)"
-              class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
+              class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
               Verify Event with Vital Statistics
             </button>
             <button
-              (click)="onInvestigate(claim.claimId)"
-              class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-gray-700 bg-[#EAE5DF] hover:bg-gray-300 transition-colors">
-              Mark Claim Under Active Investigation
+              (click)="onSendToUnderReview(claim.claimId)"
+              class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-[#75013F] bg-[#FE3082]/10 hover:bg-[#FE3082]/20 border border-[#FE3082]/30 transition-colors">
+              Send to Under Review Section
             </button>
           </div>
 
@@ -164,32 +355,80 @@
           </div>
         </div>
 
-        <!-- Decision Box -->
-        <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-          <h4 class="text-sm font-bold text-gray-900 mb-3">Adjudication Decision</h4>
-          <p class="text-xs text-gray-500 mb-4">
-            Approving this claim initiates the automatic Pet Care Trust Fund creation in PaymentFundService and sends custodial alerts to the caretaker.
-          </p>
+        <!-- Adjudication Decision Box -->
+        <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <h4 class="text-sm font-bold text-gray-900 mb-2">Adjudication Decision & Price Settlement</h4>
+            <p class="text-xs text-gray-500 mb-4">
+              Set the authorized payout amount and accept this claim. This initiates the automatic Pet Care Trust Fund in PaymentFundService and sends custodial alerts to the caretaker.
+            </p>
 
-          <div class="space-y-4">
-            <button
-              (click)="onApproveClaim(claim.claimId)"
-              class="w-full py-3 px-4 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm">
-              Approve Claim & Release Care Fund
-            </button>
-
-            <div class="pt-2 border-t border-gray-200">
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Rejection Reason (if applicable)</label>
-              <textarea
-                rows="2"
-                [(ngModel)]="rejectionReason"
-                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 mb-2"></textarea>
-              <button
-                (click)="onRejectClaim(claim.claimId)"
-                class="w-full py-2 px-4 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors">
-                Reject Claim
-              </button>
+            <!-- Price Setting Panel -->
+            <div class="bg-[#FAFAFA] border border-gray-200 rounded-xl p-4 mb-4 space-y-3">
+              <label class="block text-xs font-bold text-gray-800 uppercase tracking-wider">
+                Set Claim Settlement Price ($)
+              </label>
+              <div class="flex items-center space-x-2">
+                <span class="text-sm font-bold text-gray-500">$</span>
+                <input
+                  type="number"
+                  [(ngModel)]="selectedClaimPrice"
+                  class="w-36 px-3 py-1.5 text-sm font-bold text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#75013F] focus:outline-none"
+                  placeholder="5000" />
+                <span class="text-[11px] text-gray-500">Authorized fund total</span>
+              </div>
+              <div class="flex items-center space-x-1.5 pt-1 text-xs">
+                <span class="text-gray-400 text-[11px]">Presets:</span>
+                <button
+                  type="button"
+                  (click)="onSetPricePreset(5000)"
+                  [class.bg-[#75013F]]="selectedClaimPrice === 5000"
+                  [class.text-white]="selectedClaimPrice === 5000"
+                  class="px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-200 hover:bg-gray-300 text-gray-800 transition-colors">
+                  $5,000
+                </button>
+                <button
+                  type="button"
+                  (click)="onSetPricePreset(10000)"
+                  [class.bg-[#75013F]]="selectedClaimPrice === 10000"
+                  [class.text-white]="selectedClaimPrice === 10000"
+                  class="px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-200 hover:bg-gray-300 text-gray-800 transition-colors">
+                  $10,000
+                </button>
+                <button
+                  type="button"
+                  (click)="onSetPricePreset(25000)"
+                  [class.bg-[#75013F]]="selectedClaimPrice === 25000"
+                  [class.text-white]="selectedClaimPrice === 25000"
+                  class="px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-200 hover:bg-gray-300 text-gray-800 transition-colors">
+                  $25,000
+                </button>
+              </div>
             </div>
+
+            <!-- Approve Button -->
+            <button
+              (click)="onApproveClaim(claim.claimId, selectedClaimPrice)"
+              class="w-full py-3 px-4 rounded-xl text-sm font-black text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm flex items-center justify-center space-x-2">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Accept & Approve Claim for ${{ selectedClaimPrice | number }}</span>
+            </button>
+          </div>
+
+          <!-- Rejection Section -->
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Rejection Reason (if applicable)</label>
+            <textarea
+              rows="2"
+              [(ngModel)]="rejectionReason"
+              class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 mb-2"></textarea>
+            <button
+              (click)="onRejectClaim(claim.claimId)"
+              class="w-full py-2 px-4 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors">
+              ✕ Reject Claim
+            </button>
           </div>
         </div>
       </div>
@@ -197,7 +436,7 @@
 
     <ng-template #noClaimSelected>
       <div class="bg-white border border-[#EAE5DF] rounded-2xl p-12 text-center shadow-sm">
-        <p class="text-sm text-gray-500">Select a claim from the queue to start adjudication and vital record verification.</p>
+        <p class="text-sm text-gray-500">Select a claim from the queue or under review section to start adjudication and price settlement.</p>
         <button
           (click)="setTab('queue')"
           class="mt-4 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors">

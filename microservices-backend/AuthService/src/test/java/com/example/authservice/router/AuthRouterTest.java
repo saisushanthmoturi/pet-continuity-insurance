@@ -1,25 +1,25 @@
 package com.example.authservice.router;
 
-import com.example.authservice.dto.AuthResponse;
-import com.example.authservice.dto.LoginRequest;
-import com.example.authservice.dto.RegisterRequest;
+import com.example.authservice.dto.*;
 import com.example.authservice.handler.AuthHandler;
 import com.example.authservice.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,6 +29,7 @@ class AuthRouterTest {
     private AuthService authService;
 
     private WebTestClient webTestClient;
+    private UserDto sampleUserDto;
 
     @BeforeEach
     void setUp() {
@@ -36,6 +37,7 @@ class AuthRouterTest {
         AuthRouter router = new AuthRouter();
         RouterFunction<ServerResponse> routes = router.authRoutes(handler);
         this.webTestClient = WebTestClient.bindToRouterFunction(routes).build();
+        sampleUserDto = new UserDto(1L, "test@example.com", "Test User", "CUSTOMER", LocalDateTime.now());
     }
 
     @Test
@@ -111,6 +113,16 @@ class AuthRouterTest {
     }
 
     @Test
+    void logout_Success() {
+        webTestClient.post()
+                .uri("/api/auth/logout")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.message").isEqualTo("Logged out successfully");
+    }
+
+    @Test
     void validate_ValidToken() {
         Map<String, Object> mockMap = Map.of("valid", true, "userId", 1L, "role", "CUSTOMER", "email", "test@example.com");
         when(authService.validateToken("mock-jwt-token")).thenReturn(Mono.just(mockMap));
@@ -124,5 +136,56 @@ class AuthRouterTest {
                 .jsonPath("$.valid").isEqualTo(true)
                 .jsonPath("$.userId").isEqualTo(1)
                 .jsonPath("$.role").isEqualTo("CUSTOMER");
+    }
+
+    @Test
+    void getAllUsers_Success() {
+        when(authService.getAllUsers()).thenReturn(Flux.just(sampleUserDto));
+
+        webTestClient.get()
+                .uri("/api/auth/users")
+                .header("X-User-Role", "ADMIN")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(UserDto.class).hasSize(1);
+    }
+
+    @Test
+    void getUserById_Success() {
+        when(authService.getUserById(1L)).thenReturn(Mono.just(sampleUserDto));
+
+        webTestClient.get()
+                .uri("/api/auth/users/1")
+                .header("X-User-Role", "ADMIN")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(1);
+    }
+
+    @Test
+    void updateUser_Success() {
+        when(authService.updateUser(eq(1L), any(UserUpdateRequest.class))).thenReturn(Mono.just(sampleUserDto));
+
+        webTestClient.put()
+                .uri("/api/auth/users/1")
+                .header("X-User-Role", "ADMIN")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(new UserUpdateRequest("New Name", "ADMIN"))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(1);
+    }
+
+    @Test
+    void deleteUser_Success() {
+        when(authService.deleteUser(1L)).thenReturn(Mono.empty());
+
+        webTestClient.delete()
+                .uri("/api/auth/users/1")
+                .header("X-User-Role", "ADMIN")
+                .exchange()
+                .expectStatus().isNoContent();
     }
 }

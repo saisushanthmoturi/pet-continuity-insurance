@@ -15,7 +15,8 @@ export const loginReducer = createReducer(
       userId: jwtRes.userId,
       email: jwtRes.email,
       role: jwtRes.role,
-      token: jwtRes.token
+      token: jwtRes.token,
+      fullName: jwtRes.fullName || (jwtRes as any).username || ''
     }));
     return {
       ...state,
