@@ -1,5 +1,5 @@
 /* ========================================================
-   PawContinuity - Professional Animated Pet Landing Page Styles
+   PawContinuity - Professional, Minimalist Landing Page Styles
    ======================================================== */
 
 :host {
@@ -9,15 +9,15 @@
   background-color: #FAFAFA;
 }
 
-/* ---------------- Professional Pet Animations ---------------- */
+/* ---------------- Smooth Natural Pet Animations ---------------- */
 
-/* Lifelike subtle breathing motion */
+/* Subtle lifelike breathing motion */
 @keyframes petBreathe {
   0%, 100% {
     transform: translateY(0px) scale(1);
   }
   50% {
-    transform: translateY(-2.5px) scale(1.012);
+    transform: translateY(-2px) scale(1.01);
   }
 }
 
@@ -26,22 +26,22 @@
   animation: petBreathe 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-/* Lifelike gentle tail sway (Dog) */
+/* Smooth natural tail sway */
 @keyframes dogTailSway {
   0%, 100% {
     transform: rotate(0deg);
   }
   25% {
-    transform: rotate(-10deg);
+    transform: rotate(-7deg);
   }
   75% {
-    transform: rotate(14deg);
+    transform: rotate(9deg);
   }
 }
 
 .animate-dog-tail {
-  transform-origin: 45px 170px;
-  animation: dogTailSway 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transform-origin: 50px 175px;
+  animation: dogTailSway 1.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 
 /* Attentive gentle ear tilt */
@@ -50,31 +50,16 @@
     transform: rotate(0deg);
   }
   80% {
-    transform: rotate(-5deg);
+    transform: rotate(-3deg);
   }
   88% {
-    transform: rotate(6deg);
+    transform: rotate(4deg);
   }
 }
 
 .animate-ear-tilt {
-  transform-origin: 100px 75px;
-  animation: earTilt 4.2s ease-in-out infinite;
-}
-
-/* Gentle eye blink */
-@keyframes eyeBlink {
-  0%, 93%, 100% {
-    transform: scaleY(1);
-  }
-  96% {
-    transform: scaleY(0.08);
-  }
-}
-
-.animate-eye-blink {
-  transform-origin: center;
-  animation: eyeBlink 4.2s ease-in-out infinite;
+  transform-origin: 145px 65px;
+  animation: earTilt 4.5s ease-in-out infinite;
 }
 
 /* Cat smooth tail swish */
@@ -83,13 +68,13 @@
     transform: rotate(0deg);
   }
   50% {
-    transform: rotate(-16deg);
+    transform: rotate(-10deg);
   }
 }
 
 .animate-cat-tail {
-  transform-origin: 130px 175px;
-  animation: catTailSwish 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: 110px 185px;
+  animation: catTailSwish 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 /* Subtle purr motion */
@@ -98,7 +83,7 @@
     transform: translateY(0px) scale(1);
   }
   50% {
-    transform: translateY(-1.8px) scale(1.01);
+    transform: translateY(-1.5px) scale(1.008);
   }
 }
 
@@ -107,32 +92,18 @@
   animation: catPurr 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-/* Medallion / charm glow */
-@keyframes charmShimmer {
-  0%, 100% {
-    filter: drop-shadow(0 0 2px rgba(254, 48, 130, 0.4));
-  }
-  50% {
-    filter: drop-shadow(0 0 8px rgba(254, 48, 130, 0.85));
-  }
-}
-
-.animate-charm-glow {
-  animation: charmShimmer 2.4s ease-in-out infinite;
-}
-
-/* Floating Status Badges with smooth physics */
+/* Floating Status Badges with smooth physics (No Dots) */
 @keyframes floatBadgeTop {
   0%, 100% {
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-7px);
+    transform: translateY(-6px);
   }
 }
 
 .animate-float-top {
-  animation: floatBadgeTop 4s ease-in-out infinite;
+  animation: floatBadgeTop 4.2s ease-in-out infinite;
 }
 
 @keyframes floatBadgeBottom {
@@ -140,12 +111,12 @@
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(7px);
+    transform: translateY(6px);
   }
 }
 
 .animate-float-bottom {
-  animation: floatBadgeBottom 4.6s ease-in-out infinite 0.6s;
+  animation: floatBadgeBottom 4.8s ease-in-out infinite 0.5s;
 }
 
 @keyframes floatBadgeSide {
@@ -153,34 +124,18 @@
     transform: translateX(0px);
   }
   50% {
-    transform: translateX(-5px);
+    transform: translateX(-4px);
   }
 }
 
 .animate-float-side {
-  animation: floatBadgeSide 5.2s ease-in-out infinite 1.2s;
+  animation: floatBadgeSide 5.2s ease-in-out infinite 1s;
 }
 
-/* Ambient glow pulsation */
-@keyframes glowPulse {
-  0%, 100% {
-    opacity: 0.45;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.75;
-    transform: scale(1.05);
-  }
-}
-
-.animate-glow-pulse {
-  animation: glowPulse 5s ease-in-out infinite;
-}
-
-/* Smooth glass card */
+/* Minimal Frosted Glass */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(234, 229, 223, 0.85);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(229, 231, 235, 0.85);
 }

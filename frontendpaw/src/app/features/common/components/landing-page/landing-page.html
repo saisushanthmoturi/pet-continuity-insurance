@@ -1,85 +1,66 @@
 <!-- ========================================================
-     PawContinuity - Modern, Professional Animated Pet Landing Page
+     PawContinuity - Clean, Minimalist Pet Continuity Landing Page
      ======================================================== -->
 
-<div class="relative min-h-screen bg-[#FAFAFA] text-gray-900 overflow-hidden font-sans">
-
-  <!-- Ambient Soft Gradients -->
-  <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
-    <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-[#75013F]/5 blur-3xl animate-glow-pulse"></div>
-    <div class="absolute top-1/3 -right-24 w-96 h-96 rounded-full bg-[#FE3082]/6 blur-3xl"></div>
-    <div class="absolute bottom-20 left-1/3 w-80 h-80 rounded-full bg-[#75013F]/4 blur-3xl"></div>
-  </div>
+<div class="relative min-h-screen bg-[#FAFAFA] text-gray-900 font-sans">
 
   <!-- Hero Section -->
-  <section class="relative z-10 pt-8 pb-12 lg:pt-14 lg:pb-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+  <section class="relative z-10 pt-10 pb-14 lg:pt-16 lg:pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
       
       <!-- Left Column: Copy & Actions -->
-      <div class="lg:col-span-7 space-y-5 text-center lg:text-left">
+      <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
         
-        <!-- Trust Pill -->
-        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#75013F]/8 border border-[#75013F]/15 text-[#75013F] text-xs font-semibold shadow-2xs">
-          <span class="w-2 h-2 rounded-full bg-[#FE3082] animate-ping"></span>
-          <span>Fiduciary Pet Continuity • Legal Care Assurance</span>
+        <!-- Clean Text Pill (No Dots, No Icons) -->
+        <div class="inline-block px-3.5 py-1.5 rounded-full bg-[#75013F]/8 border border-[#75013F]/15 text-[#75013F] text-xs font-semibold">
+          Pet Continuity Trust
         </div>
 
         <!-- Headline -->
-        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.14]">
-          Lifelong Care & Security For Your Pets, 
-          <span class="bg-gradient-to-r from-[#75013F] via-[#A00B55] to-[#FE3082] bg-clip-text text-transparent">Guaranteed</span>.
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.15]">
+          Lifelong Care for Your Pets, 
+          <span class="bg-gradient-to-r from-[#75013F] to-[#FE3082] bg-clip-text text-transparent">Guaranteed</span>.
         </h1>
 
-        <!-- Subheading -->
-        <p class="text-sm sm:text-base text-gray-600 max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
-          PawContinuity establishes dedicated legal care trusts and verified caretakers for your dogs and cats. If life changes, their living stipends, nutrition, and veterinary protection continue uninterrupted.
+        <!-- Meaningful, Simple Sentence -->
+        <p class="text-sm sm:text-base text-gray-600 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+          PawContinuity legally secures care funds and trusted guardians so your pet is always protected.
         </p>
 
         <!-- CTAs -->
-        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-1">
+        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
           
           <a
             routerLink="/auth/register"
             id="hero-register-btn"
-            class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#75013F] to-[#FE3082] hover:from-[#5C0132] hover:to-[#E51E6E] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 flex items-center justify-center space-x-1.5 cursor-pointer">
-            <span>Get Started Free</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-            </svg>
+            class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#75013F] to-[#FE3082] hover:from-[#5C0132] hover:to-[#E51E6E] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+            Get Started
           </a>
 
           <a
             routerLink="/auth/login"
             id="hero-login-btn"
-            class="w-full sm:w-auto px-5 py-3 rounded-xl bg-white hover:bg-gray-50 text-gray-700 hover:text-[#75013F] border border-gray-200 font-semibold text-xs transition-all duration-200 shadow-2xs flex items-center justify-center cursor-pointer">
-            <span>Sign In</span>
+            class="w-full sm:w-auto px-5 py-3 rounded-xl bg-white hover:bg-gray-50 text-gray-700 hover:text-[#75013F] border border-gray-200 font-semibold text-xs transition-all duration-200 shadow-2xs cursor-pointer">
+            Sign In
           </a>
 
           <button
             type="button"
             (click)="scrollToEstimator()"
             id="hero-estimator-btn"
-            class="text-xs font-semibold text-gray-500 hover:text-[#75013F] px-2 py-2 transition-colors cursor-pointer flex items-center space-x-1">
-            <span>Estimate Care Fund</span>
-            <span>&darr;</span>
+            class="text-xs font-semibold text-gray-500 hover:text-[#75013F] px-2 py-2 transition-colors cursor-pointer">
+            Calculate Care Fund &darr;
           </button>
 
         </div>
 
-        <!-- Trust Badges List -->
-        <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs text-gray-500">
-          <span class="flex items-center space-x-1.5">
-            <span class="text-emerald-600 font-bold">✓</span>
-            <span>Fiduciary Legal Escrow</span>
-          </span>
-          <span class="flex items-center space-x-1.5">
-            <span class="text-emerald-600 font-bold">✓</span>
-            <span>Vetted Guardian Network</span>
-          </span>
-          <span class="flex items-center space-x-1.5">
-            <span class="text-emerald-600 font-bold">✓</span>
-            <span>Direct Vet Hospital Payouts</span>
-          </span>
+        <!-- Clean Text Trust Markers (No Icons, No Dots) -->
+        <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3 text-xs text-gray-500">
+          <span>Legal Care Trust</span>
+          <span class="text-gray-300">&bull;</span>
+          <span>Verified Guardians</span>
+          <span class="text-gray-300">&bull;</span>
+          <span>Direct Vet Payments</span>
         </div>
 
       </div>
@@ -87,214 +68,156 @@
       <!-- Right Column: Professional Animated Pet Stage -->
       <div class="lg:col-span-5 relative flex items-center justify-center">
         
-        <!-- Glassmorphic Stage Card -->
-        <div class="w-full max-w-md bg-white/80 backdrop-blur-md border border-[#EAE5DF] rounded-3xl p-6 sm:p-7 shadow-lg relative">
+        <!-- Clean Stage Card -->
+        <div class="w-full max-w-md bg-white border border-[#EAE5DF] rounded-3xl p-6 sm:p-7 shadow-sm relative">
           
-          <!-- Companion Switcher Control -->
-          <div class="flex items-center justify-center p-1 bg-gray-100/90 rounded-xl mb-4 border border-gray-200/70 max-w-xs mx-auto">
+          <!-- Simple Text Companion Switcher (No Emoji Icons) -->
+          <div class="flex items-center justify-center p-1 bg-gray-100 rounded-xl mb-4 border border-gray-200 max-w-xs mx-auto">
             <button
               type="button"
               (click)="setPetType('dog')"
               [class.bg-white]="selectedPetType === 'dog'"
               [class.text-[#75013F]]="selectedPetType === 'dog'"
-              [class.shadow-xs]="selectedPetType === 'dog'"
+              [class.shadow-2xs]="selectedPetType === 'dog'"
               [class.font-bold]="selectedPetType === 'dog'"
               class="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium text-gray-600 transition-all cursor-pointer">
-              🐕 Golden Retriever
+              Dogs
             </button>
             <button
               type="button"
               (click)="setPetType('cat')"
               [class.bg-white]="selectedPetType === 'cat'"
               [class.text-[#75013F]]="selectedPetType === 'cat'"
-              [class.shadow-xs]="selectedPetType === 'cat'"
+              [class.shadow-2xs]="selectedPetType === 'cat'"
               [class.font-bold]="selectedPetType === 'cat'"
               class="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium text-gray-600 transition-all cursor-pointer">
-              🐈 Persian Feline
+              Cats
             </button>
           </div>
 
-          <!-- Pet Stage Display Area -->
-          <div class="relative flex items-center justify-center min-h-[260px]">
+          <!-- Pet Stage Area -->
+          <div class="relative flex items-center justify-center min-h-[250px]">
 
-            <!-- Dog Vector Illustration (Shown when dog or senior) -->
+            <!-- Sleek Dog Vector -->
             <div *ngIf="selectedPetType !== 'cat'" class="w-full flex justify-center">
-              <svg viewBox="0 0 360 270" class="w-full max-w-[320px] h-auto mx-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 340 260" class="w-full max-w-[300px] h-auto mx-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <linearGradient id="dogBodyGrad" x1="80" y1="60" x2="240" y2="260" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stop-color="#FBBF24"/>
-                    <stop offset="50%" stop-color="#F59E0B"/>
-                    <stop offset="100%" stop-color="#D97706"/>
+                  <linearGradient id="dogGrad" x1="80" y1="60" x2="220" y2="240" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#E89A3C"/>
+                    <stop offset="100%" stop-color="#C57524"/>
                   </linearGradient>
-                  <linearGradient id="dogChestGrad" x1="140" y1="100" x2="220" y2="240" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stop-color="#FEF3C7"/>
-                    <stop offset="100%" stop-color="#FDE68A"/>
-                  </linearGradient>
-                  <linearGradient id="collarGrad" x1="130" y1="110" x2="210" y2="130" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stop-color="#75013F"/>
-                    <stop offset="100%" stop-color="#9E0B54"/>
+                  <linearGradient id="dogShadow" x1="120" y1="120" x2="200" y2="240" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#DE892C"/>
+                    <stop offset="100%" stop-color="#B3651C"/>
                   </linearGradient>
                 </defs>
 
                 <!-- Ground Shadow -->
-                <ellipse cx="180" cy="248" rx="105" ry="12" fill="#E5E7EB" opacity="0.7"/>
+                <ellipse cx="170" cy="240" rx="95" ry="11" fill="#EAE5DF" opacity="0.6"/>
 
-                <!-- Tail with smooth sway -->
+                <!-- Tail (Gentle Sway) -->
                 <g class="animate-dog-tail">
-                  <path d="M85 195 C50 180, 30 140, 45 105 C50 93, 62 103, 62 115 C62 140, 80 175, 105 190 Z" fill="url(#dogBodyGrad)"/>
+                  <path d="M85 190 C55 175, 40 140, 50 110 C54 100, 64 108, 64 118 C64 138, 78 170, 102 184 Z" fill="url(#dogGrad)"/>
                 </g>
 
-                <!-- Pet Torso with gentle breathing motion -->
+                <!-- Torso (Subtle Breathing) -->
                 <g class="animate-pet-breathe">
                   <!-- Back & Hindquarters -->
-                  <path d="M95 205 C85 165, 105 125, 140 115 C165 110, 185 125, 200 145 C215 165, 220 215, 215 240 C205 247, 175 247, 160 245 C145 245, 105 245, 95 205 Z" fill="url(#dogBodyGrad)"/>
+                  <path d="M95 198 C86 162, 106 126, 138 116 C162 112, 180 126, 192 145 C204 165, 208 208, 204 232 C194 238, 172 238, 158 236 C144 236, 104 236, 95 198 Z" fill="url(#dogGrad)"/>
 
-                  <!-- Hind Leg / Paw -->
-                  <ellipse cx="105" cy="235" rx="24" ry="13" fill="#D97706"/>
-                  <path d="M88 243 C94 247, 118 247, 126 243" stroke="#B45309" stroke-width="1.8" stroke-linecap="round"/>
+                  <!-- Hind Leg -->
+                  <ellipse cx="106" cy="228" rx="22" ry="12" fill="url(#dogShadow)"/>
 
-                  <!-- Chest & Front Shoulder -->
-                  <path d="M155 120 C175 130, 195 155, 195 190 C195 220, 185 240, 175 245 C165 240, 155 210, 150 185 C145 160, 148 130, 155 120 Z" fill="url(#dogChestGrad)"/>
+                  <!-- Front Legs -->
+                  <rect x="164" y="172" width="16" height="62" rx="8" fill="url(#dogGrad)"/>
+                  <rect x="184" y="176" width="15" height="58" rx="7.5" fill="url(#dogShadow)"/>
 
-                  <!-- Front Legs & Paws -->
-                  <rect x="170" y="175" width="17" height="66" rx="8.5" fill="url(#dogBodyGrad)"/>
-                  <ellipse cx="178" cy="243" rx="12" ry="6.5" fill="#F59E0B"/>
-                  <path d="M172 245 C176 248, 182 248, 185 245" stroke="#D97706" stroke-width="1.6" stroke-linecap="round"/>
-
-                  <rect x="191" y="180" width="16" height="61" rx="8" fill="#D97706"/>
-                  <ellipse cx="199" cy="243" rx="11" ry="6" fill="#D97706"/>
-
-                  <!-- Head & Muzzle -->
-                  <g transform="translate(15, 0)">
-                    <circle cx="175" cy="78" r="36" fill="url(#dogBodyGrad)"/>
+                  <!-- Head & Ears -->
+                  <g transform="translate(12, 0)">
+                    <circle cx="170" cy="80" r="34" fill="url(#dogGrad)"/>
                     
-                    <!-- Attentive Ear with gentle tilt -->
+                    <!-- Ear (Gentle Tilt) -->
                     <g class="animate-ear-tilt">
-                      <path d="M145 66 C135 78, 125 112, 138 132 C146 142, 158 132, 158 112 C158 92, 155 73, 145 66 Z" fill="#B45309"/>
+                      <path d="M142 70 C134 82, 126 112, 136 128 C144 136, 154 126, 154 108 C154 90, 150 74, 142 70 Z" fill="url(#dogShadow)"/>
                     </g>
 
-                    <!-- Muzzle / Snout -->
-                    <path d="M185 78 C205 80, 225 86, 228 97 C230 109, 210 115, 185 112 Z" fill="#FDE68A"/>
+                    <!-- Muzzle -->
+                    <path d="M180 80 C198 82, 216 88, 218 97 C220 107, 202 113, 180 110 Z" fill="#F8DCAB"/>
                     
                     <!-- Nose -->
-                    <path d="M220 89 C225 87, 229 90, 227 95 C225 99, 220 99, 218 94 Z" fill="#1F2937"/>
-                    <circle cx="222" cy="90" r="1" fill="white" opacity="0.8"/>
+                    <path d="M210 90 C214 88, 218 91, 216 95 C214 98, 210 98, 208 94 Z" fill="#2E1C14"/>
 
-                    <!-- Gentle Mouth line -->
-                    <path d="M223 96 C220 103, 205 105, 195 103" stroke="#4B5563" stroke-width="1.6" stroke-linecap="round"/>
+                    <!-- Eye Contour -->
+                    <path d="M174 74 C176 72, 180 72, 182 74" stroke="#2E1C14" stroke-width="2.5" stroke-linecap="round"/>
 
-                    <!-- Expressive Eye with blink animation -->
-                    <g class="animate-eye-blink">
-                      <ellipse cx="180" cy="72" rx="4.5" ry="5.5" fill="#1F2937"/>
-                      <circle cx="182" cy="70" r="1.8" fill="white"/>
-                    </g>
-
-                    <!-- Collar & Glowing Medallion -->
-                    <path d="M155 108 C168 118, 188 120, 202 110" stroke="url(#collarGrad)" stroke-width="6" stroke-linecap="round"/>
-                    <g class="animate-charm-glow">
-                      <circle cx="180" cy="120" r="5.5" fill="#FE3082"/>
-                      <circle cx="180" cy="120" r="3" fill="#FFD700"/>
-                    </g>
+                    <!-- Collar in Brand Plum -->
+                    <path d="M152 108 C164 116, 180 118, 194 110" stroke="#75013F" stroke-width="5" stroke-linecap="round"/>
                   </g>
                 </g>
               </svg>
             </div>
 
-            <!-- Cat Vector Illustration (Shown when cat) -->
+            <!-- Sleek Cat Vector -->
             <div *ngIf="selectedPetType === 'cat'" class="w-full flex justify-center">
-              <svg viewBox="0 0 360 270" class="w-full max-w-[320px] h-auto mx-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 340 260" class="w-full max-w-[300px] h-auto mx-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <linearGradient id="catBodyGrad" x1="100" y1="70" x2="240" y2="250" gradientUnits="userSpaceOnUse">
+                  <linearGradient id="catGrad" x1="100" y1="70" x2="220" y2="240" gradientUnits="userSpaceOnUse">
                     <stop offset="0%" stop-color="#4B5563"/>
-                    <stop offset="50%" stop-color="#374151"/>
                     <stop offset="100%" stop-color="#1F2937"/>
-                  </linearGradient>
-                  <linearGradient id="catChestGrad" x1="150" y1="110" x2="210" y2="240" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stop-color="#F9FAFB"/>
-                    <stop offset="100%" stop-color="#E5E7EB"/>
-                  </linearGradient>
-                  <linearGradient id="catCollarGrad" x1="140" y1="115" x2="200" y2="130" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stop-color="#FE3082"/>
-                    <stop offset="100%" stop-color="#75013F"/>
                   </linearGradient>
                 </defs>
 
                 <!-- Ground Shadow -->
-                <ellipse cx="180" cy="248" rx="100" ry="12" fill="#E5E7EB" opacity="0.7"/>
+                <ellipse cx="170" cy="240" rx="90" ry="11" fill="#EAE5DF" opacity="0.6"/>
 
-                <!-- Cat Tail with graceful swish -->
+                <!-- Cat Tail (Smooth Swish) -->
                 <g class="animate-cat-tail">
-                  <path d="M110 215 C85 215, 65 185, 72 155 C75 140, 88 145, 85 160 C80 180, 95 200, 115 200 Z" fill="url(#catBodyGrad)"/>
+                  <path d="M106 210 C84 210, 68 182, 74 155 C77 142, 88 146, 85 158 C81 176, 94 196, 112 196 Z" fill="url(#catGrad)"/>
                 </g>
 
-                <!-- Cat Torso with purring breath motion -->
+                <!-- Cat Torso (Subtle Purr Breath) -->
                 <g class="animate-cat-purr">
-                  <!-- Main Seated Body -->
-                  <path d="M115 200 C105 160, 125 120, 155 114 C175 110, 195 120, 205 150 C215 180, 215 220, 210 240 C200 247, 180 247, 165 245 C145 245, 120 240, 115 200 Z" fill="url(#catBodyGrad)"/>
+                  <!-- Seated Body -->
+                  <path d="M112 196 C104 158, 122 120, 150 114 C168 110, 186 120, 195 148 C204 176, 204 212, 200 232 C190 238, 172 238, 158 236 C140 236, 116 232, 112 196 Z" fill="url(#catGrad)"/>
 
-                  <!-- Soft White Chest -->
-                  <path d="M160 120 C175 130, 190 150, 188 185 C185 215, 178 240, 168 245 C158 240, 152 215, 152 185 C152 155, 155 130, 160 120 Z" fill="url(#catChestGrad)"/>
-
-                  <!-- Paws Front -->
-                  <ellipse cx="162" cy="243" rx="10" ry="6" fill="#F9FAFB"/>
-                  <ellipse cx="182" cy="243" rx="10" ry="6" fill="#F9FAFB"/>
+                  <!-- Front Paws -->
+                  <ellipse cx="156" cy="235" rx="9" ry="5.5" fill="#374151"/>
+                  <ellipse cx="174" cy="235" rx="9" ry="5.5" fill="#374151"/>
 
                   <!-- Head & Face -->
-                  <g transform="translate(10, 0)">
-                    <circle cx="165" cy="80" r="31" fill="url(#catBodyGrad)"/>
+                  <g transform="translate(8, 0)">
+                    <circle cx="160" cy="80" r="30" fill="url(#catGrad)"/>
 
-                    <!-- Left Ear -->
-                    <polygon points="142,63 130,35 155,52" fill="#374151"/>
-                    <polygon points="143,60 134,40 152,52" fill="#FDA4AF" opacity="0.75"/>
-
-                    <!-- Right Ear -->
-                    <polygon points="175,52 198,35 188,63" fill="#374151"/>
-                    <polygon points="177,52 194,40 186,60" fill="#FDA4AF" opacity="0.75"/>
+                    <!-- Pointed Ears -->
+                    <polygon points="140,64 128,38 152,54" fill="#374151"/>
+                    <polygon points="168,54 190,38 180,64" fill="#374151"/>
 
                     <!-- Muzzle Area -->
-                    <ellipse cx="165" cy="91" rx="15" ry="9" fill="#F9FAFB"/>
-                    <polygon points="162,88 168,88 165,91" fill="#FB7185"/>
-                    
-                    <!-- Whiskers -->
-                    <path d="M152 90 L130 87 M152 92 L128 94 M152 94 L132 101" stroke="#D1D5DB" stroke-width="1.2" stroke-linecap="round"/>
-                    <path d="M178 90 L200 87 M178 92 L202 94 M178 94 L198 101" stroke="#D1D5DB" stroke-width="1.2" stroke-linecap="round"/>
+                    <ellipse cx="160" cy="90" rx="14" ry="8" fill="#F3F4F6"/>
+                    <polygon points="158,88 162,88 160,91" fill="#75013F"/>
 
-                    <!-- Emerald Eyes with vertical pupil and blink -->
-                    <g class="animate-eye-blink">
-                      <ellipse cx="152" cy="78" rx="5" ry="6" fill="#34D399"/>
-                      <ellipse cx="152" cy="78" rx="1.8" ry="5" fill="#064E3B"/>
-                      <circle cx="153.5" cy="76" r="1.2" fill="white"/>
+                    <!-- Eyes -->
+                    <path d="M148 76 C150 73, 154 73, 156 76" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M164 76 C166 73, 170 73, 172 76" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
 
-                      <ellipse cx="178" cy="78" rx="5" ry="6" fill="#34D399"/>
-                      <ellipse cx="178" cy="78" rx="1.8" ry="5" fill="#064E3B"/>
-                      <circle cx="179.5" cy="76" r="1.2" fill="white"/>
-                    </g>
-
-                    <!-- Collar & Charm -->
-                    <path d="M148 108 C160 115, 172 115, 182 108" stroke="url(#catCollarGrad)" stroke-width="5" stroke-linecap="round"/>
-                    <g class="animate-charm-glow">
-                      <circle cx="165" cy="118" r="4.5" fill="#FE3082"/>
-                      <circle cx="165" cy="118" r="2.5" fill="#FFD700"/>
-                    </g>
+                    <!-- Collar in Brand Magenta -->
+                    <path d="M144 104 C154 110, 166 110, 176 104" stroke="#FE3082" stroke-width="4.5" stroke-linecap="round"/>
                   </g>
                 </g>
               </svg>
             </div>
 
-            <!-- Floating Status Badges -->
-            <div class="absolute -top-2.5 -right-2 glass-panel px-3 py-1.5 rounded-xl shadow-xs animate-float-top flex items-center space-x-1.5 select-none">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span class="text-[11px] font-bold text-gray-800">$25,000 Care Escrow</span>
+            <!-- Floating Badges (Clean Text, No Dots, No Icons) -->
+            <div class="absolute -top-2 -right-2 glass-panel px-3 py-1.5 rounded-xl shadow-2xs animate-float-top select-none">
+              <span class="text-xs font-semibold text-gray-800">$25,000 Care Escrow</span>
             </div>
 
-            <div class="absolute -bottom-2 -left-2 glass-panel px-3 py-1.5 rounded-xl shadow-xs animate-float-bottom flex items-center space-x-1.5 select-none">
-              <span class="text-xs">🛡️</span>
-              <span class="text-[11px] font-bold text-gray-800">Guardian Assigned</span>
+            <div class="absolute -bottom-2 -left-2 glass-panel px-3 py-1.5 rounded-xl shadow-2xs animate-float-bottom select-none">
+              <span class="text-xs font-semibold text-gray-800">Verified Guardian</span>
             </div>
 
-            <div class="absolute bottom-8 -right-3 glass-panel px-2.5 py-1 rounded-lg shadow-2xs animate-float-side flex items-center space-x-1 select-none">
-              <span class="w-1.5 h-1.5 rounded-full bg-[#FE3082]"></span>
-              <span class="text-[10px] font-semibold text-gray-600">Direct Vet Payout</span>
+            <div class="absolute bottom-8 -right-3 glass-panel px-3 py-1.5 rounded-xl shadow-2xs animate-float-side select-none">
+              <span class="text-xs font-semibold text-gray-800">Direct Vet Coverage</span>
             </div>
 
           </div>
@@ -306,51 +229,42 @@
     </div>
   </section>
 
-  <!-- Key Continuity Pillars (Clean 3-Card Minimalist Section) -->
-  <section class="py-10 border-t border-[#EAE5DF] bg-white/70 px-4 sm:px-6 lg:px-8">
+  <!-- How It Works (Clean 3-Card Minimalist Section, No Icons) -->
+  <section class="py-12 border-t border-[#EAE5DF] bg-white px-4 sm:px-6 lg:px-8">
     <div class="max-w-6xl mx-auto">
       
-      <div class="text-center max-w-xl mx-auto mb-8">
+      <div class="text-center max-w-lg mx-auto mb-8">
         <h2 class="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
-          The Three Pillars of Pet Continuity
+          How It Works
         </h2>
         <p class="text-xs sm:text-sm text-gray-500 mt-1">
-          Uninterrupted welfare through legally enforceable trusts and escrow accounts.
+          Three simple safeguards to guarantee your pet's lifelong well-being.
         </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <!-- Pillar 1 -->
-        <div class="p-5 rounded-2xl bg-white border border-[#EAE5DF] shadow-2xs hover:border-[#75013F]/30 hover:shadow-xs transition-all">
-          <div class="w-9 h-9 rounded-xl bg-[#75013F]/10 text-[#75013F] flex items-center justify-center font-bold text-sm mb-3">
-            🛡️
-          </div>
-          <h3 class="text-sm font-bold text-gray-900 mb-1">Fiduciary Care Trust</h3>
+        <div class="p-6 rounded-2xl bg-white border border-[#EAE5DF] shadow-2xs hover:border-[#75013F]/30 transition-all">
+          <h3 class="text-sm font-bold text-gray-900 mb-2">Legal Care Trust</h3>
           <p class="text-xs text-gray-600 leading-relaxed">
-            Legal fiduciary agreements ensure care funds are dedicated exclusively to your pet's food, shelter, and medical needs.
+            Legally secured funds dedicated exclusively to your pet's future living and veterinary expenses.
           </p>
         </div>
 
         <!-- Pillar 2 -->
-        <div class="p-5 rounded-2xl bg-white border border-[#EAE5DF] shadow-2xs hover:border-[#75013F]/30 hover:shadow-xs transition-all">
-          <div class="w-9 h-9 rounded-xl bg-[#FE3082]/10 text-[#FE3082] flex items-center justify-center font-bold text-sm mb-3">
-            💳
-          </div>
-          <h3 class="text-sm font-bold text-gray-900 mb-1">Automated Monthly Living Stipends</h3>
+        <div class="p-6 rounded-2xl bg-white border border-[#EAE5DF] shadow-2xs hover:border-[#75013F]/30 transition-all">
+          <h3 class="text-sm font-bold text-gray-900 mb-2">Monthly Living Stipends</h3>
           <p class="text-xs text-gray-600 leading-relaxed">
-            Automated monthly living disbursements sent to designated caretakers with continuous welfare checks.
+            Automated monthly living disbursements delivered directly to your chosen caretaker.
           </p>
         </div>
 
         <!-- Pillar 3 -->
-        <div class="p-5 rounded-2xl bg-white border border-[#EAE5DF] shadow-2xs hover:border-[#75013F]/30 hover:shadow-xs transition-all">
-          <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold text-sm mb-3">
-            🏥
-          </div>
-          <h3 class="text-sm font-bold text-gray-900 mb-1">Direct Veterinary Escrow</h3>
+        <div class="p-6 rounded-2xl bg-white border border-[#EAE5DF] shadow-2xs hover:border-[#75013F]/30 transition-all">
+          <h3 class="text-sm font-bold text-gray-900 mb-2">Direct Vet Payments</h3>
           <p class="text-xs text-gray-600 leading-relaxed">
-            Emergency medical bills and routine treatments are settled directly with licensed animal clinics with zero delays.
+            Medical and emergency bills are settled directly with animal hospitals with zero out-of-pocket delays.
           </p>
         </div>
 
@@ -359,14 +273,16 @@
     </div>
   </section>
 
-  <!-- Interactive Care Estimator (Clean Single-Card Tool) -->
-  <section id="care-estimator-section" class="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+  <!-- Care Fund Estimator (Clean Tool, No Emojis) -->
+  <section id="care-estimator-section" class="py-14 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
     
     <div class="text-center max-w-lg mx-auto mb-8">
-      <span class="text-[11px] font-bold uppercase tracking-wider text-[#FE3082] block mb-1">Actuarial Calculation Tool</span>
       <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-        Estimate Your Companion's Care Reserve
+        Care Fund Estimator
       </h2>
+      <p class="text-xs sm:text-sm text-gray-500 mt-1">
+        Calculate the estimated care fund and monthly cost for your companion.
+      </p>
     </div>
 
     <!-- Estimator Card -->
@@ -375,7 +291,7 @@
       <!-- Inputs (Left 7 cols) -->
       <div class="md:col-span-7 space-y-5">
         
-        <!-- Companion Switch -->
+        <!-- Companion Switch (No Emojis) -->
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Companion Type</label>
           <div class="grid grid-cols-3 gap-2">
@@ -385,9 +301,8 @@
               [class.bg-[#75013F]]="selectedPetType === 'dog'"
               [class.text-white]="selectedPetType === 'dog'"
               [class.border-[#75013F]]="selectedPetType === 'dog'"
-              class="py-2 px-2 rounded-xl border border-gray-200 text-xs font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer hover:border-[#75013F]">
-              <span>🐕</span>
-              <span>Dog</span>
+              class="py-2.5 px-3 rounded-xl border border-gray-200 text-xs font-semibold text-center transition-all cursor-pointer hover:border-[#75013F]">
+              Dog
             </button>
 
             <button
@@ -396,9 +311,8 @@
               [class.bg-[#75013F]]="selectedPetType === 'cat'"
               [class.text-white]="selectedPetType === 'cat'"
               [class.border-[#75013F]]="selectedPetType === 'cat'"
-              class="py-2 px-2 rounded-xl border border-gray-200 text-xs font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer hover:border-[#75013F]">
-              <span>🐈</span>
-              <span>Cat</span>
+              class="py-2.5 px-3 rounded-xl border border-gray-200 text-xs font-semibold text-center transition-all cursor-pointer hover:border-[#75013F]">
+              Cat
             </button>
 
             <button
@@ -407,9 +321,8 @@
               [class.bg-[#75013F]]="selectedPetType === 'senior'"
               [class.text-white]="selectedPetType === 'senior'"
               [class.border-[#75013F]]="selectedPetType === 'senior'"
-              class="py-2 px-2 rounded-xl border border-gray-200 text-xs font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer hover:border-[#75013F]">
-              <span>🦮</span>
-              <span>Senior</span>
+              class="py-2.5 px-3 rounded-xl border border-gray-200 text-xs font-semibold text-center transition-all cursor-pointer hover:border-[#75013F]">
+              Senior
             </button>
           </div>
         </div>
@@ -450,7 +363,7 @@
       <!-- Result Box (Right 5 cols) -->
       <div class="md:col-span-5 bg-gradient-to-br from-[#75013F] to-[#550029] text-white rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4">
         <div>
-          <span class="text-[10px] text-pink-200 uppercase font-bold tracking-wider block">Lifetime Care Escrow</span>
+          <span class="text-[10px] text-pink-200 uppercase font-bold tracking-wider block">Lifetime Care Trust</span>
           <div class="text-2xl sm:text-3xl font-extrabold mt-0.5 tracking-tight">
             ${{ estimatedFund | number }}
           </div>
@@ -458,7 +371,7 @@
 
         <div class="space-y-1.5 pt-2 border-t border-white/15 text-xs">
           <div class="flex justify-between">
-            <span class="text-pink-200">Monthly Continuity:</span>
+            <span class="text-pink-200">Monthly Rate:</span>
             <span class="font-bold">${{ estimatedMonthlyRate }}/mo</span>
           </div>
           <div class="flex justify-between">
@@ -477,21 +390,21 @@
     </div>
   </section>
 
-  <!-- Clean Minimalist Bottom CTA Banner -->
-  <section class="py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+  <!-- Clean Bottom CTA Banner -->
+  <section class="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
     <div class="bg-gradient-to-r from-[#75013F] to-[#FE3082] rounded-2xl p-6 sm:p-8 text-center text-white shadow-md max-w-3xl mx-auto">
       <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight mb-2">
-        Give Your Companion Guaranteed Lifelong Security.
+        Give Your Pet Lifelong Peace of Mind.
       </h2>
       <p class="text-xs sm:text-sm text-pink-100 max-w-md mx-auto mb-5">
-        Set up legal trusts, designate caretakers, and establish policy proposals in under 3 minutes.
+        Set up a verified pet continuity plan in under 3 minutes.
       </p>
       <div class="flex items-center justify-center gap-3">
         <a
           routerLink="/auth/register"
           id="bottom-cta-register-btn"
           class="px-5 py-2.5 rounded-xl bg-white hover:bg-gray-100 text-[#75013F] font-bold text-xs uppercase tracking-wider shadow-2xs transition-all duration-200 cursor-pointer">
-          Create Free Account
+          Create Account
         </a>
         <a
           routerLink="/auth/login"
