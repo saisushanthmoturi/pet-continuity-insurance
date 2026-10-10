@@ -1,169 +1,70 @@
 <!-- ========================================================
-     PawContinuity - Clean, Minimalist Pet Continuity Landing Page
+     PawContinuity - Simple, Elegant Pet Continuity Landing Page
      ======================================================== -->
 
 <div class="min-h-screen bg-[#FAFAFA] text-gray-900 font-sans">
 
-  <!-- Hero Section -->
-  <section class="pt-10 pb-14 lg:pt-16 lg:pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-      
-      <!-- Left Column: Copy & Actions -->
-      <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
-        
-        <!-- Clean Tag -->
-        <div class="inline-block px-3.5 py-1.5 rounded-full bg-[#75013F]/8 border border-[#75013F]/15 text-[#75013F] text-xs font-semibold">
-          Pet Continuity Trust
-        </div>
-
-        <!-- Headline -->
-        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.15]">
-          Lifelong Care for Your Pets, 
-          <span class="bg-gradient-to-r from-[#75013F] to-[#FE3082] bg-clip-text text-transparent">Guaranteed</span>.
-        </h1>
-
-        <!-- Subtitle -->
-        <p class="text-sm sm:text-base text-gray-600 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-          PawContinuity legally secures care funds and trusted guardians so your pet is always protected.
-        </p>
-
-        <!-- CTAs -->
-        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
-          
-          <a
-            routerLink="/auth/register"
-            id="hero-register-btn"
-            class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#75013F] to-[#FE3082] hover:from-[#5C0132] hover:to-[#E51E6E] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
-            Get Started
-          </a>
-
-          <a
-            routerLink="/auth/login"
-            id="hero-login-btn"
-            class="w-full sm:w-auto px-5 py-3 rounded-xl bg-white hover:bg-gray-50 text-gray-700 hover:text-[#75013F] border border-gray-200 font-semibold text-xs transition-all duration-200 shadow-2xs cursor-pointer">
-            Sign In
-          </a>
-
-          <button
-            type="button"
-            (click)="scrollToEstimator()"
-            id="hero-estimator-btn"
-            class="text-xs font-semibold text-gray-500 hover:text-[#75013F] px-2 py-2 transition-colors cursor-pointer">
-            Calculate Care Fund &darr;
-          </button>
-
-        </div>
-
-        <!-- Trust Markers -->
-        <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3 text-xs text-gray-500">
-          <span>Legal Care Trust</span>
-          <span class="text-gray-300">&bull;</span>
-          <span>Verified Guardians</span>
-          <span class="text-gray-300">&bull;</span>
-          <span>Direct Vet Payments</span>
-        </div>
-
-      </div>
-
-      <!-- Right Column: Sleek Product & Policy Overview Card -->
-      <div class="lg:col-span-5 flex justify-center">
-        
-        <div class="w-full max-w-md policy-card rounded-3xl p-6 sm:p-7">
-          
-          <!-- Card Header -->
-          <div class="flex items-center justify-between pb-4 border-b border-gray-100">
-            <div>
-              <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">Policy Agreement</span>
-              <span class="text-sm font-bold text-gray-900">PawContinuity Trust</span>
-            </div>
-            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-              Guaranteed
-            </span>
-          </div>
-
-          <!-- Clean Companion Switcher -->
-          <div class="flex items-center justify-center p-1 bg-gray-100 rounded-xl my-4 border border-gray-200">
-            <button
-              type="button"
-              (click)="setPetType('dog')"
-              [class.bg-white]="selectedPetType === 'dog'"
-              [class.text-[#75013F]]="selectedPetType === 'dog'"
-              [class.shadow-2xs]="selectedPetType === 'dog'"
-              [class.font-bold]="selectedPetType === 'dog'"
-              class="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium text-gray-600 transition-all cursor-pointer">
-              Dogs
-            </button>
-            <button
-              type="button"
-              (click)="setPetType('cat')"
-              [class.bg-white]="selectedPetType === 'cat'"
-              [class.text-[#75013F]]="selectedPetType === 'cat'"
-              [class.shadow-2xs]="selectedPetType === 'cat'"
-              [class.font-bold]="selectedPetType === 'cat'"
-              class="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium text-gray-600 transition-all cursor-pointer">
-              Cats
-            </button>
-          </div>
-
-          <!-- Core Numbers Grid -->
-          <div class="grid grid-cols-2 gap-3 my-4">
-            
-            <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100">
-              <span class="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Dedicated Reserve</span>
-              <span class="text-lg font-extrabold text-[#75013F]">${{ estimatedFund | number }}</span>
-              <span class="text-[10px] text-gray-500 block mt-0.5">Held in escrow</span>
-            </div>
-
-            <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100">
-              <span class="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Monthly Allowance</span>
-              <span class="text-lg font-extrabold text-[#FE3082]">${{ monthlyExpense }}/mo</span>
-              <span class="text-[10px] text-gray-500 block mt-0.5">Automated disbursement</span>
-            </div>
-
-          </div>
-
-          <!-- Feature Checklist -->
-          <div class="space-y-2 py-3 border-t border-gray-100 text-xs text-gray-600">
-            <div class="flex items-center justify-between">
-              <span>Emergency Vet Escrow</span>
-              <span class="font-bold text-gray-800">${{ estimatedEmergencyReserve | number }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span>Primary Guardian Status</span>
-              <span class="font-semibold text-emerald-600">Verified & Protected</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span>Veterinary Hospital Payouts</span>
-              <span class="font-semibold text-gray-800">Direct Settlement</span>
-            </div>
-          </div>
-
-          <!-- Card Bottom CTA -->
-          <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
-            <div>
-              <span class="text-[10px] text-gray-400 uppercase block font-semibold">Monthly Rate</span>
-              <span class="text-xs font-bold text-gray-900">${{ estimatedMonthlyRate }}/mo</span>
-            </div>
-            <a
-              routerLink="/auth/register"
-              class="px-3.5 py-1.5 rounded-xl bg-[#75013F] hover:bg-[#FE3082] text-white text-xs font-semibold transition-all">
-              Lock In Plan &rarr;
-            </a>
-          </div>
-
-        </div>
-
-      </div>
-
+  <!-- Hero Section (Clean, Centered, Focused) -->
+  <section class="pt-16 pb-16 lg:pt-24 lg:pb-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center space-y-6">
+    
+    <!-- Clean Tag -->
+    <div class="inline-block px-4 py-1.5 rounded-full bg-[#75013F]/8 border border-[#75013F]/15 text-[#75013F] text-xs font-semibold">
+      Pet Continuity Trust
     </div>
+
+    <!-- Main Headline -->
+    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 leading-[1.12]">
+      Lifelong Care for Your Pets, 
+      <span class="bg-gradient-to-r from-[#75013F] to-[#FE3082] bg-clip-text text-transparent">Guaranteed</span>.
+    </h1>
+
+    <!-- Meaningful, Simple Sentence -->
+    <p class="text-base sm:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
+      PawContinuity legally secures care funds and trusted guardians so your pet is always protected.
+    </p>
+
+    <!-- Call to Actions -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+      <a
+        routerLink="/auth/register"
+        id="hero-register-btn"
+        class="w-full sm:w-auto px-7 py-3 rounded-xl bg-gradient-to-r from-[#75013F] to-[#FE3082] hover:from-[#5C0132] hover:to-[#E51E6E] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+        Get Started
+      </a>
+
+      <a
+        routerLink="/auth/login"
+        id="hero-login-btn"
+        class="w-full sm:w-auto px-6 py-3 rounded-xl bg-white hover:bg-gray-50 text-gray-700 hover:text-[#75013F] border border-gray-200 font-semibold text-xs transition-all duration-200 shadow-2xs cursor-pointer">
+        Sign In
+      </a>
+
+      <button
+        type="button"
+        (click)="scrollToEstimator()"
+        id="hero-estimator-btn"
+        class="text-xs font-semibold text-gray-500 hover:text-[#75013F] px-3 py-2 transition-colors cursor-pointer">
+        Calculate Care Fund &darr;
+      </button>
+    </div>
+
+    <!-- Simple Trust Indicators -->
+    <div class="pt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-gray-500">
+      <span>Legal Care Trust</span>
+      <span class="text-gray-300">&bull;</span>
+      <span>Verified Guardians</span>
+      <span class="text-gray-300">&bull;</span>
+      <span>Direct Vet Payments</span>
+    </div>
+
   </section>
 
-  <!-- How It Works (Three Core Protections) -->
-  <section class="py-12 border-t border-[#EAE5DF] bg-white px-4 sm:px-6 lg:px-8">
-    <div class="max-w-6xl mx-auto">
+  <!-- How It Works (Three Simple Safeguards) -->
+  <section class="py-14 border-t border-[#EAE5DF] bg-white px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl mx-auto">
       
-      <div class="text-center max-w-lg mx-auto mb-8">
-        <h2 class="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
+      <div class="text-center max-w-lg mx-auto mb-10">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
           How It Works
         </h2>
         <p class="text-xs sm:text-sm text-gray-500 mt-1">
@@ -174,7 +75,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <!-- Pillar 1 -->
-        <div class="p-6 rounded-2xl feature-box">
+        <div class="p-6 rounded-2xl bg-[#FAFAFA] border border-[#EAE5DF] hover:border-[#75013F]/30 transition-all">
           <h3 class="text-sm font-bold text-gray-900 mb-2">Legal Care Trust</h3>
           <p class="text-xs text-gray-600 leading-relaxed">
             Legally secured funds dedicated exclusively to your pet's future living and veterinary expenses.
@@ -182,7 +83,7 @@
         </div>
 
         <!-- Pillar 2 -->
-        <div class="p-6 rounded-2xl feature-box">
+        <div class="p-6 rounded-2xl bg-[#FAFAFA] border border-[#EAE5DF] hover:border-[#75013F]/30 transition-all">
           <h3 class="text-sm font-bold text-gray-900 mb-2">Monthly Living Stipends</h3>
           <p class="text-xs text-gray-600 leading-relaxed">
             Automated monthly living disbursements delivered directly to your chosen caretaker.
@@ -190,7 +91,7 @@
         </div>
 
         <!-- Pillar 3 -->
-        <div class="p-6 rounded-2xl feature-box">
+        <div class="p-6 rounded-2xl bg-[#FAFAFA] border border-[#EAE5DF] hover:border-[#75013F]/30 transition-all">
           <h3 class="text-sm font-bold text-gray-900 mb-2">Direct Vet Payments</h3>
           <p class="text-xs text-gray-600 leading-relaxed">
             Medical and emergency bills are settled directly with animal hospitals with zero out-of-pocket delays.
@@ -203,9 +104,9 @@
   </section>
 
   <!-- Care Fund Estimator -->
-  <section id="care-estimator-section" class="py-14 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+  <section id="care-estimator-section" class="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
     
-    <div class="text-center max-w-lg mx-auto mb-8">
+    <div class="text-center max-w-lg mx-auto mb-10">
       <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
         Care Fund Estimator
       </h2>
@@ -320,7 +221,7 @@
   </section>
 
   <!-- Clean Bottom CTA Banner -->
-  <section class="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+  <section class="py-14 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
     <div class="bg-gradient-to-r from-[#75013F] to-[#FE3082] rounded-2xl p-6 sm:p-8 text-center text-white shadow-md max-w-3xl mx-auto">
       <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight mb-2">
         Give Your Pet Lifelong Peace of Mind.
