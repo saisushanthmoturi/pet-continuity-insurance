@@ -72,7 +72,10 @@ export class LoginEffects {
           localStorage.removeItem('token');
           localStorage.removeItem('role');
           localStorage.removeItem('currentUser');
-          this.router.navigate(['auth/login']);
+          const path = window.location.pathname;
+          if (!path.includes('/auth/login') && !path.includes('/auth/register')) {
+            this.router.navigate(['auth/login']);
+          }
         })
       ),
     { dispatch: false }

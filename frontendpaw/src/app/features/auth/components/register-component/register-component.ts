@@ -31,7 +31,6 @@ export class RegisterComponent implements OnInit {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('currentUser');
-    this.store.dispatch(logout());
     this.store.dispatch(resetCustomerState());
   }
 
