@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './guards/authGuard';
 import { roleGuard } from './guards/roleGuard';
 
+import { LandingPageComponent } from './features/common/components/landing-page/landing-page';
 import { LoginComponent } from './features/auth/components/login-component/login-component';
 import { RegisterComponent } from './features/auth/components/register-component/register-component';
 import { CustomerDashboardComponent } from './features/customer/components/customer-dashboard/customer-dashboard';
@@ -12,7 +13,8 @@ import { CaretakerDashboardComponent } from './features/caretaker/components/car
 import { AdminDashboardComponent } from './features/admin/components/admin-dashboard/admin-dashboard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'customer', pathMatch: 'full' },
+  { path: '', component: LandingPageComponent },
+  { path: 'home', redirectTo: '', pathMatch: 'full' },
   { path: 'auth/login', component: LoginComponent },
   { path: 'auth/register', component: RegisterComponent },
   {
@@ -49,5 +51,5 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['ROLE_ADMIN', 'ADMIN'] }
   },
-  { path: '**', redirectTo: 'customer' }
+  { path: '**', redirectTo: '' }
 ];

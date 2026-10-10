@@ -1,0 +1,655 @@
+<!-- ========================================================
+     PawContinuity - Premium Animated Pet Landing Page
+     ======================================================== -->
+
+<div class="relative min-h-screen bg-[#FAFAFA] text-gray-900 overflow-hidden font-sans">
+
+  <!-- Ambient Animated Background Gradients & Floating Paw Prints -->
+  <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
+    <!-- Gradient Blobs -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-[#75013F]/8 blur-3xl"></div>
+    <div class="absolute top-1/4 -right-32 w-96 h-96 rounded-full bg-[#FE3082]/10 blur-3xl"></div>
+    <div class="absolute bottom-1/3 left-1/4 w-80 h-80 rounded-full bg-[#75013F]/5 blur-3xl"></div>
+
+    <!-- Floating Paws -->
+    <div class="absolute bottom-10 left-[10%] text-[#75013F]/20 text-3xl floating-paw-1 select-none">🐾</div>
+    <div class="absolute bottom-20 left-[35%] text-[#FE3082]/25 text-4xl floating-paw-2 select-none">🐾</div>
+    <div class="absolute bottom-5 right-[20%] text-[#75013F]/20 text-3xl floating-paw-3 select-none">🐾</div>
+    <div class="absolute bottom-32 right-[45%] text-[#FE3082]/20 text-2xl floating-paw-4 select-none">🐾</div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="relative z-10 pt-10 pb-16 lg:pt-16 lg:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      
+      <!-- Hero Copy Column (Left) -->
+      <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+        
+        <!-- Trust Pill Tag -->
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#75013F]/8 border border-[#75013F]/20 text-[#75013F] text-xs font-semibold shadow-2xs">
+          <span class="w-2 h-2 rounded-full bg-[#FE3082] animate-ping"></span>
+          <span>Legal Fiduciary Pet Assurance Trust</span>
+          <span class="text-gray-300">•</span>
+          <span class="text-[#FE3082] font-bold">100% Guaranteed Continuity</span>
+        </div>
+
+        <!-- Main Headline -->
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#000000] leading-[1.12]">
+          Because Their Lifelong Care Should Never Depend on 
+          <span class="bg-gradient-to-r from-[#75013F] via-[#B8215F] to-[#FE3082] bg-clip-text text-transparent">Chance</span>.
+        </h1>
+
+        <!-- Subheading -->
+        <p class="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+          PawContinuity legally secures dedicated care funds, vetted guardian networks, and automated monthly living stipends for your dogs and cats. If life changes, their love, food, and veterinary safety never stop.
+        </p>
+
+        <!-- CTA Buttons Group -->
+        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
+          
+          <!-- Primary CTA -->
+          <a
+            routerLink="/auth/register"
+            id="hero-register-btn"
+            class="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-[#75013F] to-[#FE3082] hover:from-[#5C0132] hover:to-[#E51E6E] text-white font-bold text-sm tracking-wide shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 flex items-center justify-center space-x-2 cursor-pointer">
+            <span>Protect Your Pet Today</span>
+            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </a>
+
+          <!-- Secondary CTA: Estimator Smooth Scroll -->
+          <button
+            type="button"
+            (click)="scrollToEstimator()"
+            id="hero-estimator-btn"
+            class="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-white hover:bg-gray-50 text-[#75013F] border border-gray-300/80 hover:border-[#75013F]/50 font-semibold text-sm transition-all duration-200 shadow-2xs flex items-center justify-center space-x-2 cursor-pointer">
+            <svg class="w-4 h-4 text-[#FE3082]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            <span>Calculate Care Fund</span>
+          </button>
+
+          <!-- Sign In Link -->
+          <a
+            routerLink="/auth/login"
+            id="hero-login-btn"
+            class="text-xs font-semibold text-gray-500 hover:text-[#75013F] px-3 py-2 transition-colors">
+            Already Protected? <span class="text-[#75013F] underline ml-0.5">Sign In</span>
+          </a>
+        </div>
+
+        <!-- Trust Badges List -->
+        <div class="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-gray-500">
+          <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Legally Binding Fiduciary Trust</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Verified Guardian Network</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Licensed Vet Escrow Reserve</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Hero Animated Pet Stage Column (Right) -->
+      <div class="lg:col-span-5 relative flex items-center justify-center">
+        
+        <!-- Main Circular Glow Backdrop -->
+        <div class="relative w-72 h-72 sm:w-88 sm:h-88 rounded-full bg-gradient-to-tr from-[#75013F]/15 via-[#FE3082]/20 to-white/60 p-4 shadow-xl border border-white flex items-center justify-center">
+          
+          <!-- Inner Ring with pulse glow -->
+          <div class="w-full h-full rounded-full bg-white/90 backdrop-blur-md border border-[#EAE5DF] flex items-center justify-center relative overflow-hidden">
+            
+            <!-- Animated SVG Pets Duo -->
+            <svg class="w-64 h-64 sm:w-76 sm:h-76" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+              
+              <!-- Subtle Shadow Ground -->
+              <ellipse cx="160" cy="275" rx="100" ry="12" fill="#EAE5DF" opacity="0.65"/>
+
+              <!-- ================= DOG (Left Side) ================= -->
+              <g id="dog-group" transform="translate(45, 75)">
+                
+                <!-- Dog Wagging Tail -->
+                <path class="animate-tail-wag" d="M35 155 C15 145, 5 125, 12 110 C18 95, 30 115, 38 135" stroke="#E6A857" stroke-width="12" stroke-linecap="round" fill="none"/>
+                
+                <!-- Dog Body -->
+                <path d="M35 145 C35 115, 70 110, 95 125 C115 140, 115 175, 95 185 C70 195, 35 180, 35 145 Z" fill="#F4B860"/>
+                
+                <!-- Dog Back Leg & Paws -->
+                <ellipse cx="45" cy="182" rx="14" ry="10" fill="#E6A857"/>
+                <ellipse cx="85" cy="182" rx="14" ry="10" fill="#E6A857"/>
+
+                <!-- Dog Collar in brand Plum & Gold Charm -->
+                <path d="M72 112 C78 116, 92 116, 98 112" stroke="#75013F" stroke-width="6" stroke-linecap="round"/>
+                <circle cx="85" cy="120" r="5" fill="#FE3082"/>
+
+                <!-- Dog Head -->
+                <circle cx="85" cy="85" r="32" fill="#F4B860"/>
+                <ellipse cx="85" cy="95" rx="18" ry="14" fill="#FBD598"/>
+
+                <!-- Left Ear (Animated Wiggle) -->
+                <path class="animate-ear-left" d="M60 70 C50 78, 48 102, 58 110 C68 118, 72 90, 68 72 Z" fill="#D89239"/>
+
+                <!-- Right Ear (Animated Wiggle) -->
+                <path class="animate-ear-right" d="M110 70 C120 78, 122 102, 112 110 C102 118, 98 90, 102 72 Z" fill="#D89239"/>
+
+                <!-- Eyes (Animated Blink) -->
+                <g class="animate-eye-blink">
+                  <ellipse cx="76" cy="82" rx="4" ry="4.5" fill="#2D1515"/>
+                  <circle cx="77.5" cy="80.5" r="1.5" fill="white"/>
+                  <ellipse cx="94" cy="82" rx="4" ry="4.5" fill="#2D1515"/>
+                  <circle cx="95.5" cy="80.5" r="1.5" fill="white"/>
+                </g>
+
+                <!-- Dog Nose -->
+                <path d="M81 92 C83 89, 87 89, 89 92 C90 94, 85 97, 85 97 C85 97, 80 94, 81 92 Z" fill="#3D1D1D"/>
+                
+                <!-- Mouth line -->
+                <path d="M85 97 L85 102 M81 102 Q85 105 89 102" stroke="#3D1D1D" stroke-width="1.8" stroke-linecap="round"/>
+
+                <!-- Happy Panting Tongue -->
+                <path class="animate-tongue" d="M83 103 C83 108, 87 108, 87 103 Z" fill="#FE3082"/>
+
+              </g>
+
+              <!-- ================= CAT (Right Side) ================= -->
+              <g id="cat-group" class="animate-cat-purr" transform="translate(145, 95)">
+                
+                <!-- Cat Swishing Tail -->
+                <path class="animate-cat-tail" d="M95 145 C115 145, 125 120, 118 100 C115 90, 108 95, 110 105" stroke="#75013F" stroke-width="8" stroke-linecap="round" fill="none"/>
+
+                <!-- Cat Body -->
+                <ellipse cx="55" cy="140" rx="30" ry="24" fill="#3A3036"/>
+                <path d="M35 130 C45 125, 65 125, 75 130 C80 145, 75 160, 55 162 C35 160, 30 145, 35 130 Z" fill="#F8F6F4"/>
+
+                <!-- Cat Front Paws -->
+                <ellipse cx="45" cy="162" rx="8" ry="6" fill="#F8F6F4"/>
+                <ellipse cx="65" cy="162" rx="8" ry="6" fill="#F8F6F4"/>
+
+                <!-- Cat Collar in Vibrant Pink -->
+                <path d="M42 110 C50 114, 60 114, 68 110" stroke="#FE3082" stroke-width="4.5" stroke-linecap="round"/>
+                <circle cx="55" cy="116" r="3.5" fill="#FFD700"/>
+
+                <!-- Cat Head -->
+                <circle cx="55" cy="85" r="24" fill="#3A3036"/>
+                <ellipse cx="55" cy="92" rx="16" ry="11" fill="#F8F6F4"/>
+
+                <!-- Left Cat Ear (Pointy) -->
+                <polygon points="37,70 33,50 48,65" fill="#3A3036"/>
+                <polygon points="38,68 35,54 46,65" fill="#FE3082" opacity="0.6"/>
+
+                <!-- Right Cat Ear (Pointy) -->
+                <polygon points="62,65 77,50 73,70" fill="#3A3036"/>
+                <polygon points="64,65 75,54 72,68" fill="#FE3082" opacity="0.6"/>
+
+                <!-- Cat Eyes (Animated Blink) -->
+                <g class="animate-eye-blink">
+                  <ellipse cx="46" cy="84" rx="3.5" ry="4" fill="#6EE7B7"/>
+                  <ellipse cx="46" cy="84" rx="1.5" ry="3.5" fill="#064E3B"/>
+                  <circle cx="47" cy="82.5" r="1" fill="white"/>
+
+                  <ellipse cx="64" cy="84" rx="3.5" ry="4" fill="#6EE7B7"/>
+                  <ellipse cx="64" cy="84" rx="1.5" ry="3.5" fill="#064E3B"/>
+                  <circle cx="65" cy="82.5" r="1" fill="white"/>
+                </g>
+
+                <!-- Cat Nose & Whiskers -->
+                <polygon points="53,91 57,91 55,93" fill="#FE3082"/>
+                <path d="M42 92 L28 89 M42 94 L26 95 M42 96 L29 100" stroke="#EAE5DF" stroke-width="1.2" stroke-linecap="round"/>
+                <path d="M68 92 L82 89 M68 94 L84 95 M68 96 L81 100" stroke="#EAE5DF" stroke-width="1.2" stroke-linecap="round"/>
+
+              </g>
+
+              <!-- Animated Floating Heart over pets -->
+              <g class="animate-heartbeat" transform="translate(150, 48)">
+                <path d="M10 5 C10 0, 0 0, 0 8 C0 14, 10 20, 10 20 C10 20, 20 14, 20 8 C20 0, 10 0, 10 5 Z" fill="#FE3082"/>
+              </g>
+
+            </svg>
+
+          </div>
+
+          <!-- Floating Badge 1: Top Right Care Fund -->
+          <div class="absolute -top-3 -right-4 glass-panel px-3.5 py-2 rounded-2xl shadow-md border border-[#EAE5DF] animate-float-slow flex items-center space-x-2">
+            <div class="w-7 h-7 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold text-xs">
+              $
+            </div>
+            <div class="leading-tight text-left">
+              <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Dedicated Care Trust</span>
+              <span class="text-xs font-bold text-gray-900">,000 Active</span>
+            </div>
+          </div>
+
+          <!-- Floating Badge 2: Bottom Left Guardian Verified -->
+          <div class="absolute -bottom-4 -left-4 glass-panel px-3.5 py-2 rounded-2xl shadow-md border border-[#EAE5DF] animate-float-delayed flex items-center space-x-2">
+            <div class="w-7 h-7 rounded-xl bg-[#75013F]/10 text-[#75013F] flex items-center justify-center font-bold text-xs">
+              🛡️
+            </div>
+            <div class="leading-tight text-left">
+              <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Guardian Assigned</span>
+              <span class="text-xs font-bold text-gray-900">Dr. Emily • Primary</span>
+            </div>
+          </div>
+
+          <!-- Floating Badge 3: Monthly Allowance Payout -->
+          <div class="absolute -bottom-2 right-2 glass-panel px-3 py-1.5 rounded-xl shadow-xs border border-gray-200 text-left">
+            <span class="text-[10px] text-emerald-600 font-bold flex items-center">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+              /mo Living Stipend
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Live Trust Metrics Strip -->
+  <section class="border-y border-[#EAE5DF] bg-white py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+      
+      <div class="p-3">
+        <div class="text-3xl sm:text-4xl font-extrabold text-[#75013F] tracking-tight">.4M+</div>
+        <div class="text-xs font-medium text-gray-500 mt-1 uppercase tracking-wider">Dedicated Care Trusts Secured</div>
+      </div>
+
+      <div class="p-3">
+        <div class="text-3xl sm:text-4xl font-extrabold text-[#FE3082] tracking-tight">1,250+</div>
+        <div class="text-xs font-medium text-gray-500 mt-1 uppercase tracking-wider">Pets Permanently Protected</div>
+      </div>
+
+      <div class="p-3">
+        <div class="text-3xl sm:text-4xl font-extrabold text-[#75013F] tracking-tight">99.8%</div>
+        <div class="text-xs font-medium text-gray-500 mt-1 uppercase tracking-wider">Adjudication Accuracy & Speed</div>
+      </div>
+
+      <div class="p-3">
+        <div class="text-3xl sm:text-4xl font-extrabold text-emerald-600 tracking-tight">&lt; 24 hrs</div>
+        <div class="text-xs font-medium text-gray-500 mt-1 uppercase tracking-wider">Emergency Guardian Activation</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Interactive Pet Care Fund Estimator Section -->
+  <section id="care-estimator-section" class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div class="text-center max-w-3xl mx-auto mb-12">
+      <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#FE3082]/10 text-[#FE3082] text-xs font-bold mb-3">
+        <span>🐾 Interactive Actuarial Estimator</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+        Calculate Your Pet's Forever Care Trust
+      </h2>
+      <p class="text-sm sm:text-base text-gray-600 mt-2">
+        Customize your companion's age and expected lifestyle to see the exact legal care fund and monthly continuity premium required.
+      </p>
+    </div>
+
+    <div class="bg-white border border-[#EAE5DF] rounded-3xl shadow-sm p-6 sm:p-10 max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      
+      <!-- Calculator Controls (Left 7 Cols) -->
+      <div class="lg:col-span-7 space-y-6">
+        
+        <!-- Companion Type Selector -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">1. Select Companion Type</label>
+          <div class="grid grid-cols-3 gap-2.5">
+            <button
+              type="button"
+              (click)="setPetType('dog')"
+              [class.bg-[#75013F]]="selectedPetType === 'dog'"
+              [class.text-white]="selectedPetType === 'dog'"
+              [class.border-[#75013F]]="selectedPetType === 'dog'"
+              class="py-3 px-3 rounded-2xl border border-gray-200 text-xs font-bold flex flex-col items-center justify-center space-y-1 transition-all cursor-pointer hover:border-[#75013F]">
+              <span class="text-xl">🐕</span>
+              <span>Canine Companion</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="setPetType('cat')"
+              [class.bg-[#75013F]]="selectedPetType === 'cat'"
+              [class.text-white]="selectedPetType === 'cat'"
+              [class.border-[#75013F]]="selectedPetType === 'cat'"
+              class="py-3 px-3 rounded-2xl border border-gray-200 text-xs font-bold flex flex-col items-center justify-center space-y-1 transition-all cursor-pointer hover:border-[#75013F]">
+              <span class="text-xl">🐈</span>
+              <span>Feline Companion</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="setPetType('senior')"
+              [class.bg-[#75013F]]="selectedPetType === 'senior'"
+              [class.text-white]="selectedPetType === 'senior'"
+              [class.border-[#75013F]]="selectedPetType === 'senior'"
+              class="py-3 px-3 rounded-2xl border border-gray-200 text-xs font-bold flex flex-col items-center justify-center space-y-1 transition-all cursor-pointer hover:border-[#75013F]">
+              <span class="text-xl">🦮</span>
+              <span>Senior Companion</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Companion Age Slider -->
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-gray-500">2. Current Age</label>
+            <span class="text-sm font-extrabold text-[#75013F]">{{ petAgeYears }} Years Old</span>
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="14"
+            [ngModel]="petAgeYears"
+            (ngModelChange)="onAgeChange()"
+            class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer"/>
+          <div class="flex justify-between text-[10px] text-gray-400 mt-1">
+            <span>1 Year (Puppy/Kitten)</span>
+            <span>7 Years (Adult)</span>
+            <span>14+ Years (Senior)</span>
+          </div>
+        </div>
+
+        <!-- Monthly Living Expense Slider -->
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-gray-500">3. Estimated Monthly Living & Food Expense</label>
+            <span class="text-sm font-extrabold text-[#FE3082]">${{ monthlyExpense }}/month</span>
+          </div>
+          <input
+            type="range"
+            min="50"
+            max="350"
+            step="10"
+            [ngModel]="monthlyExpense"
+            (ngModelChange)="onExpenseChange()"
+            class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer"/>
+          <div class="flex justify-between text-[10px] text-gray-400 mt-1">
+            <span> - /mo (Standard)</span>
+            <span> - /mo (Active/Nutrition)</span>
+            <span> - /mo (Special Needs/Prescription)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Result Card (Right 5 Cols) -->
+      <div class="lg:col-span-5 bg-gradient-to-br from-[#75013F] to-[#50002A] text-white rounded-2xl p-6 sm:p-7 shadow-lg flex flex-col justify-between space-y-6">
+        <div>
+          <div class="inline-block px-2.5 py-1 rounded-full bg-white/10 text-xs font-semibold uppercase tracking-wider mb-3">
+            Estimated Care Escrow
+          </div>
+          <div class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+            ${{ estimatedFund | number }}
+          </div>
+          <p class="text-xs text-pink-200 mt-1">
+            Fully funded continuity trust ensuring guaranteed lifelong guardian upkeep and medical care.
+          </p>
+        </div>
+
+        <!-- Metrics Breakout -->
+        <div class="space-y-3 pt-2 border-t border-white/15 text-xs">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-300">Monthly Continuity Premium:</span>
+            <span class="font-bold text-white text-sm">${{ estimatedMonthlyRate }}/mo</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-300">Emergency Vet Escrow Reserve:</span>
+            <span class="font-bold text-emerald-400">${{ estimatedEmergencyReserve | number }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-300">Fiduciary Legal Protection:</span>
+            <span class="font-bold text-pink-300">Included</span>
+          </div>
+        </div>
+
+        <!-- Lock In Proposal CTA Button -->
+        <a
+          routerLink="/auth/register"
+          class="w-full py-3 px-4 rounded-xl bg-white hover:bg-[#FE3082] text-[#75013F] hover:text-white font-bold text-xs uppercase tracking-wider text-center transition-all duration-200 shadow-sm block cursor-pointer">
+          Lock In This Care Plan
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- How It Works Section (The 4 Continuity Pillars) -->
+  <section class="py-16 bg-[#FAFAFA] border-t border-[#EAE5DF] px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div class="text-center max-w-2xl mx-auto mb-14">
+      <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#75013F]/10 text-[#75013F] text-xs font-bold mb-3">
+        <span>The PawContinuity Guarantee</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+        How Continuity Protection Operates
+      </h2>
+      <p class="text-sm sm:text-base text-gray-600 mt-2">
+        A seamless blend of legal trust instruments, digital allowance distribution, and ongoing caretaker verification.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      
+      <!-- Card 1 -->
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-2xs hover:shadow-md hover:border-[#75013F]/40 transition-all duration-200 group">
+        <div class="w-12 h-12 rounded-xl bg-[#75013F]/10 text-[#75013F] flex items-center justify-center font-bold text-xl mb-4 group-hover:bg-[#75013F] group-hover:text-white transition-all">
+          1
+        </div>
+        <h3 class="text-base font-bold text-gray-900 mb-2">Dedicated Care Trust</h3>
+        <p class="text-xs text-gray-600 leading-relaxed">
+          We establish an actuarially calculated escrow care fund specifically earmarked for your pet's future needs, protected from third-party probate disputes.
+        </p>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-2xs hover:shadow-md hover:border-[#75013F]/40 transition-all duration-200 group">
+        <div class="w-12 h-12 rounded-xl bg-[#FE3082]/10 text-[#FE3082] flex items-center justify-center font-bold text-xl mb-4 group-hover:bg-[#FE3082] group-hover:text-white transition-all">
+          2
+        </div>
+        <h3 class="text-base font-bold text-gray-900 mb-2">Designate Guardians</h3>
+        <p class="text-xs text-gray-600 leading-relaxed">
+          Assign trusted friends, family, or partners as Primary and Backup caretakers. If unavailable, our vetted licensed caregiver sanctuary network steps in.
+        </p>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-2xs hover:shadow-md hover:border-[#75013F]/40 transition-all duration-200 group">
+        <div class="w-12 h-12 rounded-xl bg-[#75013F]/10 text-[#75013F] flex items-center justify-center font-bold text-xl mb-4 group-hover:bg-[#75013F] group-hover:text-white transition-all">
+          3
+        </div>
+        <h3 class="text-base font-bold text-gray-900 mb-2">Automated Stipends</h3>
+        <p class="text-xs text-gray-600 leading-relaxed">
+          Upon claim verification, automated monthly care allowances are disbursed to the guardian for nutritious food, grooming, and standard daily essentials.
+        </p>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-2xs hover:shadow-md hover:border-[#75013F]/40 transition-all duration-200 group">
+        <div class="w-12 h-12 rounded-xl bg-[#FE3082]/10 text-[#FE3082] flex items-center justify-center font-bold text-xl mb-4 group-hover:bg-[#FE3082] group-hover:text-white transition-all">
+          4
+        </div>
+        <h3 class="text-base font-bold text-gray-900 mb-2">Direct Vet Escrow</h3>
+        <p class="text-xs text-gray-600 leading-relaxed">
+          Veterinary emergencies and regular treatments are settled directly with licensed animal clinics via our dedicated medical reserve account.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Animated Companion Showcase Section -->
+  <section class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
+      <div>
+        <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#75013F]/10 text-[#75013F] text-xs font-bold mb-2">
+          <span>Protected Breeds & Companions</span>
+        </div>
+        <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">
+          Every Companion Deserves Forever Peace
+        </h2>
+      </div>
+
+      <!-- Showcase Filter Chips -->
+      <div class="flex items-center space-x-2 mt-4 md:mt-0">
+        <button
+          type="button"
+          (click)="setShowcaseFilter('all')"
+          [class.bg-[#75013F]]="selectedShowcase === 'all'"
+          [class.text-white]="selectedShowcase === 'all'"
+          class="px-3.5 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold transition-all cursor-pointer">
+          All
+        </button>
+        <button
+          type="button"
+          (click)="setShowcaseFilter('dogs')"
+          [class.bg-[#75013F]]="selectedShowcase === 'dogs'"
+          [class.text-white]="selectedShowcase === 'dogs'"
+          class="px-3.5 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold transition-all cursor-pointer">
+          Dogs
+        </button>
+        <button
+          type="button"
+          (click)="setShowcaseFilter('cats')"
+          [class.bg-[#75013F]]="selectedShowcase === 'cats'"
+          [class.text-white]="selectedShowcase === 'cats'"
+          class="px-3.5 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold transition-all cursor-pointer">
+          Cats
+        </button>
+        <button
+          type="button"
+          (click)="setShowcaseFilter('seniors')"
+          [class.bg-[#75013F]]="selectedShowcase === 'seniors'"
+          [class.text-white]="selectedShowcase === 'seniors'"
+          class="px-3.5 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold transition-all cursor-pointer">
+          Senior Pets
+        </button>
+      </div>
+    </div>
+
+    <!-- Pet Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <div
+        *ngFor="let pet of filteredPets"
+        class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-2xs hover:shadow-md hover:border-[#75013F]/30 transition-all duration-200 flex flex-col justify-between">
+        
+        <div>
+          <!-- Header with Avatar & Badge -->
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center space-x-3">
+              <div
+                [style.background-color]="pet.avatarColor"
+                class="w-12 h-12 rounded-2xl text-white font-extrabold text-lg flex items-center justify-center shadow-sm">
+                {{ pet.name.charAt(0) }}
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-gray-900 leading-tight">{{ pet.name }}</h3>
+                <span class="text-xs text-gray-500">{{ pet.breed }} • {{ pet.age }}</span>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#75013F]/10 text-[#75013F]">
+              {{ pet.badge }}
+            </span>
+          </div>
+
+          <p class="text-xs text-gray-600 leading-relaxed mb-4">
+            {{ pet.highlight }}
+          </p>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-gray-400 font-bold uppercase block">Target Trust</span>
+            <span class="text-sm font-extrabold text-[#75013F]">${{ pet.careFund | number }}</span>
+          </div>
+          <a
+            routerLink="/auth/register"
+            class="text-xs font-bold text-[#FE3082] hover:text-[#75013F] transition-colors flex items-center space-x-1">
+            <span>Secure Plan</span>
+            <span>&rarr;</span>
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="py-16 bg-white border-t border-[#EAE5DF] px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">
+        Frequently Asked Questions
+      </h2>
+      <p class="text-xs sm:text-sm text-gray-500 mt-2">
+        Clear answers about our pet continuity trusts, guardian rules, and payment guarantees.
+      </p>
+    </div>
+
+    <div class="space-y-4">
+      <div
+        *ngFor="let item of faqs; let i = index"
+        class="border border-[#EAE5DF] rounded-2xl overflow-hidden transition-all">
+        <button
+          type="button"
+          (click)="toggleFaq(i)"
+          class="w-full px-6 py-4 text-left flex justify-between items-center bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer">
+          <span class="text-sm font-bold text-gray-900">{{ item.question }}</span>
+          <span class="text-gray-400 font-bold text-lg ml-4">{{ item.open ? '−' : '+' }}</span>
+        </button>
+        <div *ngIf="item.open" class="px-6 py-4 text-xs text-gray-600 leading-relaxed bg-white border-t border-[#EAE5DF]">
+          {{ item.answer }}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final High-Impact Bottom CTA Banner -->
+  <section class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div class="bg-gradient-to-r from-[#75013F] via-[#940E4F] to-[#FE3082] rounded-3xl p-8 sm:p-14 text-center text-white shadow-xl relative overflow-hidden">
+      
+      <!-- Decorative paw watermarks -->
+      <div class="absolute -right-8 -bottom-8 text-white/10 text-9xl select-none font-bold">🐾</div>
+      <div class="absolute -left-8 -top-8 text-white/10 text-9xl select-none font-bold">🐾</div>
+
+      <div class="relative z-10 max-w-2xl mx-auto space-y-6">
+        <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+          Give Your Companion The Forever Care They Deserve.
+        </h2>
+        <p class="text-sm sm:text-base text-pink-100 font-normal">
+          Takes under 3 minutes to register your pets, designate caretakers, and establish an official continuity proposal.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
+          <a
+            routerLink="/auth/register"
+            id="bottom-cta-register-btn"
+            class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-white hover:bg-gray-100 text-[#75013F] font-bold text-sm tracking-wide shadow-md transition-all duration-200 transform hover:-translate-y-0.5 cursor-pointer">
+            Create Free Account
+          </a>
+          <a
+            routerLink="/auth/login"
+            id="bottom-cta-login-btn"
+            class="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-black/20 hover:bg-black/30 border border-white/30 text-white font-semibold text-sm transition-all duration-200 cursor-pointer">
+            Sign In to Dashboard
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
