@@ -14,48 +14,124 @@
       <p class="text-xs text-gray-500 mt-1">Register to secure lifelong continuity care for your pets</p>
     </div>
 
-    <!-- Error Alert -->
-    <div *ngIf="(signupStatus$ | async)?.error as errorMsg" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
-      {{ errorMsg }}
+    <!-- Backend Error Alert -->
+    <div *ngIf="(signupStatus$ | async)?.error as errorMsg" class="mb-4 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium flex items-start space-x-2">
+      <svg class="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ errorMsg }}</span>
     </div>
 
-    <form (ngSubmit)="onSubmit()" class="space-y-4">
+    <!-- Client Form Error Alert -->
+    <div *ngIf="clientErrorMessage" class="mb-4 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-medium flex items-start space-x-2">
+      <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <span>{{ clientErrorMessage }}</span>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="space-y-4" novalidate>
+      <!-- Username / Full Name -->
       <div>
-        <label for="fullName" class="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
+        <div class="flex items-center justify-between mb-1">
+          <label for="fullName" class="block text-xs font-semibold text-gray-700">Username / Full Name</label>
+          <span class="text-[10px] text-gray-400">Must contain letters (not only numbers)</span>
+        </div>
         <input
           id="fullName"
           name="fullName"
           type="text"
           required
           [(ngModel)]="fullName"
+          (blur)="fullNameTouched = true"
           placeholder="e.g. Alex Morgan"
+          [class.border-red-400]="fullNameTouched && fullNameError"
+          [class.focus:ring-red-400]="fullNameTouched && fullNameError"
+          [class.border-emerald-400]="fullNameTouched && !fullNameError && fullName"
           class="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] focus:border-transparent transition-all" />
+        <p *ngIf="fullNameTouched && fullNameError" class="text-[11px] text-red-600 mt-1 flex items-center space-x-1 font-medium">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <span>{{ fullNameError }}</span>
+        </p>
       </div>
 
+      <!-- Email Address -->
       <div>
-        <label for="regEmail" class="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
+        <div class="flex items-center justify-between mb-1">
+          <label for="regEmail" class="block text-xs font-semibold text-gray-700">Email Address</label>
+          <span class="text-[10px] text-gray-400">1 account per email</span>
+        </div>
         <input
           id="regEmail"
           name="regEmail"
           type="email"
           required
           [(ngModel)]="email"
+          (blur)="emailTouched = true"
           placeholder="e.g. alex.morgan@example.com"
+          [class.border-red-400]="emailTouched && emailError"
+          [class.focus:ring-red-400]="emailTouched && emailError"
+          [class.border-emerald-400]="emailTouched && !emailError && email"
           class="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] focus:border-transparent transition-all" />
+        <p *ngIf="emailTouched && emailError" class="text-[11px] text-red-600 mt-1 flex items-center space-x-1 font-medium">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <span>{{ emailError }}</span>
+        </p>
       </div>
 
+      <!-- Password -->
       <div>
-        <label for="regPassword" class="block text-xs font-semibold text-gray-700 mb-1">Password</label>
+        <div class="flex items-center justify-between mb-1">
+          <label for="regPassword" class="block text-xs font-semibold text-gray-700">Password</label>
+          <span class="text-[10px] text-gray-400">Min 6 characters</span>
+        </div>
         <input
           id="regPassword"
           name="regPassword"
           type="password"
           required
           [(ngModel)]="password"
+          (blur)="passwordTouched = true"
           placeholder="Choose secure password"
+          [class.border-red-400]="passwordTouched && passwordError"
+          [class.focus:ring-red-400]="passwordTouched && passwordError"
+          [class.border-emerald-400]="passwordTouched && !passwordError && password"
           class="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] focus:border-transparent transition-all" />
+        <p *ngIf="passwordTouched && passwordError" class="text-[11px] text-red-600 mt-1 flex items-center space-x-1 font-medium">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <span>{{ passwordError }}</span>
+        </p>
       </div>
 
+      <!-- Confirm Password -->
+      <div>
+        <label for="confirmPassword" class="block text-xs font-semibold text-gray-700 mb-1">Confirm Password</label>
+        <input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          [(ngModel)]="confirmPassword"
+          (blur)="confirmPasswordTouched = true"
+          placeholder="Re-enter your password"
+          [class.border-red-400]="confirmPasswordTouched && confirmPasswordError"
+          [class.focus:ring-red-400]="confirmPasswordTouched && confirmPasswordError"
+          [class.border-emerald-400]="confirmPasswordTouched && !confirmPasswordError && confirmPassword"
+          class="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F] focus:border-transparent transition-all" />
+        <p *ngIf="confirmPasswordTouched && confirmPasswordError" class="text-[11px] text-red-600 mt-1 flex items-center space-x-1 font-medium">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <span>{{ confirmPasswordError }}</span>
+        </p>
+      </div>
+
+      <!-- Role Selector -->
       <div>
         <label for="role" class="block text-xs font-semibold text-gray-700 mb-1">Account Role</label>
         <select
@@ -70,13 +146,20 @@
         </select>
       </div>
 
+      <!-- Submit Button -->
       <button
         type="submit"
         id="register-submit-button"
-        [disabled]="(signupStatus$ | async)?.loading"
-        class="w-full py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#75013F] transition-all shadow-sm disabled:opacity-50">
+        [disabled]="!isFormValid() || (signupStatus$ | async)?.loading"
+        class="w-full py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#75013F] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
         <span *ngIf="!(signupStatus$ | async)?.loading">Complete Registration</span>
-        <span *ngIf="(signupStatus$ | async)?.loading">Registering...</span>
+        <span *ngIf="(signupStatus$ | async)?.loading" class="flex items-center justify-center space-x-2">
+          <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <span>Registering...</span>
+        </span>
       </button>
     </form>
 

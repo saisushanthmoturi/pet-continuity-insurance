@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { UserDTO } from '../models/adminDTO';
 
 @Injectable({
@@ -15,7 +15,16 @@ export class AdminService {
   }
 
   getAllPolicies(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/policies`);
+    return this.http.get<any[]>(`${this.apiUrl}/policies`).pipe(
+      map((list: any[]) =>
+        (list || []).map((res) => ({
+          ...res,
+          policyId: res.id || res.policyId,
+          premiumAmount: res.premiumAmount ?? (res.monthlyPremium != null ? Math.round(res.monthlyPremium * 12 * 100) / 100 : 0),
+          monthlyPremium: res.monthlyPremium ?? (res.premiumAmount != null ? Math.round((res.premiumAmount / 12) * 100) / 100 : 0)
+        }))
+      )
+    );
   }
 
   getAllFunds(): Observable<any[]> {

@@ -225,6 +225,14 @@
 
     <!-- Register New Pet Form -->
     <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+      <!-- Pet Error Alert -->
+      <div *ngIf="petErrorMessage" class="mb-4 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium flex items-center space-x-2">
+        <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>{{ petErrorMessage }}</span>
+      </div>
+
       <div class="flex items-center justify-between mb-4">
         <div>
           <h3 class="text-base font-bold text-gray-900">Register New Pet</h3>
@@ -295,12 +303,25 @@
             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-gray-700 mb-1">Microchip ID</label>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-semibold text-gray-700">Microchip ID</label>
+            <span class="text-[10px] text-gray-400">9-digit number</span>
+          </div>
           <input
             type="text"
             [(ngModel)]="newPet.microchipId"
+            (blur)="petMicrochipTouched = true"
+            maxlength="9"
             placeholder="e.g. 985141002"
+            [class.border-red-500]="petMicrochipTouched && petMicrochipError"
+            [class.focus:ring-red-500]="petMicrochipTouched && petMicrochipError"
             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+          <p *ngIf="petMicrochipTouched && petMicrochipError" class="text-[11px] text-red-600 mt-1 flex items-center space-x-1 font-medium">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ petMicrochipError }}</span>
+          </p>
         </div>
       </div>
 
@@ -575,22 +596,48 @@
               placeholder="e.g. Michael Miller"
               class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
           </div>
+          <!-- Primary Caretaker Error Alert -->
+          <div *ngIf="primaryCaretakerErrorMessage" class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium flex items-center space-x-2">
+            <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>{{ primaryCaretakerErrorMessage }}</span>
+          </div>
+
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Email</label>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Email *</label>
               <input
                 type="email"
                 [(ngModel)]="newPrimaryCaretaker.email"
+                (blur)="primaryEmailTouched = true"
                 placeholder="michael@example.com"
+                [class.border-red-500]="primaryEmailTouched && primaryEmailError"
+                [class.focus:ring-red-500]="primaryEmailTouched && primaryEmailError"
                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+              <p *ngIf="primaryEmailTouched && primaryEmailError" class="text-[11px] text-red-600 mt-1 flex items-center space-x-1 font-medium">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ primaryEmailError }}</span>
+              </p>
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1">Phone *</label>
               <input
                 type="text"
                 [(ngModel)]="newPrimaryCaretaker.phone"
+                (blur)="primaryPhoneTouched = true"
                 placeholder="555-0188"
+                [class.border-red-500]="primaryPhoneTouched && primaryPhoneError"
+                [class.focus:ring-red-500]="primaryPhoneTouched && primaryPhoneError"
                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+              <p *ngIf="primaryPhoneTouched && primaryPhoneError" class="text-[11px] text-red-600 mt-1 flex items-center space-x-1 font-medium">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ primaryPhoneError }}</span>
+              </p>
             </div>
           </div>
           <div>
@@ -643,22 +690,48 @@
               placeholder="e.g. Claire Anderson"
               class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
           </div>
+          <!-- Backup Caretaker Error Alert -->
+          <div *ngIf="backupCaretakerErrorMessage" class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium flex items-center space-x-2">
+            <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>{{ backupCaretakerErrorMessage }}</span>
+          </div>
+
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Email</label>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Email *</label>
               <input
                 type="email"
                 [(ngModel)]="newBackupCaretaker.email"
+                (blur)="backupEmailTouched = true"
                 placeholder="claire@example.com"
+                [class.border-red-500]="backupEmailTouched && backupEmailError"
+                [class.focus:ring-red-500]="backupEmailTouched && backupEmailError"
                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+              <p *ngIf="backupEmailTouched && backupEmailError" class="text-[11px] text-red-600 mt-1 flex items-center space-x-1 font-medium">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ backupEmailError }}</span>
+              </p>
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1">Phone *</label>
               <input
                 type="text"
                 [(ngModel)]="newBackupCaretaker.phone"
+                (blur)="backupPhoneTouched = true"
                 placeholder="555-0192"
+                [class.border-red-500]="backupPhoneTouched && backupPhoneError"
+                [class.focus:ring-red-500]="backupPhoneTouched && backupPhoneError"
                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#75013F]" />
+              <p *ngIf="backupPhoneTouched && backupPhoneError" class="text-[11px] text-red-600 mt-1 flex items-center space-x-1 font-medium">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ backupPhoneError }}</span>
+              </p>
             </div>
           </div>
           <div>
@@ -758,8 +831,8 @@
               [(ngModel)]="quoteModel.petId"
               class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 bg-white">
               <option [value]="0">-- Select Pet --</option>
-              <option *ngFor="let p of pets$ | async" [value]="p.petId">
-                {{ p.name }} ({{ p.speciesCode }}, {{ p.breedCode }})
+              <option *ngFor="let p of pets$ | async" [value]="p.petId" [disabled]="isPetClaimAccepted(p.petId) || isPetClaimed(p.petId)">
+                {{ p.name }} ({{ p.speciesCode }}, {{ p.breedCode }}){{ (isPetClaimAccepted(p.petId) || isPetClaimed(p.petId)) ? ' — [Claim Settled - Ineligible]' : '' }}
               </option>
             </select>
           </div>
@@ -789,10 +862,21 @@
           </div>
         </div>
 
+        <!-- Ineligible Pet Warning Banner -->
+        <div *ngIf="isPetClaimAccepted(quoteModel.petId) || isPetClaimed(quoteModel.petId)" class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center space-x-2">
+          <span>⚠️</span>
+          <span>A continuity claim has already been accepted and care fund payout authorized for this companion pet. New quotes or policies cannot be created for this pet. Please select another pet.</span>
+        </div>
+
+        <div *ngIf="quoteError" class="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-semibold flex items-center space-x-2">
+          <span>⚠️</span>
+          <span>{{ quoteError }}</span>
+        </div>
+
         <button
           (click)="onRequestQuote()"
-          [disabled]="quoteLoading"
-          class="w-full py-3 rounded-xl text-sm font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm disabled:opacity-50">
+          [disabled]="quoteLoading || !quoteModel.petId || quoteModel.petId == 0 || isPetClaimAccepted(quoteModel.petId) || isPetClaimed(quoteModel.petId)"
+          class="w-full py-3 rounded-xl text-sm font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
           <span *ngIf="!quoteLoading">Run Actuarial Quote Engine</span>
           <span *ngIf="quoteLoading">Calculating risk-adjusted premium...</span>
         </button>
@@ -873,37 +957,46 @@
               <td class="py-3 px-4 font-semibold text-[#75013F]">${{ pol.premiumAmount }}/yr</td>
               <td class="py-3 px-4">
                 <!-- Status Badges -->
-                <span *ngIf="pol.status === 'ACTIVE'" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/20">
+                <span *ngIf="isPolicyClaimed(pol)" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 inline-flex items-center space-x-1">
+                  <span>✓</span>
+                  <span>CLAIMED</span>
+                </span>
+                <span *ngIf="pol.status === 'ACTIVE' && !isPolicyClaimed(pol)" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/20">
                   ACTIVE
                 </span>
-                <span *ngIf="pol.status !== 'ACTIVE'" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                <span *ngIf="pol.status === 'PENDING_PAYMENT' && !isPolicyClaimed(pol)" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                   PENDING PAYMENT
                 </span>
               </td>
               <td class="py-3 px-4 text-right">
-                <!-- Pay Premium Button Navigates to Payment Page -->
+                <!-- If Claimed: show Claim Settled badge -->
+                <div *ngIf="isPolicyClaimed(pol)" class="flex items-center justify-end space-x-1.5">
+                  <span class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 inline-flex items-center space-x-1 shadow-2xs">
+                    <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Claim Settled & Paid Out</span>
+                  </span>
+                </div>
+
+                <!-- If Pending Payment & not Claimed: Single Pay Premium Button -->
                 <button
-                  *ngIf="pol.status !== 'ACTIVE'"
+                  *ngIf="pol.status === 'PENDING_PAYMENT' && !isPolicyClaimed(pol)"
                   (click)="onPayPremium(pol)"
-                  class="px-4 py-1.5 rounded-xl text-xs font-bold bg-[#75013F] text-white hover:bg-[#FE3082] transition-colors shadow-sm inline-flex items-center space-x-1">
+                  class="px-4 py-1.5 rounded-xl text-xs font-bold bg-[#75013F] text-white hover:bg-[#FE3082] transition-colors shadow-sm inline-flex items-center space-x-1 cursor-pointer">
                   <span>💳</span>
                   <span>Pay Premium</span>
                 </button>
-                <!-- Active Policy Status Indicator & File Claim Action -->
-                <div *ngIf="pol.status === 'ACTIVE'" class="flex items-center justify-end space-x-2">
+
+                <!-- If Active & not Claimed: Paid & Enforced + File Claim Button -->
+                <div *ngIf="pol.status === 'ACTIVE' && !isPolicyClaimed(pol)" class="flex items-center justify-end space-x-2">
                   <span class="inline-flex items-center space-x-1 text-xs font-semibold text-[#75013F]">
                     <svg class="w-3.5 h-3.5 text-[#75013F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                     </svg>
                     <span>Paid & Enforced</span>
                   </span>
-                  <span *ngIf="isPetClaimAccepted(pol.petId, pol.policyId)"
-                        class="px-3 py-1 rounded-xl text-xs font-bold bg-[#75013F]/10 text-[#75013F] border border-[#75013F]/30 inline-flex items-center space-x-1 shadow-2xs">
-                    <span>✓</span>
-                    <span>Claim Settled</span>
-                  </span>
                   <button
-                    *ngIf="!isPetClaimAccepted(pol.petId, pol.policyId)"
                     (click)="onStartClaimForPolicy(pol)"
                     class="px-3 py-1 rounded-xl text-xs font-bold bg-[#75013F] text-white hover:bg-[#FE3082] transition-colors shadow-2xs cursor-pointer">
                     File Claim
@@ -956,8 +1049,8 @@
                   [ngModel]="newClaim.policyId"
                   (ngModelChange)="onSelectPolicyForClaim($event, polList)"
                   class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 bg-white font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#75013F] transition-all">
-                  <option *ngFor="let pol of polList" [value]="pol.policyId" [disabled]="isPetClaimAccepted(pol.petId, pol.policyId)">
-                    {{ pol.policyNumber || ('POL-00' + pol.policyId) }} (${{ pol.coverageAmount | number }}){{ isPetClaimAccepted(pol.petId, pol.policyId) ? ' — [Claim Settled]' : '' }}
+                  <option *ngFor="let pol of polList" [value]="pol.policyId" [disabled]="isPolicyClaimed(pol)">
+                    {{ pol.policyNumber || ('POL-00' + pol.policyId) }} (${{ pol.coverageAmount | number }}){{ isPolicyClaimed(pol) ? ' — [Claim Settled / Payout Authorized]' : '' }}
                   </option>
                 </select>
               </ng-container>
@@ -1037,7 +1130,7 @@
           <!-- Settled Pet Warning Banner -->
           <div *ngIf="isPolicyClaimAccepted(newClaim.policyId)" class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center space-x-2">
             <span>⚠️</span>
-            <span>A continuity claim has already been accepted and authorized for this pet. Further claims are prohibited.</span>
+            <span>A continuity claim has already been accepted and authorized for this companion pet. Further claims are prohibited.</span>
           </div>
 
           <!-- Submit Button -->

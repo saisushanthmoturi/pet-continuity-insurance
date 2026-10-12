@@ -209,7 +209,7 @@ public class ClaimsService {
                                                 webClient.post()
                                                         .uri("http://PolicyService/api/policies/{id}/status", policy.id())
                                                         .header("X-User-Role", "INTERNAL_SERVICE")
-                                                        .bodyValue(Map.of("status", "CLAIM_FILED", "reason", "Owner death claim approved"))
+                                                        .bodyValue(Map.of("status", "CLAIMED", "reason", "Owner death claim approved and care fund payout authorized"))
                                                         .retrieve()
                                                         .toBodilessEntity()
                                                         .then(),

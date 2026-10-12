@@ -37,7 +37,7 @@ describe("roleGuard", () => {
     expect(router.navigate).toHaveBeenCalledWith(["auth/login"]);
   });
 
-  it("should block and navigate to login if user role does not match expected roles", () => {
+  it("should block and navigate to own dashboard if user role does not match expected roles", () => {
     localStorage.setItem("currentUser", JSON.stringify({ role: "ROLE_CUSTOMER" }));
     const route = { data: { roles: ["ROLE_ADMIN", "ADMIN"] } } as unknown as ActivatedRouteSnapshot;
 
@@ -46,7 +46,19 @@ describe("roleGuard", () => {
     );
 
     expect(result).toBe(false);
-    expect(router.navigate).toHaveBeenCalledWith(["auth/login"]);
+    expect(router.navigate).toHaveBeenCalledWith(["customer"]);
+  });
+
+  it("should block claims adjuster from accessing customer dashboard and redirect to claims", () => {
+    localStorage.setItem("currentUser", JSON.stringify({ role: "CLAIMS_ADJUSTER" }));
+    const route = { data: { roles: ["ROLE_CUSTOMER", "CUSTOMER"] } } as unknown as ActivatedRouteSnapshot;
+
+    const result = TestBed.runInInjectionContext(() =>
+      roleGuard(route, {} as RouterStateSnapshot)
+    );
+
+    expect(result).toBe(false);
+    expect(router.navigate).toHaveBeenCalledWith(["claims"]);
   });
 
   it("should allow activation if user role matches expected roles", () => {

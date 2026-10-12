@@ -45,10 +45,13 @@ describe("AdminService", () => {
   });
 
   it("should retrieve all policies", () => {
-    const mockPolicies = [{ policyId: 101, status: "ACTIVE", premium: 120 }];
+    const mockPolicies = [{ policyId: 101, status: "ACTIVE", premium: 120, premiumAmount: 1200, monthlyPremium: 100 }];
 
     service.getAllPolicies().subscribe(policies => {
-      expect(policies).toEqual(mockPolicies);
+      expect(policies[0].policyId).toBe(101);
+      expect(policies[0].status).toBe("ACTIVE");
+      expect(policies[0].premiumAmount).toBe(1200);
+      expect(policies[0].monthlyPremium).toBe(100);
     });
 
     const req = httpTesting.expectOne(`${apiUrl}/policies`);

@@ -153,4 +153,100 @@ describe("CustomerDashboardComponent", () => {
     component.onCreatePet();
     expect(store.dispatch).toHaveBeenCalled();
   });
+
+  it("should reject pet registration if microchip id is not 9 digits", () => {
+    vi.clearAllMocks();
+    component.newPet = {
+      customerId: 1,
+      name: "Kali",
+      speciesCode: "OTHER",
+      breedCode: "COW",
+      gender: "MALE",
+      dateOfBirth: "2020-05-15",
+      weightValue: 80,
+      weightUnit: "KG",
+      annualCareCost: 2300,
+      expectedRemainingYears: 10,
+      microchipId: "9898989811" // 10 digits
+    };
+
+    component.onCreatePet();
+    expect(store.dispatch).not.toHaveBeenCalled();
+    expect(component.petMicrochipError).toBe("Microchip ID must be exactly a 9-digit number.");
+    expect(component.petErrorMessage).toBe("Microchip ID must be exactly a 9-digit number.");
+  });
+
+  it("should allow pet registration when microchip id is exactly 9 digits", () => {
+    vi.clearAllMocks();
+    component.newPet = {
+      customerId: 1,
+      name: "Kali",
+      speciesCode: "OTHER",
+      breedCode: "COW",
+      gender: "MALE",
+      dateOfBirth: "2020-05-15",
+      weightValue: 80,
+      weightUnit: "KG",
+      annualCareCost: 2300,
+      expectedRemainingYears: 10,
+      microchipId: "989898981" // exactly 9 digits
+    };
+
+    component.onCreatePet();
+    expect(store.dispatch).toHaveBeenCalled();
+    expect(component.petMicrochipError).toBe("");
+  });
+
+  it("should validate primary caretaker email and phone number", () => {
+    vi.clearAllMocks();
+    component.selectedPetId = 10;
+    component.newPrimaryCaretaker = {
+      petId: 10,
+      name: "Santner",
+      email: "invalid-email",
+      phone: "555-0188",
+      relationship: "Primary Guardian",
+      address: "104 Pine Rd",
+      priority: "PRIMARY"
+    };
+
+    component.onAddPrimaryCaretaker();
+    expect(store.dispatch).not.toHaveBeenCalled();
+    expect(component.primaryEmailError).toContain("valid email");
+
+    // Fix email but make phone invalid
+    component.newPrimaryCaretaker.email = "santner@gmail.com";
+    component.newPrimaryCaretaker.phone = "123"; // only 3 digits
+
+    component.onAddPrimaryCaretaker();
+    expect(store.dispatch).not.toHaveBeenCalled();
+    expect(component.primaryPhoneError).toContain("7 and 15 digits");
+
+    // Provide valid phone and email
+    component.newPrimaryCaretaker.phone = "555-0188";
+    component.onAddPrimaryCaretaker();
+    expect(store.dispatch).toHaveBeenCalled();
+  });
+
+  it("should validate backup caretaker email and phone number", () => {
+    vi.clearAllMocks();
+    component.selectedPetId = 10;
+    component.newBackupCaretaker = {
+      petId: 10,
+      name: "Claire Anderson",
+      email: "claire.anderson@example.com",
+      phone: "bad-phone",
+      relationship: "Contingency",
+      address: "218 Oak St",
+      priority: "BACKUP"
+    };
+
+    component.onAddBackupCaretaker();
+    expect(store.dispatch).not.toHaveBeenCalled();
+    expect(component.backupPhoneError).toContain("7 and 15 digits");
+
+    component.newBackupCaretaker.phone = "555-0192";
+    component.onAddBackupCaretaker();
+    expect(store.dispatch).toHaveBeenCalled();
+  });
 });

@@ -44,6 +44,28 @@ export class ClaimsDashboardComponent implements OnInit {
   selectedClaimPrice: number = 5000;
   underReviewSettlementPrices: { [claimId: number]: number } = {};
 
+  claimFilter: 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED' = 'ALL';
+
+  get filteredClaimsList(): ClaimDTO[] {
+    if (this.claimFilter === 'ALL') return this.allClaimsList;
+    if (this.claimFilter === 'PENDING') {
+      return this.allClaimsList.filter(c => c.status !== 'APPROVED' && c.status !== 'REJECTED');
+    }
+    return this.allClaimsList.filter(c => c.status === this.claimFilter);
+  }
+
+  get pendingClaimsCount(): number {
+    return this.allClaimsList.filter(c => c.status !== 'APPROVED' && c.status !== 'REJECTED').length;
+  }
+
+  get approvedClaimsCount(): number {
+    return this.allClaimsList.filter(c => c.status === 'APPROVED').length;
+  }
+
+  get rejectedClaimsCount(): number {
+    return this.allClaimsList.filter(c => c.status === 'REJECTED').length;
+  }
+
   investigationNotes = '';
   rejectionReason = 'Documentation insufficient to verify incapacitation event';
   actionNotification = '';

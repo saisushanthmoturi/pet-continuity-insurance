@@ -20,6 +20,12 @@ describe("UnderwriterDashboardComponent", () => {
         petId: 1,
         updatedRiskScore: 1.15,
         recommendation: "STANDARD_APPROVAL"
+      })),
+      updateQuote: vi.fn().mockReturnValue(of({ quoteId: 15, status: "APPROVED" })),
+      getAssessmentByQuoteId: vi.fn().mockReturnValue(of({
+        quoteId: 15,
+        totalScore: 50,
+        riskClass: "STANDARD"
       }))
     };
 
@@ -73,6 +79,37 @@ describe("UnderwriterDashboardComponent", () => {
       quoteId: 15,
       reason: "High actuarial mortality risk ratio"
     }));
+  });
+
+  it("should compute filtered quotes and counts properly", () => {
+    component.allQuotes = [
+      { quoteId: 1, customerId: 1, petId: 1, status: "APPROVED", riskMultiplier: 0.8 },
+      { quoteId: 2, customerId: 2, petId: 2, status: "REFERRED", riskMultiplier: 1.2 },
+      { quoteId: 3, customerId: 3, petId: 3, status: "REJECTED", riskMultiplier: 1.8 }
+    ];
+
+    expect(component.totalQuotesCount).toBe(3);
+    expect(component.approvedQuotesCount).toBe(1);
+    expect(component.pendingQuotesCount).toBe(1);
+    expect(component.rejectedQuotesCount).toBe(1);
+
+    component.quoteFilter = "APPROVED";
+    expect(component.filteredQuotes.length).toBe(1);
+    expect(component.filteredQuotes[0].quoteId).toBe(1);
+
+    component.quoteFilter = "PENDING";
+    expect(component.filteredQuotes.length).toBe(1);
+    expect(component.filteredQuotes[0].quoteId).toBe(2);
+  });
+
+  it("should open and close assessment modal", () => {
+    const mockQuote = { quoteId: 15, customerId: 1, petId: 2, status: "APPROVED" };
+    component.openAssessmentModal(mockQuote);
+    expect(component.selectedQuoteForAssessment).toBeTruthy();
+    expect(underwriterServiceMock.getAssessmentByQuoteId).toHaveBeenCalledWith(15);
+
+    component.closeAssessmentModal();
+    expect(component.selectedQuoteForAssessment).toBeNull();
   });
 
   it("should dispatch createRatingRule when onCreateRule is called", () => {

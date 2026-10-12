@@ -20,12 +20,14 @@ export const routes: Routes = [
   {
     path: 'customer',
     component: CustomerDashboardComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_CUSTOMER', 'CUSTOMER'] }
   },
   {
     path: 'payment',
     component: PaymentPageComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_CUSTOMER', 'CUSTOMER'] }
   },
   {
     path: 'underwriter',
@@ -37,7 +39,7 @@ export const routes: Routes = [
     path: 'claims',
     component: ClaimsDashboardComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_CLAIMS_ADJUSTER', 'CLAIMS_ADJUSTER'] }
+    data: { roles: ['ROLE_CLAIMS_ADJUSTER', 'CLAIMS_ADJUSTER', 'ROLE_CLAIMS_OFFICER', 'CLAIMS_OFFICER'] }
   },
   {
     path: 'caretaker',

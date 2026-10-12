@@ -1,3 +1,4 @@
+import { getRoleDashboard } from "../../../../guards/roleGuard";
 import { Component, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -97,6 +98,78 @@ export class CustomerDashboardComponent implements OnInit {
   medicalSuccessMessage = "";
   profileSuccessMessage = "";
   addressSuccessMessage = "";
+  petErrorMessage = "";
+  petMicrochipTouched = false;
+
+  primaryCaretakerTouched = false;
+  primaryEmailTouched = false;
+  primaryPhoneTouched = false;
+  primaryCaretakerErrorMessage = "";
+
+  backupCaretakerTouched = false;
+  backupEmailTouched = false;
+  backupPhoneTouched = false;
+  backupCaretakerErrorMessage = "";
+
+  get petMicrochipError(): string {
+    const id = (this.newPet.microchipId || "").trim();
+    if (!id) return "";
+    if (!/^\d+$/.test(id)) {
+      return "Microchip ID must contain numbers only (0-9).";
+    }
+    if (id.length !== 9) {
+      return "Microchip ID must be exactly a 9-digit number.";
+    }
+    return "";
+  }
+
+  get primaryEmailError(): string {
+    const email = (this.newPrimaryCaretaker.email || "").trim();
+    if (!email) {
+      return "Email address is required.";
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address (e.g. michael@example.com).";
+    }
+    return "";
+  }
+
+  get primaryPhoneError(): string {
+    const phone = (this.newPrimaryCaretaker.phone || "").trim();
+    if (!phone) {
+      return "Phone number is required.";
+    }
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 7 || digits.length > 15) {
+      return "Phone number must be between 7 and 15 digits (e.g. 555-0188).";
+    }
+    return "";
+  }
+
+  get backupEmailError(): string {
+    const email = (this.newBackupCaretaker.email || "").trim();
+    if (!email) {
+      return "Email address is required.";
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address (e.g. claire@example.com).";
+    }
+    return "";
+  }
+
+  get backupPhoneError(): string {
+    const phone = (this.newBackupCaretaker.phone || "").trim();
+    if (!phone) {
+      return "Phone number is required.";
+    }
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 7 || digits.length > 15) {
+      return "Phone number must be between 7 and 15 digits (e.g. 555-0192).";
+    }
+    return "";
+  }
 
   profile$: Observable<CustomerDTO | null> = this.store.select(customerProfileSelector);
   pets$: Observable<PetDTO[]> = this.store.select(petsSelector);
@@ -286,6 +359,12 @@ export class CustomerDashboardComponent implements OnInit {
     if (rawUser) {
       try {
         const u = JSON.parse(rawUser);
+        const role = (u.role || "").toUpperCase();
+        if (role && role !== "CUSTOMER" && role !== "ROLE_CUSTOMER") {
+          const target = getRoleDashboard(role);
+          this.router.navigate([target]);
+          return;
+        }
         this.currentUserId = Number(u.userId) || 0;
         loggedInEmail = u.email || "";
         loggedInFullName = u.fullName || (u as any).username || "";
@@ -600,9 +679,18 @@ export class CustomerDashboardComponent implements OnInit {
   }
 
   onCreatePet(): void {
+    this.petMicrochipTouched = true;
     if (!this.newPet.name || !this.newPet.name.trim()) {
+      this.petErrorMessage = "Pet Name is required.";
+      setTimeout(() => { this.petErrorMessage = ""; }, 4000);
       return;
     }
+    if (this.newPet.microchipId && this.petMicrochipError) {
+      this.petErrorMessage = this.petMicrochipError;
+      setTimeout(() => { this.petErrorMessage = ""; }, 4000);
+      return;
+    }
+    this.petErrorMessage = "";
     const petPayload: PetDTO = {
       ...this.newPet,
       customerId: this.currentCustomerId,
@@ -689,10 +777,38 @@ export class CustomerDashboardComponent implements OnInit {
   }
 
   onAddPrimaryCaretaker(): void {
+    this.primaryCaretakerTouched = true;
+    this.primaryEmailTouched = true;
+    this.primaryPhoneTouched = true;
+
     const pId = this.selectedPetId || this.newPrimaryCaretaker.petId;
-    if (!pId) return;
+    if (!pId) {
+      this.primaryCaretakerErrorMessage = "Please select or register a pet first before designating a caretaker.";
+      setTimeout(() => { this.primaryCaretakerErrorMessage = ""; }, 5000);
+      return;
+    }
+    if (!this.newPrimaryCaretaker.name || !this.newPrimaryCaretaker.name.trim()) {
+      this.primaryCaretakerErrorMessage = "Full Name is required.";
+      setTimeout(() => { this.primaryCaretakerErrorMessage = ""; }, 5000);
+      return;
+    }
+    if (this.primaryEmailError) {
+      this.primaryCaretakerErrorMessage = this.primaryEmailError;
+      setTimeout(() => { this.primaryCaretakerErrorMessage = ""; }, 5000);
+      return;
+    }
+    if (this.primaryPhoneError) {
+      this.primaryCaretakerErrorMessage = this.primaryPhoneError;
+      setTimeout(() => { this.primaryCaretakerErrorMessage = ""; }, 5000);
+      return;
+    }
+
+    this.primaryCaretakerErrorMessage = "";
     const primaryPayload: CaretakerDTO = {
       ...this.newPrimaryCaretaker,
+      name: this.newPrimaryCaretaker.name.trim(),
+      email: this.newPrimaryCaretaker.email.trim(),
+      phone: this.newPrimaryCaretaker.phone.trim(),
       petId: pId,
       customerId: this.currentCustomerId,
       priority: "PRIMARY"
@@ -704,10 +820,38 @@ export class CustomerDashboardComponent implements OnInit {
   }
 
   onAddBackupCaretaker(): void {
+    this.backupCaretakerTouched = true;
+    this.backupEmailTouched = true;
+    this.backupPhoneTouched = true;
+
     const pId = this.selectedPetId || this.newBackupCaretaker.petId;
-    if (!pId) return;
+    if (!pId) {
+      this.backupCaretakerErrorMessage = "Please select or register a pet first before designating a backup caretaker.";
+      setTimeout(() => { this.backupCaretakerErrorMessage = ""; }, 5000);
+      return;
+    }
+    if (!this.newBackupCaretaker.name || !this.newBackupCaretaker.name.trim()) {
+      this.backupCaretakerErrorMessage = "Full Name is required.";
+      setTimeout(() => { this.backupCaretakerErrorMessage = ""; }, 5000);
+      return;
+    }
+    if (this.backupEmailError) {
+      this.backupCaretakerErrorMessage = this.backupEmailError;
+      setTimeout(() => { this.backupCaretakerErrorMessage = ""; }, 5000);
+      return;
+    }
+    if (this.backupPhoneError) {
+      this.backupCaretakerErrorMessage = this.backupPhoneError;
+      setTimeout(() => { this.backupCaretakerErrorMessage = ""; }, 5000);
+      return;
+    }
+
+    this.backupCaretakerErrorMessage = "";
     const backupPayload: CaretakerDTO = {
       ...this.newBackupCaretaker,
+      name: this.newBackupCaretaker.name.trim(),
+      email: this.newBackupCaretaker.email.trim(),
+      phone: this.newBackupCaretaker.phone.trim(),
       petId: pId,
       customerId: this.currentCustomerId,
       priority: "BACKUP"
@@ -740,6 +884,19 @@ export class CustomerDashboardComponent implements OnInit {
       this.quoteError = "Please select a registered companion pet first.";
       return;
     }
+    if (this.isPetClaimAccepted(pId) || this.isPetClaimed(pId)) {
+      this.quoteError = "A continuity claim has already been accepted and authorized for this companion pet. Further quotes cannot be generated.";
+      return;
+    }
+    const existingPol = this.currentPoliciesList.find(p => Number(p.petId) === Number(pId));
+    if (existingPol) {
+      if (this.isPolicyClaimed(existingPol)) {
+        this.quoteError = `A continuity claim has already been settled for this companion pet (Policy ${existingPol.policyNumber}). No new quotes can be raised.`;
+        return;
+      }
+      this.quoteError = `This companion pet already has an active policy (${existingPol.policyNumber}). Each companion pet may only hold a single continuity policy.`;
+      return;
+    }
     this.quoteLoading = true;
     this.quoteError = "";
 
@@ -766,6 +923,17 @@ export class CustomerDashboardComponent implements OnInit {
   onIssuePolicy(quoteId?: number): void {
     const qId = quoteId || (this.generatedQuote ? this.generatedQuote.quoteId : 0);
     if (!qId) return;
+    const petId = this.generatedQuote ? (this.generatedQuote as any).petId : Number(this.quoteModel.petId);
+    if (petId && (this.isPetClaimAccepted(petId) || this.isPetClaimed(petId))) {
+      this.quoteError = "A continuity claim has already been settled for this companion pet. Cannot issue policy.";
+      return;
+    }
+    const existingPol = this.currentPoliciesList.find(p => Number(p.petId) === Number(petId));
+    if (existingPol) {
+      alert(`A policy (${existingPol.policyNumber}) is already in place for this companion pet. Only a single policy per companion pet is permitted.`);
+      this.setTab("policies");
+      return;
+    }
     this.store.dispatch(issuePolicy({ quoteId: qId }));
     setTimeout(() => {
       this.store.dispatch(loadPolicies({ customerId: this.currentCustomerId }));
@@ -779,6 +947,14 @@ export class CustomerDashboardComponent implements OnInit {
 
   onPayPremium(policy: PolicyDTO): void {
     if (!policy.policyId) return;
+    if (this.isPolicyClaimed(policy)) {
+      alert("This policy has already been claimed and paid out. No payment is required.");
+      return;
+    }
+    if (policy.status === 'ACTIVE') {
+      alert("This policy is already active and enforced. No further payment required.");
+      return;
+    }
     const cov = policy.coverageAmount || 25000;
     // Calculate dynamic monthly installment: if annual premium exists, annual / 12, else 0.3% of care fund
     let monthly = policy.premiumAmount ? (policy.premiumAmount > 200 ? policy.premiumAmount / 12 : policy.premiumAmount) : (cov * 0.003);
@@ -812,20 +988,37 @@ export class CustomerDashboardComponent implements OnInit {
   isPetClaimAccepted(petId?: number, policyId?: number): boolean {
     if (!petId && !policyId) return false;
     return this.myClaims.some(c => 
-      c.status === "APPROVED" && 
+      (c.status === "APPROVED" || c.status === "ACCEPTED" || c.status === "CLAIM_SETTLED" || c.status === "PAID") && 
       ((petId !== undefined && petId !== null && Number(c.petId) === Number(petId)) || 
        (policyId !== undefined && policyId !== null && Number(c.policyId) === Number(policyId)))
     );
   }
 
+  isPetClaimed(petId?: number): boolean {
+    if (!petId) return false;
+    const hasClaimedPolicy = this.currentPoliciesList.some(p => Number(p.petId) === Number(petId) && (p.status === 'CLAIMED' || p.status === 'CLAIM_FILED'));
+    return hasClaimedPolicy || this.isPetClaimAccepted(petId);
+  }
+
+  isPolicyClaimed(pol: PolicyDTO | any): boolean {
+    if (!pol) return false;
+    if (pol.status === 'CLAIMED' || pol.status === 'CLAIM_FILED') return true;
+    return this.isPetClaimAccepted(pol.petId, pol.policyId);
+  }
+
   isPolicyClaimAccepted(policyId?: number): boolean {
     if (!policyId) return false;
     const pol = this.currentPoliciesList.find(p => p.policyId === Number(policyId));
-    return this.isPetClaimAccepted(pol?.petId, Number(policyId));
+    return this.isPolicyClaimed(pol);
+  }
+
+  isPolicyClaimedById(policyId?: number | string): boolean {
+    if (!policyId) return false;
+    return this.isPolicyClaimAccepted(Number(policyId));
   }
 
   onStartClaimForPolicy(pol: PolicyDTO): void {
-    if (this.isPetClaimAccepted(pol.petId, pol.policyId)) {
+    if (this.isPolicyClaimed(pol)) {
       this.claimSubmissionSuccess = false;
       this.claimSubmissionMessage = "A continuity claim has already been accepted and authorized for this pet. No further claims can be filed.";
       this.setTab("claims");
@@ -844,7 +1037,7 @@ export class CustomerDashboardComponent implements OnInit {
 
     const targetPetId = selectedPolicy?.petId || this.newClaim.petId;
     const targetPolicyId = Number(this.newClaim.policyId) || selectedPolicy?.policyId;
-    if (this.isPetClaimAccepted(targetPetId, targetPolicyId)) {
+    if (this.isPetClaimAccepted(targetPetId, targetPolicyId) || (selectedPolicy && this.isPolicyClaimed(selectedPolicy))) {
       this.claimSubmissionSuccess = false;
       this.claimSubmissionMessage = "A continuity claim has already been accepted and authorized for this companion pet. Care fund payout is finalized; no further claims can be filed.";
       return;
@@ -946,12 +1139,23 @@ export class CustomerDashboardComponent implements OnInit {
     // 2. Query backend by policy ID for THIS customer's policies only
     this.policies$.subscribe((policies) => {
       if (policies && policies.length > 0) {
-        this.currentPoliciesList = policies;
-        if (!this.selectedPolicyDetails) {
-          const activePol = policies.find(p => p.status === 'ACTIVE') || policies[0];
-          this.onSelectPolicyForClaim(activePol.policyId, policies);
+        const seen = new Map<number, PolicyDTO>();
+        policies.forEach(p => {
+          if (p.policyId && !seen.has(p.policyId)) {
+            seen.set(p.policyId, p);
+          }
+        });
+        const uniquePolicies = Array.from(seen.values());
+        this.currentPoliciesList = uniquePolicies;
+
+        const unclaimedPol = uniquePolicies.find(p => !this.isPolicyClaimed(p) && p.status === 'ACTIVE') ||
+                             uniquePolicies.find(p => !this.isPolicyClaimed(p));
+        if (unclaimedPol && (!this.selectedPolicyDetails || this.isPolicyClaimed(this.selectedPolicyDetails))) {
+          this.onSelectPolicyForClaim(unclaimedPol.policyId, uniquePolicies);
+        } else if (!this.selectedPolicyDetails && uniquePolicies.length > 0) {
+          this.onSelectPolicyForClaim(uniquePolicies[0].policyId, uniquePolicies);
         }
-        const policyIds = new Set(policies.map(p => p.policyId).filter(Boolean));
+        const policyIds = new Set(uniquePolicies.map(p => p.policyId).filter(Boolean));
         policies.forEach((pol) => {
           if (pol.policyId) {
             this.claimsService.getClaimsByPolicyId(pol.policyId).subscribe({

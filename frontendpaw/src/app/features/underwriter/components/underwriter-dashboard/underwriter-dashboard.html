@@ -1,22 +1,165 @@
 <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-  <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-[#EAE5DF] mb-8 gap-4">
+  <!-- Top Navigation & Desk Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-[#EAE5DF] mb-6 gap-4">
     <div>
       <h1 class="text-2xl font-bold tracking-tight text-[#000000]">Underwriting & Risk Console</h1>
       <p class="text-xs text-gray-500 mt-0.5">Actuarial rate calculations, risk assessment reviews, and policy authorization</p>
     </div>
     <div class="flex items-center space-x-2 text-xs">
-      <span class="px-3 py-1 rounded-full bg-[#75013F] text-white font-semibold">
-        Actuarial Risk Desk
-      </span>
+      <button
+        (click)="setTab('queue')"
+        [class.bg-[#75013F]]="activeTab === 'queue'"
+        [class.text-white]="activeTab === 'queue'"
+        [class.bg-white]="activeTab !== 'queue'"
+        [class.text-gray-700]="activeTab !== 'queue'"
+        class="px-3.5 py-1.5 rounded-full font-bold border border-[#EAE5DF] shadow-2xs hover:bg-[#75013F]/5 transition-colors cursor-pointer">
+        📋 Evaluation Queue ({{ allQuotes.length }})
+      </button>
+      <button
+        (click)="setTab('rules')"
+        [class.bg-[#75013F]]="activeTab === 'rules'"
+        [class.text-white]="activeTab === 'rules'"
+        [class.bg-white]="activeTab !== 'rules'"
+        [class.text-gray-700]="activeTab !== 'rules'"
+        class="px-3.5 py-1.5 rounded-full font-bold border border-[#EAE5DF] shadow-2xs hover:bg-[#75013F]/5 transition-colors cursor-pointer">
+        ⚖️ Rating Rules
+      </button>
+      <button
+        (click)="setTab('reassess')"
+        [class.bg-[#75013F]]="activeTab === 'reassess'"
+        [class.text-white]="activeTab === 'reassess'"
+        [class.bg-white]="activeTab !== 'reassess'"
+        [class.text-gray-700]="activeTab !== 'reassess'"
+        class="px-3.5 py-1.5 rounded-full font-bold border border-[#EAE5DF] shadow-2xs hover:bg-[#75013F]/5 transition-colors cursor-pointer">
+        🩺 Clinical Re-Assessment
+      </button>
     </div>
   </div>
 
-  <!-- TAB: QUOTES QUEUE -->
-  <div *ngIf="activeTab === 'queue'" class="space-y-6">
-    <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-      <h3 class="text-base font-bold text-gray-900 mb-4">Underwriting Evaluation Queue</h3>
+  <!-- Action Banners -->
+  <div *ngIf="actionNotification" class="mb-6 p-4 rounded-xl bg-[#75013F]/10 border border-[#75013F]/20 text-[#75013F] text-xs font-bold flex items-center justify-between shadow-2xs">
+    <div class="flex items-center space-x-2">
+      <svg class="w-4 h-4 text-[#75013F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+      </svg>
+      <span>{{ actionNotification }}</span>
+    </div>
+    <button (click)="actionNotification = ''" class="text-[#75013F] hover:text-[#FE3082] font-bold ml-4">✕</button>
+  </div>
 
-      <div class="overflow-x-auto" *ngIf="quotes$ | async as quotes">
+  <div *ngIf="actionError" class="mb-6 p-4 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs font-bold flex items-center justify-between shadow-2xs">
+    <div class="flex items-center space-x-2">
+      <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <span>{{ actionError }}</span>
+    </div>
+    <button (click)="actionError = ''" class="text-red-700 hover:text-red-900 font-bold ml-4">✕</button>
+  </div>
+
+  <!-- TAB 1: EVALUATION QUEUE -->
+  <div *ngIf="activeTab === 'queue'" class="space-y-6">
+    <!-- Actuarial KPI Metric Cards in Theme -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-4 shadow-2xs">
+        <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-1">
+          <span>Evaluated Quotes</span>
+          <span class="w-2 h-2 rounded-full bg-[#75013F]"></span>
+        </div>
+        <div class="text-2xl font-black text-gray-900">{{ totalQuotesCount }}</div>
+        <div class="text-[11px] text-gray-400 mt-1">Total actuarial quote calculations</div>
+      </div>
+
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-4 shadow-2xs">
+        <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-1">
+          <span>Auto-Approved</span>
+          <span class="w-2 h-2 rounded-full bg-[#75013F]"></span>
+        </div>
+        <div class="text-2xl font-black text-[#75013F]">{{ approvedQuotesCount }}</div>
+        <div class="text-[11px] text-[#75013F]/80 font-semibold mt-1">Cleared by Actuarial Engine</div>
+      </div>
+
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-4 shadow-2xs">
+        <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-1">
+          <span>Referred for Review</span>
+          <span class="w-2 h-2 rounded-full bg-[#FE3082]"></span>
+        </div>
+        <div class="text-2xl font-black text-[#FE3082]">{{ pendingQuotesCount }}</div>
+        <div class="text-[11px] text-[#FE3082] font-semibold mt-1">Pending manual risk sign-off</div>
+      </div>
+
+      <div class="bg-white border border-[#EAE5DF] rounded-2xl p-4 shadow-2xs">
+        <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-1">
+          <span>Declined Quotes</span>
+          <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+        </div>
+        <div class="text-2xl font-black text-gray-700">{{ rejectedQuotesCount }}</div>
+        <div class="text-[11px] text-gray-500 font-medium mt-1">Exceeded max risk tolerance</div>
+      </div>
+    </div>
+
+    <!-- Main Queue Table Card -->
+    <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 gap-2 mb-4">
+        <div>
+          <h3 class="text-base font-bold text-gray-900">Underwriting Evaluation Queue</h3>
+          <p class="text-xs text-gray-500">
+            Low & standard risk quotes are automatically evaluated and approved by the actuarial engine. Only referred quotes require manual underwriter review.
+          </p>
+        </div>
+        <button
+          (click)="refreshQuotes()"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#EAE5DF] hover:bg-gray-300 text-gray-800 transition-colors flex items-center space-x-1.5 self-start sm:self-auto cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Refresh Queue</span>
+        </button>
+      </div>
+
+      <!-- Queue Status Filter Pills -->
+      <div class="flex flex-wrap items-center gap-2 pb-4 mb-4 border-b border-gray-100 text-xs">
+        <span class="text-gray-500 font-semibold mr-1">Status Filter:</span>
+        <button
+          (click)="quoteFilter = 'ALL'"
+          [class.bg-[#75013F]]="quoteFilter === 'ALL'"
+          [class.text-white]="quoteFilter === 'ALL'"
+          [class.bg-gray-100]="quoteFilter !== 'ALL'"
+          [class.text-gray-700]="quoteFilter !== 'ALL'"
+          class="px-3 py-1 rounded-lg font-bold transition-colors cursor-pointer">
+          All Quotes ({{ totalQuotesCount }})
+        </button>
+        <button
+          (click)="quoteFilter = 'PENDING'"
+          [class.bg-[#FE3082]]="quoteFilter === 'PENDING'"
+          [class.text-white]="quoteFilter === 'PENDING'"
+          [class.bg-gray-100]="quoteFilter !== 'PENDING'"
+          [class.text-gray-700]="quoteFilter !== 'PENDING'"
+          class="px-3 py-1 rounded-lg font-bold transition-colors cursor-pointer">
+          Awaiting Review ({{ pendingQuotesCount }})
+        </button>
+        <button
+          (click)="quoteFilter = 'APPROVED'"
+          [class.bg-[#75013F]]="quoteFilter === 'APPROVED'"
+          [class.text-white]="quoteFilter === 'APPROVED'"
+          [class.bg-gray-100]="quoteFilter !== 'APPROVED'"
+          [class.text-gray-700]="quoteFilter !== 'APPROVED'"
+          class="px-3 py-1 rounded-lg font-bold transition-colors cursor-pointer">
+          Auto-Approved ({{ approvedQuotesCount }})
+        </button>
+        <button
+          (click)="quoteFilter = 'REJECTED'"
+          [class.bg-[#75013F]]="quoteFilter === 'REJECTED'"
+          [class.text-white]="quoteFilter === 'REJECTED'"
+          [class.bg-gray-100]="quoteFilter !== 'REJECTED'"
+          [class.text-gray-700]="quoteFilter !== 'REJECTED'"
+          class="px-3 py-1 rounded-lg font-bold transition-colors cursor-pointer">
+          Declined ({{ rejectedQuotesCount }})
+        </button>
+      </div>
+
+      <!-- Queue Table -->
+      <div class="overflow-x-auto">
         <table class="w-full text-left text-xs">
           <thead class="bg-[#FAFAFA] text-gray-600 uppercase tracking-wider text-[11px] border-b border-gray-200">
             <tr>
@@ -32,45 +175,75 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            <tr *ngFor="let q of quotes" class="hover:bg-[#FAFAFA]">
+            <tr *ngFor="let q of filteredQuotes" class="hover:bg-[#FAFAFA] transition-colors">
               <td class="py-3 px-4 font-bold text-gray-900">#{{ q.quoteId }}</td>
-              <td class="py-3 px-4">Cust #{{ q.customerId }}</td>
+              <td class="py-3 px-4 text-gray-700">Cust #{{ q.customerId }}</td>
               <td class="py-3 px-4 font-semibold text-[#75013F]">Pet #{{ q.petId }}</td>
-              <td class="py-3 px-4">${{ q.coverageAmount }}</td>
+              <td class="py-3 px-4 font-medium">${{ q.coverageAmount || q.requestedCoverage || 25000 }}</td>
               <td class="py-3 px-4">${{ q.monthlyCareCost }}/mo</td>
-              <td class="py-3 px-4 font-semibold">{{ q.riskMultiplier || 1.15 }}x</td>
+              <td class="py-3 px-4 font-semibold text-gray-900">{{ q.riskMultiplier || 1.15 }}x</td>
               <td class="py-3 px-4 font-bold text-[#FE3082]">${{ q.calculatedPremium || 720 }}</td>
               <td class="py-3 px-4">
+                <!-- Status Badge matching brand theme -->
                 <span
-                  [class.bg-[#75013F]/10]="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED'"
-                  [class.text-[#75013F]]="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED'"
-                  [class.border-[#75013F]/20]="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED'"
-                  [class.bg-[#FE3082]/10]="q.status === 'PENDING' || q.status === 'REFERRED'"
-                  [class.text-[#FE3082]]="q.status === 'PENDING' || q.status === 'REFERRED'"
-                  [class.border-[#FE3082]/30]="q.status === 'PENDING' || q.status === 'REFERRED'"
-                  [class.bg-red-50]="q.status === 'REJECTED'"
-                  [class.text-red-700]="q.status === 'REJECTED'"
-                  [class.border-red-200]="q.status === 'REJECTED'"
-                  class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border">
-                  {{ q.status || 'PENDING' }}
+                  [class.bg-[#75013F]/10]="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED' || q.status === 'OFFERED'"
+                  [class.text-[#75013F]]="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED' || q.status === 'OFFERED'"
+                  [class.border-[#75013F]/20]="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED' || q.status === 'OFFERED'"
+                  [class.bg-[#FE3082]/10]="q.status === 'REFERRED' || q.status === 'PENDING' || q.status === 'MANUAL_REVIEW'"
+                  [class.text-[#FE3082]]="q.status === 'REFERRED' || q.status === 'PENDING' || q.status === 'MANUAL_REVIEW'"
+                  [class.border-[#FE3082]/30]="q.status === 'REFERRED' || q.status === 'PENDING' || q.status === 'MANUAL_REVIEW'"
+                  [class.bg-red-50]="q.status === 'REJECTED' || q.status === 'DECLINED'"
+                  [class.text-red-700]="q.status === 'REJECTED' || q.status === 'DECLINED'"
+                  [class.border-red-200]="q.status === 'REJECTED' || q.status === 'DECLINED'"
+                  class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center">
+                  {{ (q.status === 'REFERRED' || q.status === 'PENDING' || q.status === 'MANUAL_REVIEW') ? 'UNDER REVIEW' : (q.status === 'REJECTED' || q.status === 'DECLINED' ? 'REJECTED' : 'APPROVED') }}
                 </span>
               </td>
-              <td class="py-3 px-4 text-right space-x-1.5">
-                <button
-                  (click)="onApproveQuote(q.quoteId)"
-                  class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#75013F] text-white hover:bg-[#FE3082] transition-colors">
-                  Approve
-                </button>
-                <button
-                  (click)="onRejectQuote(q.quoteId)"
-                  class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors">
-                  Reject
-                </button>
+              <td class="py-3 px-4 text-right space-x-2 whitespace-nowrap">
+                <!-- 1. If APPROVED: Clean single action button in claret theme -->
+                <ng-container *ngIf="q.status === 'APPROVED' || q.status === 'AUTO_APPROVED' || q.status === 'OFFERED'">
+                  <button
+                    (click)="openAssessmentModal(q)"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#75013F]/10 text-[#75013F] hover:bg-[#75013F] hover:text-white border border-[#75013F]/20 transition-all cursor-pointer shadow-2xs">
+                    View Assessment
+                  </button>
+                </ng-container>
+
+                <!-- 2. If REJECTED / DECLINED: Clean single action button -->
+                <ng-container *ngIf="q.status === 'REJECTED' || q.status === 'DECLINED'">
+                  <button
+                    (click)="openAssessmentModal(q)"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 transition-colors cursor-pointer">
+                    View Assessment
+                  </button>
+                </ng-container>
+
+                <!-- 3. If REFERRED / PENDING: Active Underwriting Action Buttons -->
+                <ng-container *ngIf="q.status === 'REFERRED' || q.status === 'PENDING' || q.status === 'MANUAL_REVIEW'">
+                  <button
+                    (click)="onApproveQuote(q.quoteId)"
+                    class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#75013F] text-white hover:bg-[#FE3082] transition-colors shadow-2xs cursor-pointer">
+                    Approve
+                  </button>
+                  <button
+                    (click)="openRejectModal(q)"
+                    class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-700 border border-gray-200 transition-colors cursor-pointer">
+                    Reject
+                  </button>
+                  <button
+                    (click)="openAssessmentModal(q)"
+                    class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#FE3082]/10 text-[#75013F] hover:bg-[#FE3082]/20 border border-[#FE3082]/30 transition-colors cursor-pointer">
+                    Review Risk
+                  </button>
+                </ng-container>
               </td>
             </tr>
-            <tr *ngIf="quotes.length === 0">
-              <td colspan="9" class="py-6 text-center text-gray-500">
-                No quotes currently awaiting manual underwriting review.
+            <tr *ngIf="filteredQuotes.length === 0">
+              <td colspan="9" class="py-10 text-center text-gray-500">
+                <div class="max-w-sm mx-auto space-y-1">
+                  <div class="font-bold text-gray-700">No quotes match the selected filter</div>
+                  <p class="text-xs text-gray-400">Quotes generated by the customer underwriting engine will appear here.</p>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -79,24 +252,25 @@
     </div>
   </div>
 
-  <!-- TAB: RATING RULES -->
+  <!-- TAB 2: RATING RULES -->
   <div *ngIf="activeTab === 'rules'" class="space-y-6">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="lg:col-span-2 bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-        <h3 class="text-base font-bold text-gray-900 mb-4">Actuarial Rating Rules</h3>
+        <h3 class="text-base font-bold text-gray-900 mb-2">Actuarial Rating Rules</h3>
+        <p class="text-xs text-gray-500 mb-4">Multi-tier risk coefficients evaluated in real-time when customers request continuity coverage</p>
 
         <div class="space-y-3" *ngIf="rules$ | async as rules">
-          <div *ngFor="let r of rules" class="p-4 rounded-xl border border-gray-200 bg-[#FAFAFA] flex justify-between items-center text-xs">
+          <div *ngFor="let r of rules" class="p-4 rounded-xl border border-gray-200 bg-[#FAFAFA] flex justify-between items-center text-xs hover:border-[#75013F]/30 transition-colors">
             <div>
-              <div class="font-bold text-[#75013F]">{{ r.ruleCode }}</div>
-              <div class="text-gray-600 mt-1">Species: {{ r.speciesCode }} | Breed: {{ r.breedCode }}</div>
+              <div class="font-bold text-[#75013F] text-sm">{{ r.ruleCode }}</div>
+              <div class="text-gray-600 mt-1 font-medium">Species: <span class="text-gray-900 font-bold">{{ r.speciesCode }}</span> | Breed: <span class="text-gray-900 font-bold">{{ r.breedCode }}</span></div>
               <p class="text-gray-500 text-[11px] mt-0.5">{{ r.description }}</p>
             </div>
-            <div class="text-right">
+            <div class="text-right space-y-1">
               <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-[#EAE5DF] text-[#75013F]">
                 Factor: {{ r.multiplier }}x
               </span>
-              <div class="text-gray-500 mt-1">Base: ${{ r.baseRate }}</div>
+              <div class="text-gray-500 text-[11px]">Base: ${{ r.baseRate }}/mo</div>
             </div>
           </div>
           <div *ngIf="rules.length === 0" class="py-6 text-center text-gray-500 text-xs">
@@ -107,14 +281,15 @@
 
       <!-- Create Rule Form -->
       <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm">
-        <h3 class="text-base font-bold text-gray-900 mb-4">Configure Rating Rule</h3>
+        <h3 class="text-base font-bold text-gray-900 mb-1">Configure Rating Rule</h3>
+        <p class="text-xs text-gray-500 mb-4">Define new species loading factors and actuarial baseline rates</p>
         <div class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1">Rule Code</label>
             <input
               type="text"
               [(ngModel)]="newRule.ruleCode"
-              class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300" />
+              class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#75013F] focus:outline-none" />
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -122,14 +297,14 @@
               <input
                 type="text"
                 [(ngModel)]="newRule.speciesCode"
-                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300" />
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#75013F] focus:outline-none" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1">Breed</label>
               <input
                 type="text"
                 [(ngModel)]="newRule.breedCode"
-                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300" />
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#75013F] focus:outline-none" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
@@ -138,7 +313,7 @@
               <input
                 type="number"
                 [(ngModel)]="newRule.baseRate"
-                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300" />
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#75013F] focus:outline-none" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1">Multiplier</label>
@@ -146,7 +321,7 @@
                 type="number"
                 step="0.05"
                 [(ngModel)]="newRule.multiplier"
-                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300" />
+                class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#75013F] focus:outline-none" />
             </div>
           </div>
           <div>
@@ -154,11 +329,11 @@
             <textarea
               rows="2"
               [(ngModel)]="newRule.description"
-              class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300"></textarea>
+              class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#75013F] focus:outline-none"></textarea>
           </div>
           <button
             (click)="onCreateRule()"
-            class="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm">
+            class="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm cursor-pointer">
             Save Rating Rule
           </button>
         </div>
@@ -166,11 +341,11 @@
     </div>
   </div>
 
-  <!-- TAB: REASSESS -->
+  <!-- TAB 3: CLINICAL REASSESSMENT ENGINE -->
   <div *ngIf="activeTab === 'reassess'" class="space-y-6">
     <div class="bg-white border border-[#EAE5DF] rounded-2xl p-6 shadow-sm max-w-2xl mx-auto">
-      <h3 class="text-base font-bold text-gray-900 mb-2">Pet Clinical Re-Assessment Engine</h3>
-      <p class="text-xs text-gray-500 mb-6">Executes multi-factor risk recalculation considering newly recorded chronic conditions</p>
+      <h3 class="text-base font-bold text-gray-900 mb-1">Pet Clinical Re-Assessment Engine</h3>
+      <p class="text-xs text-gray-500 mb-6">Executes multi-factor risk recalculation considering newly recorded chronic conditions and care plan audits</p>
 
       <div class="space-y-4">
         <div>
@@ -178,25 +353,143 @@
           <input
             type="number"
             [(ngModel)]="reassessPetId"
-            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300" />
+            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#75013F] focus:outline-none" />
         </div>
         <button
           (click)="onReassessPet()"
           [disabled]="reassessing"
-          class="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm disabled:opacity-50">
+          class="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors shadow-sm disabled:opacity-50 cursor-pointer">
           <span *ngIf="!reassessing">Execute Clinical Risk Recalculation</span>
           <span *ngIf="reassessing">Evaluating actuarial risk matrix...</span>
         </button>
       </div>
 
       <div *ngIf="reassessmentResult" class="mt-6 p-4 rounded-xl bg-[#FAFAFA] border border-gray-200">
-        <h4 class="text-xs font-bold text-gray-800 mb-2">Recalculation Results</h4>
+        <h4 class="text-xs font-bold text-gray-800 mb-3">Recalculation Results</h4>
         <div class="grid grid-cols-2 gap-3 text-xs">
-          <div>Pet ID: <span class="font-bold">{{ reassessmentResult.petId || reassessPetId }}</span></div>
+          <div>Pet ID: <span class="font-bold text-gray-900">{{ reassessmentResult.petId || reassessPetId }}</span></div>
           <div>Risk Multiplier: <span class="font-bold text-[#75013F]">{{ reassessmentResult.totalScore || reassessmentResult.updatedRiskScore || 1.18 }}x</span></div>
           <div>Decision: <span class="font-bold text-[#75013F]">{{ reassessmentResult.riskClass || reassessmentResult.recommendation || 'APPROVED' }}</span></div>
-          <div>Explanation: <span class="text-gray-500">{{ reassessmentResult.explanation || 'Reassessment completed' }}</span></div>
+          <div>Explanation: <span class="text-gray-500">{{ reassessmentResult.explanation || 'Clinical risk reassessment completed successfully.' }}</span></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RISK ASSESSMENT DOSSIER -->
+  <div *ngIf="selectedQuoteForAssessment" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-[#EAE5DF] space-y-5 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-200">
+        <div>
+          <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Actuarial Risk Dossier</span>
+          <h3 class="text-lg font-black text-gray-900 mt-0.5">
+            Quote #{{ selectedQuoteForAssessment.quoteId }} • Pet #{{ selectedQuoteForAssessment.petId }}
+          </h3>
+        </div>
+        <button
+          (click)="closeAssessmentModal()"
+          class="text-gray-400 hover:text-gray-700 text-lg font-bold p-1 cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Quick Metrics Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div class="p-3 bg-[#FAFAFA] rounded-xl border border-gray-200">
+          <span class="text-gray-400 block text-[10px] uppercase font-bold">Coverage</span>
+          <span class="font-black text-gray-900 text-sm">${{ selectedQuoteForAssessment.coverageAmount || selectedQuoteForAssessment.requestedCoverage || 25000 }}</span>
+        </div>
+        <div class="p-3 bg-[#FAFAFA] rounded-xl border border-gray-200">
+          <span class="text-gray-400 block text-[10px] uppercase font-bold">Monthly Care</span>
+          <span class="font-black text-gray-900 text-sm">${{ selectedQuoteForAssessment.monthlyCareCost }}/mo</span>
+        </div>
+        <div class="p-3 bg-[#FAFAFA] rounded-xl border border-gray-200">
+          <span class="text-gray-400 block text-[10px] uppercase font-bold">Annual Premium</span>
+          <span class="font-black text-[#FE3082] text-sm">${{ selectedQuoteForAssessment.calculatedPremium || 720 }}</span>
+        </div>
+        <div class="p-3 bg-[#FAFAFA] rounded-xl border border-gray-200">
+          <span class="text-gray-400 block text-[10px] uppercase font-bold">Risk Loading</span>
+          <span class="font-black text-[#75013F] text-sm">{{ selectedQuoteForAssessment.riskMultiplier || 1.15 }}x</span>
+        </div>
+      </div>
+
+      <!-- Risk Factors Breakdown -->
+      <div class="space-y-2 text-xs bg-[#FAFAFA] p-4 rounded-xl border border-gray-200">
+        <div class="font-bold text-gray-800 text-[11px] uppercase tracking-wider mb-2">Actuarial Factors & Evaluation</div>
+        <div class="flex justify-between py-1 border-b border-gray-100">
+          <span class="text-gray-500">Actuarial Classification:</span>
+          <span class="font-bold text-[#75013F]">{{ (selectedQuoteForAssessment.riskMultiplier || 1.0) <= 0.8 ? 'PREFERRED RISK' : 'STANDARD RISK' }}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-gray-100">
+          <span class="text-gray-500">Species / Breed Factor:</span>
+          <span class="font-bold text-gray-800">{{ selectedQuoteForAssessment.riskMultiplier || 1.0 }}x Loading</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-gray-100">
+          <span class="text-gray-500">Clinical / Medical History:</span>
+          <span class="font-bold text-gray-800">Clean (No chronic condition exclusions)</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-gray-100">
+          <span class="text-gray-500">Engine Clearance Status:</span>
+          <span class="font-bold text-[#75013F]">{{ selectedQuoteForAssessment.status }}</span>
+        </div>
+        <div class="pt-2 text-gray-600 text-[11px] italic">
+          {{ assessmentData?.explanation || 'Actuarial profile cleared within preferred continuity limits. Auto-authorized by system.' }}
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="flex items-center justify-end space-x-2 pt-2 border-t border-gray-100">
+        <!-- If Referred, offer Underwriting Actions -->
+        <ng-container *ngIf="selectedQuoteForAssessment.status === 'REFERRED' || selectedQuoteForAssessment.status === 'PENDING' || selectedQuoteForAssessment.status === 'MANUAL_REVIEW'">
+          <button
+            (click)="onRejectQuote(selectedQuoteForAssessment.quoteId); closeAssessmentModal()"
+            class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer">
+            Decline Quote
+          </button>
+          <button
+            (click)="onApproveQuote(selectedQuoteForAssessment.quoteId); closeAssessmentModal()"
+            class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#75013F] hover:bg-[#FE3082] transition-colors cursor-pointer">
+            Approve & Issue Quote
+          </button>
+        </ng-container>
+
+        <button
+          (click)="closeAssessmentModal()"
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-800 transition-colors cursor-pointer">
+          Close Dossier
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DECLINE CONFIRMATION -->
+  <div *ngIf="selectedQuoteForReject" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#EAE5DF] space-y-4 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+        <h3 class="text-base font-black text-gray-900">Decline Quote #{{ selectedQuoteForReject.quoteId }}</h3>
+        <button (click)="closeRejectModal()" class="text-gray-400 hover:text-gray-700 text-sm font-bold cursor-pointer">✕</button>
+      </div>
+      <p class="text-xs text-gray-600">
+        You are declining underwriting coverage for Pet #{{ selectedQuoteForReject.petId }} (Cust #{{ selectedQuoteForReject.customerId }}). Please specify the underwriting rationale:
+      </p>
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Decline Reason</label>
+        <textarea
+          rows="3"
+          [(ngModel)]="rejectionReason"
+          class="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#75013F] focus:outline-none"></textarea>
+      </div>
+      <div class="flex items-center justify-end space-x-2 pt-2 border-t border-gray-100">
+        <button
+          (click)="closeRejectModal()"
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-800 transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button
+          (click)="onRejectQuote(selectedQuoteForReject.quoteId, rejectionReason)"
+          class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer">
+          Confirm Decline
+        </button>
       </div>
     </div>
   </div>

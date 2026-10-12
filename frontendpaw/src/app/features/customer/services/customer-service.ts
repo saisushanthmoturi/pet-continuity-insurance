@@ -311,7 +311,8 @@ export class CustomerService {
         customerId: res.customerId,
         petId: res.petId,
         coverageAmount: res.coverageAmount,
-        premiumAmount: res.premiumAmount,
+        premiumAmount: res.premiumAmount ?? (res.monthlyPremium != null ? Math.round(res.monthlyPremium * 12 * 100) / 100 : 0),
+        monthlyPremium: res.monthlyPremium ?? (res.premiumAmount != null ? Math.round((res.premiumAmount / 12) * 100) / 100 : 0),
         status: res.status || "ACTIVE"
       }))
     );
@@ -326,7 +327,8 @@ export class CustomerService {
           customerId: res.customerId,
           petId: res.petId,
           coverageAmount: res.coverageAmount,
-          premiumAmount: res.premiumAmount,
+          premiumAmount: res.premiumAmount ?? (res.monthlyPremium != null ? Math.round(res.monthlyPremium * 12 * 100) / 100 : 0),
+          monthlyPremium: res.monthlyPremium ?? (res.premiumAmount != null ? Math.round((res.premiumAmount / 12) * 100) / 100 : 0),
           status: res.status || "ACTIVE",
           startDate: res.startDate || res.effectiveDate,
           endDate: res.endDate || res.expiryDate

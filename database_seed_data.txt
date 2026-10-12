@@ -134,19 +134,19 @@ CREATE TABLE IF NOT EXISTS pets (
 -- 6. pet_medical_records
 CREATE TABLE IF NOT EXISTS pet_medical_records (
     medical_record_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
     pet_id BIGINT NOT NULL,
-    record_type VARCHAR(50) NOT NULL,
-    file_url VARCHAR(500) NOT NULL,
-    file_hash VARCHAR(128),
-    file_name VARCHAR(255) NOT NULL,
-    file_size_bytes BIGINT NOT NULL,
-    mime_type VARCHAR(100) NOT NULL,
-    description TEXT,
-    recorded_date DATE,
+    record_type VARCHAR(50) DEFAULT 'GENERAL',
+    diagnosis VARCHAR(255),
+    treatment TEXT,
+    vet_name VARCHAR(150),
+    record_date DATE,
+    risk_level VARCHAR(50) DEFAULT 'LOW',
+    notes TEXT,
+    annual_med_cost DOUBLE DEFAULT 0.0,
+    status VARCHAR(50) DEFAULT 'ACTIVE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_med_pet FOREIGN KEY (pet_id) REFERENCES pets(pet_id) ON DELETE CASCADE
+    CONSTRAINT fk_pet_medical_records_pet FOREIGN KEY (pet_id) REFERENCES pets(pet_id) ON DELETE CASCADE
 );
 
 -- Seed Data for pet_db
@@ -155,9 +155,9 @@ INSERT INTO pets (pet_id, customer_id, name, species_code, breed_code, species, 
 (2, 1, 'Luna', 'CAT', 'SIAMESE', 'CAT', 'Siamese', 'FEMALE', 'ACTIVE', '2022-08-18', 2, 4.2, 4.2, 'CHIP-982000987654321', 'KG', 900.0, 14, TRUE)
 ON DUPLICATE KEY UPDATE updated_at = NOW();
 
-INSERT INTO pet_medical_records (medical_record_id, pet_id, record_type, file_url, file_hash, file_name, file_size_bytes, mime_type, description, recorded_date) VALUES
-(1, 1, 'VACCINATION', 'https://petcontinuity-records.s3.amazonaws.com/pets/1/rabies_cert_2024.pdf', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'rabies_cert_2024.pdf', 245800, 'application/pdf', 'Annual rabies vaccination certificate', '2024-04-15'),
-(2, 1, 'CHECKUP', 'https://petcontinuity-records.s3.amazonaws.com/pets/1/annual_checkup_2024.pdf', 'f4c1e44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b866', 'annual_checkup_2024.pdf', 512000, 'application/pdf', 'Comprehensive senior wellness exam', '2024-05-10')
+INSERT INTO pet_medical_records (medical_record_id, pet_id, record_type, diagnosis, treatment, vet_name, record_date, risk_level, notes, annual_med_cost, status) VALUES
+(1, 1, 'VACCINATION', 'Rabies & DHPP Booster', 'Core vaccination administered', 'Dr. Emily Watson, DVM', '2024-04-15', 'LOW', 'Annual rabies vaccination certificate', 120.0, 'ACTIVE'),
+(2, 1, 'CHECKUP', 'Annual Senior Wellness', 'Dental cleaning recommended; heart and vitals normal', 'Dr. Emily Watson, DVM', '2024-05-10', 'LOW', 'Comprehensive senior wellness exam', 250.0, 'ACTIVE')
 ON DUPLICATE KEY UPDATE updated_at = NOW();
 
 -- ================================================================================
@@ -173,116 +173,124 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- 7. quotes
 CREATE TABLE IF NOT EXISTS quotes (
     quote_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
-    pet_id BIGINT NOT NULL,
-    customer_id BIGINT NOT NULL,
     quote_number VARCHAR(100) UNIQUE,
-    status VARCHAR(50) DEFAULT 'ACTIVE',
-    quote_type VARCHAR(50) DEFAULT 'CONTINUITY',
-    requested_coverage_amount DOUBLE NOT NULL,
-    coverage_amount DOUBLE,
-    estimated_annual_cost DOUBLE NOT NULL,
-    annual_cost DOUBLE,
-    deductible_amount DOUBLE NOT NULL,
-    deductible DOUBLE,
-    total_cost DOUBLE NOT NULL,
     currency VARCHAR(10) DEFAULT 'USD',
-    expires_at TIMESTAMP NULL,
+    input_snapshot JSON,
+    customer_id BIGINT NOT NULL,
+    pet_id BIGINT NOT NULL,
+    requested_coverage DOUBLE NOT NULL,
+    coverage_period VARCHAR(50) DEFAULT 'ANNUAL',
+    premium_amount DOUBLE NOT NULL,
+    risk_score INT NOT NULL,
+    risk_class VARCHAR(50) DEFAULT 'MODERATE',
+    decision VARCHAR(50) NOT NULL,
+    decision_reason TEXT,
+    status VARCHAR(50) DEFAULT 'OFFERED',
+    underwriter_id BIGINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    submitted_at TIMESTAMP NULL,
+    accepted_at TIMESTAMP NULL,
+    decided_at TIMESTAMP NULL,
+    valid_until TIMESTAMP NULL,
+    version INT DEFAULT 1
 );
 
 -- 8. risk_assessments
 CREATE TABLE IF NOT EXISTS risk_assessments (
-    assessment_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
+    risk_assessment_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     quote_id BIGINT NOT NULL,
-    risk_tier VARCHAR(50) NOT NULL,
-    base_premium DOUBLE NOT NULL,
-    breed_risk_factor DOUBLE NOT NULL,
-    age_risk_factor DOUBLE NOT NULL,
-    final_premium DOUBLE NOT NULL,
-    notes TEXT,
-    approved_coverage_amount DOUBLE NOT NULL,
-    risk_score DOUBLE NOT NULL,
-    health_risk_factor DOUBLE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_risk_quote FOREIGN KEY (quote_id) REFERENCES quotes(quote_id) ON DELETE CASCADE
+    age_factor DOUBLE NOT NULL,
+    breed_factor DOUBLE DEFAULT 0.0,
+    medical_factor DOUBLE NOT NULL,
+    care_cost_factor DOUBLE DEFAULT 0.0,
+    continuity_factor DOUBLE DEFAULT 0.0,
+    total_score DOUBLE NOT NULL,
+    risk_class VARCHAR(50) NOT NULL,
+    explanation TEXT,
+    assessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    assessment_version VARCHAR(20) DEFAULT '1.0',
+    model_version VARCHAR(50) DEFAULT 'STANDARD_ACTUARIAL_V1',
+    rating_rule_set_version VARCHAR(50) DEFAULT 'V1',
+    input_snapshot JSON,
+    assessed_by VARCHAR(100) DEFAULT 'SYSTEM',
+    status VARCHAR(50) DEFAULT 'COMPLETED',
+    CONSTRAINT fk_risk_assessments_quote FOREIGN KEY (quote_id) REFERENCES quotes(quote_id) ON DELETE CASCADE
 );
 
 -- 9. coverage_assessments
 CREATE TABLE IF NOT EXISTS coverage_assessments (
-    coverage_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
-    assessment_id BIGINT NOT NULL,
-    coverage_type VARCHAR(100) NOT NULL,
-    requested_limit DOUBLE NOT NULL,
-    approved_limit DOUBLE NOT NULL,
-    deductible DOUBLE NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'APPROVED',
-    rejection_reason VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_cov_assessment FOREIGN KEY (assessment_id) REFERENCES risk_assessments(assessment_id) ON DELETE CASCADE
+    coverage_assessment_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    quote_id BIGINT NOT NULL,
+    currency VARCHAR(10) DEFAULT 'USD',
+    annual_care_cost DOUBLE NOT NULL,
+    remaining_years INT NOT NULL,
+    medical_reserve DOUBLE DEFAULT 0.0,
+    inflation_adjustment DOUBLE DEFAULT 1.05,
+    projected_liability DOUBLE NOT NULL,
+    requested_coverage DOUBLE NOT NULL,
+    coverage_gap DOUBLE DEFAULT 0.0,
+    recommendation TEXT,
+    assessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(50) DEFAULT 'CALCULATED',
+    CONSTRAINT fk_coverage_assessments_quote FOREIGN KEY (quote_id) REFERENCES quotes(quote_id) ON DELETE CASCADE
 );
 
 -- 10. rating_rules
 CREATE TABLE IF NOT EXISTS rating_rules (
     rule_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    rule_set_version VARCHAR(50) DEFAULT 'V1',
     rule_name VARCHAR(100) NOT NULL,
-    species_code VARCHAR(50) NOT NULL,
-    breed_code VARCHAR(100),
-    min_age_years INT DEFAULT 0,
-    max_age_years INT DEFAULT 30,
-    factor DOUBLE NOT NULL,
-    active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    factor VARCHAR(50) NOT NULL,
+    min_value DOUBLE,
+    max_value DOUBLE,
+    score INT NOT NULL,
+    premium_factor DOUBLE DEFAULT 1.0,
+    status VARCHAR(50) DEFAULT 'ACTIVE',
+    effective_from DATE,
+    effective_to DATE
 );
 
 -- 11. premium_calculations
 CREATE TABLE IF NOT EXISTS premium_calculations (
-    calculation_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    premium_calculation_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     quote_id BIGINT NOT NULL,
-    base_rate DOUBLE NOT NULL,
-    breed_multiplier DOUBLE NOT NULL,
-    age_multiplier DOUBLE NOT NULL,
-    health_multiplier DOUBLE NOT NULL,
-    calculated_annual_premium DOUBLE NOT NULL,
-    calculated_monthly_premium DOUBLE NOT NULL,
-    calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    risk_assessment_id BIGINT,
+    base_premium DOUBLE NOT NULL,
+    risk_multiplier DOUBLE DEFAULT 1.0,
+    final_premium DOUBLE NOT NULL,
     currency VARCHAR(10) DEFAULT 'USD',
-    rule_set_version VARCHAR(50) DEFAULT 'v1.0'
+    rule_set_version VARCHAR(50) DEFAULT 'V1',
+    calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_premium_calc_quote FOREIGN KEY (quote_id) REFERENCES quotes(quote_id) ON DELETE CASCADE
 );
 
 -- Seed Data for underwriting_db
-INSERT INTO quotes (quote_id, pet_id, customer_id, quote_number, status, quote_type, requested_coverage_amount, estimated_annual_cost, deductible_amount, total_cost, currency, expires_at) VALUES
-(1, 1, 1, 'QUO-2024-DOG-001', 'ACTIVE', 'CONTINUITY', 25000.0, 1800.0, 500.0, 850.0, 'USD', DATE_ADD(NOW(), INTERVAL 30 DAY)),
-(2, 2, 1, 'QUO-2024-CAT-002', 'ACTIVE', 'CONTINUITY', 15000.0, 900.0, 250.0, 520.0, 'USD', DATE_ADD(NOW(), INTERVAL 30 DAY))
+INSERT INTO quotes (quote_id, quote_number, customer_id, pet_id, requested_coverage, coverage_period, premium_amount, risk_score, risk_class, decision, status, underwriter_id, valid_until) VALUES
+(1, 'QUO-2024-DOG-001', 1, 1, 25000.0, 'ANNUAL', 75.0, 35, 'LOW', 'APPROVED', 'ACCEPTED', 2, DATE_ADD(NOW(), INTERVAL 30 DAY)),
+(2, 'QUO-2024-CAT-002', 1, 2, 15000.0, 'ANNUAL', 45.0, 25, 'LOW', 'APPROVED', 'ACCEPTED', 2, DATE_ADD(NOW(), INTERVAL 30 DAY))
 ON DUPLICATE KEY UPDATE updated_at = NOW();
 
-INSERT INTO risk_assessments (assessment_id, quote_id, risk_tier, base_premium, breed_risk_factor, age_risk_factor, final_premium, notes, approved_coverage_amount, risk_score, health_risk_factor) VALUES
-(1, 1, 'STANDARD', 600.0, 1.15, 1.10, 850.0, 'Good health, vaccinated, no pre-existing severe issues', 25000.0, 22.5, 1.05),
-(2, 2, 'PREFERRED', 400.0, 1.05, 1.05, 520.0, 'Indoor cat, up-to-date vaccinations', 15000.0, 12.0, 1.00)
-ON DUPLICATE KEY UPDATE updated_at = NOW();
+INSERT INTO risk_assessments (risk_assessment_id, quote_id, age_factor, breed_factor, medical_factor, care_cost_factor, continuity_factor, total_score, risk_class, explanation, status) VALUES
+(1, 1, 13.5, 5.0, 8.0, 0.0, 0.0, 35.0, 'LOW', 'Healthy 5-year-old Golden Retriever with up-to-date vaccinations and comprehensive care records.', 'COMPLETED'),
+(2, 2, 4.5, 0.0, 0.0, 0.0, 0.0, 25.0, 'LOW', 'Young indoor cat with no chronic conditions.', 'COMPLETED')
+ON DUPLICATE KEY UPDATE assessed_at = NOW();
 
-INSERT INTO coverage_assessments (coverage_id, assessment_id, coverage_type, requested_limit, approved_limit, deductible, status) VALUES
-(1, 1, 'CONTINUITY_CARE', 25000.0, 25000.0, 500.0, 'APPROVED'),
-(2, 1, 'VET_EMERGENCY', 5000.0, 5000.0, 250.0, 'APPROVED'),
-(3, 2, 'CONTINUITY_CARE', 15000.0, 15000.0, 250.0, 'APPROVED')
-ON DUPLICATE KEY UPDATE updated_at = NOW();
+INSERT INTO coverage_assessments (coverage_assessment_id, quote_id, annual_care_cost, remaining_years, medical_reserve, inflation_adjustment, projected_liability, requested_coverage, coverage_gap, recommendation, status) VALUES
+(1, 1, 1800.0, 10, 1500.0, 1.05, 20475.0, 25000.0, 0.0, 'Requested coverage adequately satisfies projected lifetime liabilities.', 'CALCULATED'),
+(2, 2, 900.0, 12, 800.0, 1.05, 12222.0, 15000.0, 0.0, 'Requested coverage adequately satisfies projected lifetime liabilities.', 'CALCULATED')
+ON DUPLICATE KEY UPDATE assessed_at = NOW();
 
-INSERT INTO rating_rules (rule_id, rule_name, species_code, breed_code, min_age_years, max_age_years, factor, active) VALUES
-(1, 'DOG_BASE_FACTOR', 'DOG', NULL, 0, 15, 1.20, TRUE),
-(2, 'CAT_BASE_FACTOR', 'CAT', NULL, 0, 20, 1.00, TRUE),
-(3, 'GOLDEN_RETRIEVER_FACTOR', 'DOG', 'GOLDEN_RETRIEVER', 0, 15, 1.15, TRUE),
-(4, 'SENIOR_PET_SURCHARGE', 'DOG', NULL, 8, 25, 1.35, TRUE)
-ON DUPLICATE KEY UPDATE updated_at = NOW();
+INSERT INTO rating_rules (rule_id, rule_set_version, rule_name, factor, min_value, max_value, score, premium_factor, status, effective_from, effective_to) VALUES
+(1, 'V1', 'BASE_YOUNG_ADULT', 'AGE', 1.0, 5.0, 10, 1.0, 'ACTIVE', '2024-01-01', '2030-12-31'),
+(2, 'V1', 'SENIOR_PET', 'AGE', 8.0, 25.0, 35, 1.35, 'ACTIVE', '2024-01-01', '2030-12-31'),
+(3, 'V1', 'BRACHYCEPHALIC_BREED', 'BREED', NULL, NULL, 20, 1.25, 'ACTIVE', '2024-01-01', '2030-12-31'),
+(4, 'V1', 'CHRONIC_CONDITION_SURCHARGE', 'MEDICAL', NULL, NULL, 30, 1.40, 'ACTIVE', '2024-01-01', '2030-12-31')
+ON DUPLICATE KEY UPDATE status = 'ACTIVE';
 
-INSERT INTO premium_calculations (calculation_id, quote_id, base_rate, breed_multiplier, age_multiplier, health_multiplier, calculated_annual_premium, calculated_monthly_premium, currency, rule_set_version) VALUES
-(1, 1, 600.0, 1.15, 1.10, 1.05, 850.0, 70.83, 'USD', 'v1.0'),
-(2, 2, 400.0, 1.05, 1.05, 1.00, 520.0, 43.33, 'USD', 'v1.0')
+INSERT INTO premium_calculations (premium_calculation_id, quote_id, risk_assessment_id, base_premium, risk_multiplier, final_premium, currency, rule_set_version) VALUES
+(1, 1, 1, 75.0, 1.0, 75.0, 'USD', 'V1'),
+(2, 2, 2, 45.0, 1.0, 45.0, 'USD', 'V1')
 ON DUPLICATE KEY UPDATE calculated_at = NOW();
 
 -- ================================================================================
@@ -298,63 +306,56 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- 12. policies
 CREATE TABLE IF NOT EXISTS policies (
     policy_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
     policy_number VARCHAR(100) NOT NULL UNIQUE,
+    quote_id BIGINT NOT NULL,
     customer_id BIGINT NOT NULL,
     pet_id BIGINT NOT NULL,
-    quote_id BIGINT NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
-    coverage_amount DOUBLE NOT NULL,
-    annual_premium DOUBLE NOT NULL,
-    monthly_premium DOUBLE NOT NULL,
-    deductible_amount DOUBLE NOT NULL,
-    deductible DOUBLE,
     currency VARCHAR(10) DEFAULT 'USD',
-    effective_date DATE,
-    start_date DATE,
-    expiry_date DATE,
-    end_date DATE,
-    cancelled_at TIMESTAMP NULL,
+    coverage_amount DOUBLE NOT NULL,
+    premium_amount DOUBLE NOT NULL,
+    deductible DOUBLE DEFAULT 250.0,
+    start_date VARCHAR(50),
+    end_date VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'PENDING_PAYMENT',
+    issued_by VARCHAR(100) DEFAULT 'SYSTEM',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    version INT DEFAULT 1
 );
 
 -- 13. coverages
 CREATE TABLE IF NOT EXISTS coverages (
     coverage_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
     policy_id BIGINT NOT NULL,
-    coverage_type VARCHAR(100) NOT NULL,
+    coverage_type VARCHAR(50) NOT NULL,
+    coverage_amount DOUBLE NOT NULL,
     limit_amount DOUBLE NOT NULL,
-    deductible_amount DOUBLE NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_cov_policy FOREIGN KEY (policy_id) REFERENCES policies(policy_id) ON DELETE CASCADE
+    deductible DOUBLE DEFAULT 0.0,
+    status VARCHAR(50) DEFAULT 'ACTIVE',
+    CONSTRAINT fk_coverages_policy FOREIGN KEY (policy_id) REFERENCES policies(policy_id) ON DELETE CASCADE
 );
 
 -- 14. policy_status_history
 CREATE TABLE IF NOT EXISTS policy_status_history (
     history_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
     policy_id BIGINT NOT NULL,
     old_status VARCHAR(50),
     new_status VARCHAR(50) NOT NULL,
+    changed_by VARCHAR(100) DEFAULT 'SYSTEM',
     reason VARCHAR(255),
-    changed_by VARCHAR(100),
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_pol_history FOREIGN KEY (policy_id) REFERENCES policies(policy_id) ON DELETE CASCADE
+    CONSTRAINT fk_policy_status_history_policy FOREIGN KEY (policy_id) REFERENCES policies(policy_id) ON DELETE CASCADE
 );
 
 -- Seed Data for policy_db
-INSERT INTO policies (policy_id, policy_number, customer_id, pet_id, quote_id, status, coverage_amount, annual_premium, monthly_premium, deductible_amount, currency, effective_date, expiry_date) VALUES
-(1, 'POL-2024-99881', 1, 1, 1, 'ACTIVE', 25000.0, 850.0, 70.83, 500.0, 'USD', '2024-01-01', '2025-01-01'),
-(2, 'POL-2024-99882', 1, 2, 2, 'ACTIVE', 15000.0, 520.0, 43.33, 250.0, 'USD', '2024-02-01', '2025-02-01')
+INSERT INTO policies (policy_id, policy_number, quote_id, customer_id, pet_id, currency, coverage_amount, premium_amount, deductible, start_date, end_date, status, issued_by) VALUES
+(1, 'POL-2024-99881', 1, 1, 1, 'USD', 25000.0, 75.0, 250.0, '2024-01-01', '2025-01-01', 'ACTIVE', 'SYSTEM'),
+(2, 'POL-2024-99882', 2, 1, 2, 'USD', 15000.0, 45.0, 250.0, '2024-02-01', '2025-02-01', 'ACTIVE', 'SYSTEM')
 ON DUPLICATE KEY UPDATE updated_at = NOW();
 
-INSERT INTO coverages (coverage_id, policy_id, coverage_type, limit_amount, deductible_amount, status) VALUES
-(1, 1, 'LIFELONG_CONTINUITY', 20000.0, 500.0, 'ACTIVE'),
-(2, 1, 'EMERGENCY_VET', 5000.0, 250.0, 'ACTIVE'),
-(3, 2, 'LIFELONG_CONTINUITY', 15000.0, 250.0, 'ACTIVE')
+INSERT INTO coverages (coverage_id, policy_id, coverage_type, coverage_amount, limit_amount, deductible, status) VALUES
+(1, 1, 'PET_CONTINUITY_LIFE', 25000.0, 25000.0, 250.0, 'ACTIVE'),
+(2, 2, 'PET_CONTINUITY_LIFE', 15000.0, 15000.0, 250.0, 'ACTIVE')
 ON DUPLICATE KEY UPDATE status = 'ACTIVE';
 
 INSERT INTO policy_status_history (history_id, policy_id, old_status, new_status, reason, changed_by) VALUES
@@ -375,85 +376,83 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- 15. claims
 CREATE TABLE IF NOT EXISTS claims (
     claim_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
     claim_number VARCHAR(100) NOT NULL UNIQUE,
     policy_id BIGINT NOT NULL,
-    pet_id BIGINT NOT NULL,
     customer_id BIGINT NOT NULL,
-    claim_type VARCHAR(50) NOT NULL,
-    trigger_event VARCHAR(100) NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'SUBMITTED',
-    approved_amount DOUBLE,
-    payout_frequency VARCHAR(50),
-    payout_start_date DATE,
+    pet_id BIGINT NOT NULL,
+    claim_reason VARCHAR(255),
+    triggering_event VARCHAR(100) DEFAULT 'OWNER_DEATH',
+    event_date DATE,
+    currency VARCHAR(10) DEFAULT 'USD',
+    claim_amount DOUBLE NOT NULL,
+    decided_at TIMESTAMP NULL,
+    decision_reason VARCHAR(255),
+    status VARCHAR(50) DEFAULT 'PENDING',
+    priority VARCHAR(50) DEFAULT 'NORMAL',
+    claims_officer_id BIGINT,
+    fraud_status VARCHAR(50) DEFAULT 'CLEARED',
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    version INT DEFAULT 1
 );
 
 -- 16. claim_documents
 CREATE TABLE IF NOT EXISTS claim_documents (
     document_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
     claim_id BIGINT NOT NULL,
-    document_type VARCHAR(50) NOT NULL,
-    file_url VARCHAR(500) NOT NULL,
-    file_name VARCHAR(255) NOT NULL,
-    file_size_bytes BIGINT NOT NULL,
-    mime_type VARCHAR(100) NOT NULL,
-    verification_status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    document_type VARCHAR(100) NOT NULL,
+    original_file_name VARCHAR(255) NOT NULL,
+    storage_reference VARCHAR(500) NOT NULL,
+    content_type VARCHAR(100),
+    verification_status VARCHAR(50) DEFAULT 'PENDING',
+    file_size_bytes BIGINT,
+    check_sum VARCHAR(100),
+    uploaded_by VARCHAR(100) DEFAULT 'USER',
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    verified_at TIMESTAMP NULL,
-    rejection_reason VARCHAR(255),
-    CONSTRAINT fk_doc_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
+    CONSTRAINT fk_claim_documents_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
 );
 
 -- 17. event_verifications
 CREATE TABLE IF NOT EXISTS event_verifications (
-    event_verification_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
+    verification_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     claim_id BIGINT NOT NULL,
-    verification_type VARCHAR(50) NOT NULL,
-    verification_source VARCHAR(100) NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    event_type VARCHAR(100) DEFAULT 'DEATH_VERIFICATION',
+    verification_method VARCHAR(100),
+    verification_status VARCHAR(50) DEFAULT 'PENDING',
     verified_by VARCHAR(100),
     verified_at TIMESTAMP NULL,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_ev_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
+    remarks TEXT,
+    CONSTRAINT fk_event_verifications_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
 );
 
 -- 18. investigations
 CREATE TABLE IF NOT EXISTS investigations (
     investigation_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
     claim_id BIGINT NOT NULL,
-    investigator_name VARCHAR(150) NOT NULL,
-    reason VARCHAR(255) NOT NULL,
+    investigator_id BIGINT,
     findings TEXT,
-    status VARCHAR(50) NOT NULL DEFAULT 'OPEN',
-    outcome VARCHAR(50),
-    initiated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    completed_at TIMESTAMP NULL,
+    eligibility_status VARCHAR(50) DEFAULT 'PENDING',
+    fraud_indicator_count INT DEFAULT 0,
+    recommendation VARCHAR(100),
+    status VARCHAR(50) DEFAULT 'IN_PROGRESS',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_inv_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
+    completed_at TIMESTAMP NULL,
+    CONSTRAINT fk_investigations_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
 );
 
 -- 19. fraud_assessments
 CREATE TABLE IF NOT EXISTS fraud_assessments (
-    fraud_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    id BIGINT,
+    fraud_assessment_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     claim_id BIGINT NOT NULL,
-    risk_score DOUBLE NOT NULL,
-    fraud_tier VARCHAR(50) NOT NULL,
-    flag_reasons TEXT,
-    model_version VARCHAR(50) NOT NULL DEFAULT 'v1.0',
+    score INT NOT NULL,
+    model_version VARCHAR(50) DEFAULT 'FRAUD_RULE_V1',
+    indicators TEXT,
+    decision VARCHAR(50) DEFAULT 'CLEARED',
+    assessed_by VARCHAR(100) DEFAULT 'SYSTEM',
     assessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    requires_investigation BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_fraud_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
+    status VARCHAR(50) DEFAULT 'COMPLETED',
+    CONSTRAINT fk_fraud_assessments_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
 );
 
 -- 20. claim_status_history
@@ -462,45 +461,44 @@ CREATE TABLE IF NOT EXISTS claim_status_history (
     claim_id BIGINT NOT NULL,
     old_status VARCHAR(50),
     new_status VARCHAR(50) NOT NULL,
-    changed_by VARCHAR(100),
+    changed_by VARCHAR(100) DEFAULT 'SYSTEM',
     reason VARCHAR(255),
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_csh_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
+    CONSTRAINT fk_claim_status_history_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
 );
 
 -- 21. claim_information_requests
 CREATE TABLE IF NOT EXISTS claim_information_requests (
     request_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     claim_id BIGINT NOT NULL,
-    requested_by VARCHAR(100),
-    request_reason VARCHAR(255),
-    document_type_requested VARCHAR(100),
-    status VARCHAR(50) DEFAULT 'PENDING',
-    due_date DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    requested_by VARCHAR(100) NOT NULL,
+    request_text TEXT NOT NULL,
+    due_at TIMESTAMP NULL,
+    status VARCHAR(50) DEFAULT 'OPEN',
     responded_at TIMESTAMP NULL,
-    CONSTRAINT fk_cir_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_claim_info_req_claim FOREIGN KEY (claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE
 );
 
 -- Seed Data for claims_db
-INSERT INTO claims (claim_id, claim_number, policy_id, pet_id, customer_id, claim_type, trigger_event, status, approved_amount, payout_frequency, payout_start_date) VALUES
-(1, 'CLM-2024-00101', 1, 1, 1, 'CONTINUITY_TRIGGER', 'OWNER_HOSPITALIZATION', 'APPROVED', 25000.0, 'MONTHLY', '2024-06-01')
+INSERT INTO claims (claim_id, claim_number, policy_id, pet_id, customer_id, claim_reason, triggering_event, event_date, currency, claim_amount, status, priority, fraud_status) VALUES
+(1, 'CLM-2024-00101', 1, 1, 1, 'Owner hospitalization emergency', 'OWNER_HOSPITALIZATION', '2024-06-01', 'USD', 25000.0, 'APPROVED', 'NORMAL', 'CLEARED')
 ON DUPLICATE KEY UPDATE updated_at = NOW();
 
-INSERT INTO claim_documents (document_id, claim_id, document_type, file_url, file_name, file_size_bytes, mime_type, verification_status, verified_at) VALUES
-(1, 1, 'HOSPITAL_ADMISSION_RECORD', 'https://petcontinuity-records.s3.amazonaws.com/claims/1/hospital_admission_letter.pdf', 'hospital_admission_letter.pdf', 342100, 'application/pdf', 'VERIFIED', NOW())
+INSERT INTO claim_documents (document_id, claim_id, document_type, original_file_name, storage_reference, content_type, verification_status, file_size_bytes, uploaded_by) VALUES
+(1, 1, 'HOSPITAL_ADMISSION_RECORD', 'hospital_admission_letter.pdf', 'https://petcontinuity-records.s3.amazonaws.com/claims/1/hospital_admission_letter.pdf', 'application/pdf', 'VERIFIED', 342100, 'USER')
+ON DUPLICATE KEY UPDATE uploaded_at = NOW();
+
+INSERT INTO event_verifications (verification_id, claim_id, event_type, verification_method, verification_status, verified_by, remarks) VALUES
+(1, 1, 'HOSPITALIZATION', 'Direct Hospital Verification', 'VERIFIED', 'mike_claims', 'Admission date and projected stay verified directly with attending physician office')
 ON DUPLICATE KEY UPDATE verified_at = NOW();
 
-INSERT INTO event_verifications (event_verification_id, claim_id, verification_type, verification_source, status, verified_by, verified_at, notes) VALUES
-(1, 1, 'HOSPITALIZATION', 'Springfield General Hospital Admin Desk', 'CONFIRMED', 'mike_claims', NOW(), 'Admission date and projected stay verified directly with attending physician office')
-ON DUPLICATE KEY UPDATE updated_at = NOW();
-
-INSERT INTO fraud_assessments (fraud_id, claim_id, risk_score, fraud_tier, flag_reasons, model_version, requires_investigation) VALUES
-(1, 1, 8.5, 'LOW', 'None. Legitimate medical documentation provided', 'v1.0', FALSE)
-ON DUPLICATE KEY UPDATE updated_at = NOW();
+INSERT INTO fraud_assessments (fraud_assessment_id, claim_id, score, model_version, indicators, decision, assessed_by, status) VALUES
+(1, 1, 8, 'FRAUD_RULE_V1', 'None. Legitimate medical documentation provided', 'CLEARED', 'SYSTEM', 'COMPLETED')
+ON DUPLICATE KEY UPDATE assessed_at = NOW();
 
 INSERT INTO claim_status_history (history_id, claim_id, old_status, new_status, changed_by, reason) VALUES
-(1, 1, 'SUBMITTED', 'UNDER_REVIEW', 'mike_claims', 'Document verification initiated'),
+(1, 1, 'PENDING', 'UNDER_REVIEW', 'mike_claims', 'Document verification initiated'),
 (2, 1, 'UNDER_REVIEW', 'APPROVED', 'mike_claims', 'Hospitalization confirmed and verified')
 ON DUPLICATE KEY UPDATE changed_at = NOW();
 

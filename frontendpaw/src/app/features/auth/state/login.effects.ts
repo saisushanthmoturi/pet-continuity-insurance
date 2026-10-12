@@ -42,7 +42,7 @@ export class LoginEffects {
           }),
           map((jwtRes) => LoginActions.loginSuccess({ jwtRes })),
           catchError((error) =>
-            of(LoginActions.loginFailure({ error: error?.error?.message || error?.message || 'Login failed' }))
+            of(LoginActions.loginFailure({ error: error?.error?.error || error?.error?.message || error?.message || 'Invalid email or password' }))
           )
         )
       )
@@ -54,11 +54,34 @@ export class LoginEffects {
       ofType(LoginActions.signup),
       switchMap(({ userReq }) =>
         this.authService.register(userReq).pipe(
-          tap(() => this.router.navigate(['auth/login'])),
+          tap(() => {
+            try {
+              const raw = localStorage.getItem('registered_emails_registry') || '[]';
+              const list = JSON.parse(raw);
+              if (!list.includes(userReq.email.toLowerCase())) {
+                list.push(userReq.email.toLowerCase());
+                localStorage.setItem('registered_emails_registry', JSON.stringify(list));
+              }
+            } catch (e) {}
+            this.router.navigate(['auth/login']);
+          }),
           map(() => LoginActions.signupSuccess()),
-          catchError((error) =>
-            of(LoginActions.signupFailure({ error: error?.error?.message || error?.message || 'Registration failed' }))
-          )
+          catchError((error) => {
+            const rawMsg = error?.error?.error || error?.error?.message || error?.message || 'Registration failed';
+            let formattedMsg = rawMsg;
+            if (typeof rawMsg === 'string' && rawMsg.toLowerCase().includes('already registered')) {
+              formattedMsg = 'An account with this email already exists. Only 1 account per email is allowed.';
+              try {
+                const raw = localStorage.getItem('registered_emails_registry') || '[]';
+                const list = JSON.parse(raw);
+                if (!list.includes(userReq.email.toLowerCase())) {
+                  list.push(userReq.email.toLowerCase());
+                  localStorage.setItem('registered_emails_registry', JSON.stringify(list));
+                }
+              } catch (e) {}
+            }
+            return of(LoginActions.signupFailure({ error: formattedMsg }));
+          })
         )
       )
     )

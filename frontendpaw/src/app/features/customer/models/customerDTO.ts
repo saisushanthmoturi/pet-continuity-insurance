@@ -89,6 +89,7 @@ export interface PolicyDTO {
   petId: number;
   coverageAmount: number;
   premiumAmount: number;
+  monthlyPremium?: number;
   deductible?: number;
   currency?: string;
   startDate?: string;
