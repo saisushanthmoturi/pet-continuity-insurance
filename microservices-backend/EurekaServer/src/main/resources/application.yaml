@@ -13,3 +13,20 @@ eureka:
     fetch-registry: false
     service-url:
       defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      cors:
+        allowed-origins:
+          - "http://localhost:4200"
+          - "http://localhost:4201"
+          - "http://localhost:4202"
+        allowed-methods:
+          - GET
+          - POST
+          - OPTIONS
+        allowed-headers: "*"
+        allow-credentials: true

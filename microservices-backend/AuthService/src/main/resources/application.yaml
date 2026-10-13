@@ -27,6 +27,22 @@ management:
     web:
       exposure:
         include: health,info,metrics,prometheus,loggers
+      cors:
+        allowed-origins:
+          - "http://localhost:4200"
+          - "http://localhost:4201"
+          - "http://localhost:4202"
+          - "http://localhost:4203"
+          - "http://localhost:4204"
+          - "http://localhost:4205"
+        allowed-methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        allowed-headers: "*"
+        allow-credentials: true
   endpoint:
     health:
       show-details: always
